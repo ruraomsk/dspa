@@ -1,0 +1,12 @@
+Do it ;-)
+make: Entering directory '/usr/src/linux-4.9.72-gentoo'
+make[1]: Warning: File '/root/.netbeans/remote/192.168.1.86/rurawin-Windows-x86_64/D/md/cpc108/dspa/Makefile' has modification time 42914 s in the future
+  CC [M]  /root/.netbeans/remote/192.168.1.86/rurawin-Windows-x86_64/D/md/cpc108/dspa/dspa.o
+make[1]: warning:  Clock skew detected.  Your build may be incomplete.
+  Building modules, stage 2.
+make[1]: Warning: File '/root/.netbeans/remote/192.168.1.86/rurawin-Windows-x86_64/D/md/cpc108/dspa/Makefile' has modification time 42914 s in the future
+  MODPOST 1 modules
+  CC      /root/.netbeans/remote/192.168.1.86/rurawin-Windows-x86_64/D/md/cpc108/dspa/dspa.mod.o
+  LD [M]  /root/.netbeans/remote/192.168.1.86/rurawin-Windows-x86_64/D/md/cpc108/dspa/dspa.ko
+make[1]: warning:  Clock skew detected.  Your build may be incomplete.
+make: Leaving directory '/usr/src/linux-4.9.72-gentoo'
