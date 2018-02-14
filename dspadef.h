@@ -16,6 +16,7 @@
 
 
 #define MAX_DRIVERS 100
+#define SPA_DEBUG 1
 static int drv_count = 0;
 static int drv_flag = 0;
 static unsigned int irq_count;
@@ -45,61 +46,28 @@ typedef struct {
     short error;
 } table_drv;
 
-#define DRIVER_TEST1 0x1c
-void testdrv1_ini(table_drv* tdrv);
-void testdrv1_step(table_drv* tdrv);
+//#define DRIVER_TEST1 0x1c
+//void testdrv1_ini(table_drv* tdrv);
+//void testdrv1_step(table_drv* tdrv);
+//
+//#define DRIVER_TEST2 0x2d
+//void testdrv2_ini(table_drv* tdrv);
+//void testdrv2_step(table_drv* tdrv);
+//
+//#define DRIVER_TEST3 0x03
+//void testdrv3_ini(table_drv* tdrv);
+//void testdrv3_step(table_drv* tdrv);
 
-#define DRIVER_TEST2 0x2d
-void testdrv2_ini(table_drv* tdrv);
-void testdrv2_step(table_drv* tdrv);
-
-#define DRIVER_TEST3 0x03
-void testdrv3_ini(table_drv* tdrv);
-void testdrv3_step(table_drv* tdrv);
-
-typedef struct {
-    int lenght; // размер буфера ввода/вывода
-    unsigned char *inimod; // данные инициализации в области данных пользователя
-    unsigned char *data; // область ввода-вывода данных в пространнстве пользователя
-    void * init;
-    void * step;
-    char * td; // указатель в пространстве памяти на структуру данных table_drv
-
-} user_area;
-
-typedef struct {
-    int type;
-    void (*init)(table_drv*);
-    void (*step)(table_drv*);
-} type_drivers;
-
-static type_drivers tab_t[MAX_DRIVERS] = {
-    { DRIVER_TEST1,
-        &testdrv1_ini,
-        &testdrv1_step,},
-
-    { DRIVER_TEST2,
-        &testdrv2_ini,
-        &testdrv2_step,},
-
-    { DRIVER_TEST3,
-        testdrv3_ini,
-        testdrv3_step,},
-
-    {-1, NULL, NULL},
-};
-static user_area drv_len_data[MAX_DRIVERS];
-static table_drv table_drvs[MAX_DRIVERS];
 
 void log_init(table_drv* tdrv) {
     char str[120];
-    sprintf(str, "Driver %ld adr %ld init ", tdrv->tdrv.codedrv, tdrv->address.i);
+    sprintf(str, "Driver %d adr %d init ", tdrv->tdrv.codedrv, tdrv->address.i);
     printk(KERN_INFO "log:%s\n", str);
 }
 
 void log_step(table_drv* tdrv) {
     char str[120];
-    sprintf(str, "Driver %ld adr %ld step ", tdrv->tdrv.codedrv, tdrv->address.i);
+    sprintf(str, "Driver %d adr %d step ", tdrv->tdrv.codedrv, tdrv->address.i);
     printk(KERN_INFO "log:%s\n", str);
 }
 #define MISPA_PORTS 10
@@ -149,18 +117,6 @@ static int table_ports[MISPA_PORTS] = {
 //}
 
 
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* DSPADEF_H */
 

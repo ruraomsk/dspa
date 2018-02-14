@@ -46,6 +46,8 @@ typedef struct
   sschar SIGN[16]; // Результат счета каналов 1-8   
 } fds16r_data;
 #pragma options pop
+#define FDS16R 0x04
+#define FDS16R_SIZE sizeof(fds16r_data)
 
 void fds16r_ini(table_drv* drv);
 void fds16r_dw(table_drv* drv);

@@ -4,14 +4,14 @@
     <df root="." name="0">
       <df name="drivers">
         <in>fds16r.c</in>
-        <in>fds16r.h</in>
         <in>testdrv1.c</in>
         <in>testdrv2.c</in>
         <in>testdrv3.c</in>
+        <in>vas84r.c</in>
+        <in>vds32r.c</in>
       </df>
       <in>dspa.c</in>
       <in>misparw.c</in>
-      <in>misparw.h</in>
     </df>
     <df root="D:/cpc108/include" name="1">
     </df>
@@ -26,6 +26,7 @@
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
     <Elem>.</Elem>
+    <Elem>../../../cpc108/include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -35,7 +36,6 @@
         <platform>2</platform>
         <dependencyChecking>false</dependencyChecking>
         <rebuildPropChanged>false</rebuildPropChanged>
-        <prependToolCollectionPath>false</prependToolCollectionPath>
       </toolsSet>
       <flagsDictionary>
         <element flagsID="0" commonFlags="-std=c11"/>
@@ -53,9 +53,6 @@
           <executablePath></executablePath>
           <cTool>
             <standard>10</standard>
-            <incDir>
-              <pElem>D:/cpc108/include</pElem>
-            </incDir>
             <preprocessorList>
               <Elem>CC_HAVE_ASM_GOTO</Elem>
               <Elem>CONFIG_AS_AVX2=1</Elem>
@@ -80,9 +77,9 @@
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
-      <item path="drivers/fds16r.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="drivers/fds16r.h" ex="false" tool="3" flavor2="0">
+      <item path="drivers/fds16r.c" ex="false" tool="0" flavor2="10">
+        <cTool flags="0">
+        </cTool>
       </item>
       <item path="drivers/testdrv1.c" ex="false" tool="0" flavor2="10">
         <cTool flags="0">
@@ -91,6 +88,14 @@
       <item path="drivers/testdrv2.c" ex="false" tool="0" flavor2="3">
       </item>
       <item path="drivers/testdrv3.c" ex="false" tool="0" flavor2="3">
+      </item>
+      <item path="drivers/vas84r.c" ex="false" tool="0" flavor2="10">
+        <cTool flags="0">
+        </cTool>
+      </item>
+      <item path="drivers/vds32r.c" ex="false" tool="0" flavor2="10">
+        <cTool flags="0">
+        </cTool>
       </item>
       <item path="dspa.c" ex="false" tool="0" flavor2="0">
         <cTool flags="1">
@@ -114,9 +119,12 @@
           </incDir>
         </cTool>
       </folder>
-      <item path="misparw.c" ex="false" tool="0" flavor2="0">
-      </item>
-      <item path="misparw.h" ex="false" tool="3" flavor2="0">
+      <item path="misparw.c" ex="false" tool="0" flavor2="10">
+        <cTool flags="0">
+          <incDir>
+            <pElem>../../../cpc108/include</pElem>
+          </incDir>
+        </cTool>
       </item>
     </conf>
   </confs>

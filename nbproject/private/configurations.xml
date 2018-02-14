@@ -8,6 +8,10 @@
         <in>testdrv1.c</in>
         <in>testdrv2.c</in>
         <in>testdrv3.c</in>
+        <in>vas84r.c</in>
+        <in>vas84r.h</in>
+        <in>vds32r.c</in>
+        <in>vds32r.h</in>
       </df>
       <in>dspa.c</in>
       <in>dspa.h</in>
