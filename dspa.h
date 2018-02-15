@@ -13,7 +13,6 @@
 
 #ifndef DEV_H
 #define DEV_H
-
 #include <linux/fs.h>
 #include <linux/module.h>
 #include <asm/uaccess.h>
@@ -32,7 +31,8 @@ typedef struct {
     unsigned char *inimod; // данные инициализации в области данных пользователя
     unsigned char *data; // область ввода-вывода данных в пространнстве пользователя
     void * init;
-    void * step;
+    void * step1;
+    void * step2;
     char * td; // указатель в пространстве памяти на структуру данных table_drv
 
 } user_area;
@@ -40,23 +40,27 @@ typedef struct {
 typedef struct {
     int type;
     void (*init)(table_drv*);
-    void (*step)(table_drv*);
+    void (*step1)(table_drv*);
+    void (*step2)(table_drv*);
 } type_drivers;
 
 static type_drivers tab_t[MAX_DRIVERS] = {
     { FDS16R,
         &fds16r_ini,
-        &fds16r_dw,},
+        &fds16r_dw,
+        NULL,},
 
     { VDS32R,
         &vds32r_ini,
-        &vds32r_dw,},
+        &vds32r_dw,
+        NULL,},
 
     { VAS84R,
         &vas84r_ini,
-        &vas84r_dw,},
+        &vas84r_dw,
+        NULL,},
 
-    {-1, NULL, NULL},
+    {-1, NULL, NULL,NULL},
 };
 static user_area drv_len_data[MAX_DRIVERS];
 static table_drv table_drvs[MAX_DRIVERS];

@@ -99,7 +99,7 @@ typedef struct
 void vds32r_ini(table_drv* tdrv) {
     unsigned char RQ;
     unsigned char RH, RL;
-
+    log_init(tdrv);
     int ADR_MISPA = 0x118;
 
     SetBoxLen(inipar->BoxLen);
@@ -273,9 +273,10 @@ void vds32r_dw(table_drv* tdrv) {
     unsigned char msk = 0;
     unsigned char RH;   // RL;
 //    unsigned char RQ;
+    log_step(tdrv);
     int k = 0; // указатель заполняемого данного
     int ADR_MISPA;
-
+    
     SetBoxLen(0xFF);
 
 

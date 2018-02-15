@@ -58,17 +58,20 @@ typedef struct {
 //void testdrv3_ini(table_drv* tdrv);
 //void testdrv3_step(table_drv* tdrv);
 
+static char logstr[120];
 
 void log_init(table_drv* tdrv) {
-    char str[120];
-    sprintf(str, "Driver %d adr %d init ", tdrv->tdrv.codedrv, tdrv->address.i);
-    printk(KERN_INFO "log:%s\n", str);
+    sprintf(logstr, "Driver %hhx adr %d init ", tdrv->tdrv.codedrv, tdrv->address.i);
+    printk(KERN_INFO "log:%s\n", logstr);
+}
+
+void log_debug(void) {
+    printk(KERN_INFO "log:%s\n", logstr);
 }
 
 void log_step(table_drv* tdrv) {
-    char str[120];
-    sprintf(str, "Driver %d adr %d step ", tdrv->tdrv.codedrv, tdrv->address.i);
-    printk(KERN_INFO "log:%s\n", str);
+    sprintf(logstr, "Driver %hhx adr %d step ", tdrv->tdrv.codedrv, tdrv->address.i);
+    printk(KERN_INFO "log:%s\n", logstr);
 }
 #define MISPA_PORTS 10
 #define MISPA_SIGNAL_PORT 0x100

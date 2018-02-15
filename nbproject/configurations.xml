@@ -26,7 +26,6 @@
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
     <Elem>.</Elem>
-    <Elem>../../../cpc108/include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -40,7 +39,7 @@
       <flagsDictionary>
         <element flagsID="0" commonFlags="-std=c11"/>
         <element flagsID="1"
-                 commonFlags="-std=gnu89 -m32 -msoft-float -march=i686 -mtune=generic -Wa,-mtune=generic32 -ffreestanding -O2"/>
+                 commonFlags="-std=gnu89 -m32 -msoft-float -march=i486 -mtune=generic -Wa,-mtune=generic32 -ffreestanding -O2"/>
       </flagsDictionary>
       <codeAssistance>
         <resolveSymbolicLinks>true</resolveSymbolicLinks>
@@ -101,14 +100,14 @@
         <cTool flags="1">
           <incDir>
             <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo/arch/x86/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo/arch/x86/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo/arch/x86/include/generated</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo/arch/x86/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.72-gentoo</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
+            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
           </incDir>
         </cTool>
       </item>

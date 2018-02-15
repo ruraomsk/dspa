@@ -13,8 +13,7 @@
 
 #ifndef VAS84R_H
 #define VAS84R_H
-#pragma options push
-#pragma option -a-
+#pragma pack(push,1)
 
 typedef struct
 {
@@ -38,7 +37,7 @@ typedef struct
   ssint SIGN[8];   // Результат счета каналов 1-8   
   sschar widesos;  // расширенный байт состояния
 } vas84r_data;
-#pragma options pop
+#pragma pack(pop)
 
 #define VAS84R 0xC6
 #define VAS84R_SIZE sizeof(vas84r_data)

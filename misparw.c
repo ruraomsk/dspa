@@ -8,8 +8,10 @@
 
 #include "dspadef.h"
 #include "misparw.h"
+#include "asm/io.h"
+#include "linux/kernel.h"
 
-static int Box_len;
+static int Box_len=0xff;
 static void __iomem *rambase = NULL;
 
 int init_memory() {
@@ -22,6 +24,7 @@ int init_memory() {
 }
 
 void free_memory() {
+    iounmap(rambase);
     rambase = NULL;
 }
 
@@ -29,7 +32,8 @@ unsigned char ReadPort(int port) {
     irq_count = 0;
     drv_flag = 1;
     //    printk(KERN_INFO "read port %x start\n",port);
-    unsigned char c = inb(port);
+    unsigned char c;
+    c = inb(port);
     //    printk(KERN_INFO "read port %x end\n",port);
     drv_flag = 0;
     return c;
@@ -47,29 +51,36 @@ unsigned char ReadMem(int adr) {
     irq_count = 0;
     drv_flag = 1;
     printk(KERN_INFO "read mem %x start\n", adr);
-    char c = ioread8((unsigned char *) rambase + adr);
+    char c;
+    c = ioread8((unsigned char *) rambase + adr);
     printk(KERN_INFO "read mem %x end %hhx\n", adr, c);
     drv_flag = 0;
     return c;
 }
 
 void SetBoxLen(int lenBox) {
-    Box_len = lenBox;
+    
+//    Box_len = lenBox;
 }
 
 int WriteBox(unsigned char ptr, unsigned char value) {
-    iowrite8(value, rambase + ptr);
+    iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     value = !value;
-    iowrite8(value, rambase + (Box_len - ptr));
+    iowrite8(value, (unsigned char *) rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
     return 0;
 }
 
 int ReadBox(unsigned char ptr, unsigned char *value) {
-    unsigned char val = ioread8(rambase + ptr);
+//    sprintf(logstr, "ReadBox_1 %x ", ptr);
+//    log_debug();
+    unsigned char val = ioread8((unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
-    unsigned char lav = ioread8(rambase + (Box_len - ptr));
+    unsigned char lav;
+//    sprintf(logstr, "ReadBox_2 %x ", ( (Box_len - ptr)));
+//    log_debug();
+    lav = ioread8(rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
     if ((!lav) != val) return NEGC_BOX;
     *value = val;
@@ -77,14 +88,14 @@ int ReadBox(unsigned char ptr, unsigned char *value) {
 }
 
 int ReadSinglBox(unsigned char ptr, unsigned char *value) {
-    unsigned char val = ioread8(rambase + ptr);
+    unsigned char val = ioread8((unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     *value = val;
     return 0;
 }
 
 int WriteSinglBox(unsigned char ptr, unsigned char value) {
-    iowrite8(value, rambase + ptr);
+    iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     return 0;
 }
@@ -105,6 +116,8 @@ int ReadBox3(unsigned char ptr, unsigned char *value) {
     char RH;
 
     for (i = 0; i < 3; i++) {
+//        sprintf(logstr, "ReadBox3 %hhx", ptr);
+//        log_debug();
         RH = ReadBox(ptr, value);
         if (RH != 0xC0)
             break;
@@ -126,6 +139,7 @@ int CatchBox(void) {
     }
     return BUSY_BOX;
 }
+
 int FreeBox(void) {
     char ret;
     int RH = WriteSinglBox(SV, 0);
@@ -140,12 +154,14 @@ int FreeBox(void) {
     }
     return BUSY_BOX;
 }
+
 unsigned long decodegray(unsigned long k) {
     unsigned char i;
     for (i = 1; i < 24; i <<= 1)
         k ^= (k >> i);
     return k;
 }
-void delaymcs(int x){
+
+void delaymcs(int x) {
     msleep(x);
 }

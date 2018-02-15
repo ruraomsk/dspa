@@ -40,6 +40,7 @@ static irqreturn_t no_port_irq(int irq, void *dev_id) {
         printk(KERN_INFO "Not ready counter=%d\n", irq_count);
     }
     return IRQ_NONE;
+//    return IRQ_HANDLED;
 }
 
 void clearMemory(void) {
@@ -71,7 +72,8 @@ int make_init(int driver_no) {
     while (tab_t[i].type > 0) {
         if (tab_t[i].type == type) {
             drv_len_data[driver_no].init = tab_t[i].init;
-            drv_len_data[driver_no].step = tab_t[i].step;
+            drv_len_data[driver_no].step1 = tab_t[i].step1;
+            drv_len_data[driver_no].step2 = tab_t[i].step2;
             return 0;
         }
         i++;
@@ -81,120 +83,52 @@ int make_init(int driver_no) {
 
 }
 
-//void make_step(int driver_no) {
-//    switch (table_drvs[driver_no].tdrv.codedrv) {
-//        case DRIVER_TEST1:
-//            testdrv1_step(&table_drvs[driver_no]);
-//            return;
-//        case DRIVER_TEST2:
-//            testdrv2_step(&table_drvs[driver_no]);
-//            return;
-//        case DRIVER_TEST3:
-//            testdrv3_step(&table_drvs[driver_no]);
-//            return;
-//    }
-//    printk(KERN_ERR "=== Can not spa-ps device driver code:%d\n", driver_no);
-//
-//}
-
-//int find_device(int cdrv, int adrv) {
-//    int i;
-//    for (i = 0; i < drv_count; i++) {
-//        if ((table_drvs[i].address.i == adrv) && (table_drvs[i].tdrv.codedrv == cdrv)) {
-//            return i;
-//        }
-//    }
-//    return -1;
-//}
-
-/*
- Новая версия 
- */
 static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
     int i;
+    short errors[128];
+    if(*ppos==0){
+        //вернуть коды ошибок
+        int i;
+        for (i = 0; i < drv_count; i++) {
+            errors[i]=table_drvs[i].error;
+        }
+            if (copy_to_user(buf, errors, drv_count*sizeof(short))) {
+                printk(KERN_ERR "=== Can not move data spa-ps device region\n");
+                return -EINVAL;
+            }
+    }
+
     for (i = 0; i < drv_count; i++) {
         // reading data from user area
         int count = drv_len_data[i].lenght;
-        printk(KERN_INFO "run step section %d\n",i);
+        //        printk(KERN_INFO "run step section %d\n",i);
+        void (*ptr)(table_drv *) = NULL;
+        if (*ppos == 1) ptr = drv_len_data[i].step1;
+        if (*ppos == 2) ptr = drv_len_data[i].step2;
+        
+        if (ptr != NULL) {
+            if (copy_from_user(table_drvs[i].data, drv_len_data[i].data, count)) {
+                printk(KERN_ERR "=== Can not move data spa-ps device region\n");
+                return -EINVAL;
+            }
+            ptr(&table_drvs[i]);
 
-
-        if (copy_from_user(table_drvs[i].data, drv_len_data[i].data, count)) {
-            printk(KERN_ERR "=== Can not move data spa-ps device region\n");
-            return -EINVAL;
+            //    table_drv *td = (table_drv *)drv_len_data[i].td ;
+            if (copy_to_user(drv_len_data[i].data, table_drvs[i].data, count)) {
+                printk(KERN_ERR "=== Can not move data spa-ps device region\n");
+                return -EINVAL;
+            }
+//            char *pt_error=drv_len_data[i].td+sizeof(table_drv)-sizeof(short);
+//            char *pt_time=pt_error-sizeof(long long int); 
+//            copy_to_user(pt_error,&table_drvs[i].error,sizeof(short));
+//            copy_to_user(pt_time,&table_drvs[i].time,sizeof(long long int));
         }
-        void (*ptr)(table_drv *)=NULL;
-        ptr=drv_len_data[i].step;
-        ptr(&table_drvs[i]);
-        //    table_drv *td = (table_drv *)drv_len_data[i].td ;
-        if (copy_to_user(drv_len_data[i].data, table_drvs[i].data, count)) {
-            printk(KERN_ERR "=== Can not move data spa-ps device region\n");
-            return -EINVAL;
-        }
-        printk(KERN_INFO "end step section %d\n",i);
+        //        printk(KERN_INFO "end step section %d\n",i);
     }
     return EOK;
 
 }
-/* Операция ввода на самом деле это две операции 
- * Вначале из буфера считываются текущие значения для вывода
- * А затем возвращаются прочитанные с устройств значения
- */
-//static ssize_t dev_read(struct file * file, char * buf,
-//        size_t count, loff_t *ppos) {
-//    loff.ppos = *ppos;
-//    if (loff.df.len_buffer == 0) {
-//        // Вернуть время последней операции по устройству
-//        int drv = find_device(loff.df.code_driver, loff.df.address);
-//        if (drv < 0) {
-//            printk(KERN_ERR "read/write not found driver:%d adr:%d\n", count, loff.df.code_driver, loff.df.address);
-//            return -EBUSY;
-//        }
-//        if (count != sizeof (table_drvs[drv].time)) {
-//            printk(KERN_ERR "read/write not found driver:%d adr:%d\n", count, loff.df.code_driver, loff.df.address);
-//            return -EBUSY;
-//        }
-//        copy_to_user(buf, &table_drvs[drv].time, count);
-//        return EOK;
-//    }
-//
-//    table_drv *td = (table_drv *) buf;
-//
-//    //printk(KERN_INFO "read/write data len: %d driver:%d adr:%d\n", count, loff.df.len_buffer, loff.df.code_driver, loff.df.address);
-//    if (loff.df.len_buffer != count) {
-//        printk(KERN_ERR "=== error read data:%s len:%d read:%d\n", DEVNAME, loff.df.len_buffer, count);
-//        return -EBUSY;
-//    }
-//    int drv = find_device(loff.df.code_driver, loff.df.address);
-//    if (drv < 0) {
-//        printk(KERN_ERR "read/write not found driver:%d adr:%d\n", count, loff.df.code_driver, loff.df.address);
-//        return -EBUSY;
-//    }
-//
-//    if (loff.df.len_buffer != drv_len_data[drv]) {
-//        printk(KERN_ERR "=== error read data:%s count:%d driver:%d\n", DEVNAME, count, drv_len_data[drv]);
-//        return -EBUSY;
-//    }
-//
-//    if (copy_from_user(table_drvs[drv].data, td->data, count)) {
-//        printk(KERN_ERR "=== Can not move data spa-ps device region\n");
-//        return -EINVAL;
-//    }
-//    make_step(drv);
-//    if (copy_to_user(td->data, table_drvs[drv].data, count)) {
-//        printk(KERN_ERR "=== Can not move data spa-ps device region\n");
-//        return -EINVAL;
-//    }
-//
-//    return table_drvs[drv].error;
-//}
-
-/*
- *  Когда выполняем операцию записи то на самом деле мы производим настройку системы 
- *  вводы . вывода
- *  ppos
- *  
- */
 
 static ssize_t dev_write(struct file * file, const char * buf,
         size_t count, loff_t *ppos) {
@@ -206,8 +140,8 @@ static ssize_t dev_write(struct file * file, const char * buf,
         printk(KERN_INFO "=== end init block : %s\n", DEVNAME);
         return -EBUSY;
     }
-        printk(KERN_INFO "init table sizeof loff:%d %ld\n", sizeof (loff), loff.ppos);
-        printk(KERN_INFO "init table len: %d driver:%d adr:%d lenData:%d\n", count, loff.df.code_driver, loff.df.address, loff.df.len_buffer);
+//    printk(KERN_INFO "init table sizeof loff:%d %ld\n", sizeof (loff), loff.ppos);
+//    printk(KERN_INFO "init table len: %d driver:%d adr:%d lenData:%d\n", count, loff.df.code_driver, loff.df.address, loff.df.len_buffer);
     init_buf_ptr = kmalloc(count, GFP_KERNEL);
     if (NULL == init_buf_ptr) {
         printk(KERN_ERR "=== memory allocation error spa-ps device region\n");
@@ -239,18 +173,18 @@ static ssize_t dev_write(struct file * file, const char * buf,
     table_drvs[drv_count].error = 0;
     table_drvs[drv_count].time = 0;
     if (make_init(drv_count) == 0) {
-        printk(KERN_INFO "run init section\n");
-        void (*ptr)(table_drv *)=NULL;
-        ptr=drv_len_data[drv_count].init;
+//        printk(KERN_INFO "run init section\n");
+        void (*ptr)(table_drv *) = NULL;
+        ptr = drv_len_data[drv_count].init;
         ptr(&table_drvs[drv_count]);
-        printk(KERN_INFO "end init section\n");
+//        printk(KERN_INFO "end init section\n");
     };
     drv_count++;
     if (copy_to_user(td->data, in_buf_ptr, loff.df.len_buffer)) {
         printk(KERN_ERR "=== Can not move data spa-ps device region\n");
         return -EINVAL;
     }
-    return count;
+    return 0;
 }
 
 static const struct file_operations dev_fops = {
@@ -310,7 +244,7 @@ static int __init dev_init(void) {
     if (ret == 0) drv_count = 0;
     if (irq == 0) irq = SHARED_IRQ;
     if (request_irq(irq, no_port_irq, IRQF_SHARED, name_dev, &spa_dev_id)) return -1;
-    if(init_memory()!=0) return -1;
+    if (init_memory() != 0) return -1;
     printk(KERN_INFO "==== Successfully setup on IRQ %d id:%d =========\n", irq, spa_dev_id);
     irq_count = 0;
 err:

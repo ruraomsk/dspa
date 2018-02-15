@@ -14,8 +14,7 @@
 #ifndef FDS16R_H
 #define FDS16R_H
 
-#pragma options push
-#pragma option -a-
+#pragma pack(push,1)
 
 typedef struct
 {
@@ -45,7 +44,7 @@ typedef struct
 {
   sschar SIGN[16]; // Результат счета каналов 1-8   
 } fds16r_data;
-#pragma options pop
+#pragma pack(pop)
 #define FDS16R 0x04
 #define FDS16R_SIZE sizeof(fds16r_data)
 

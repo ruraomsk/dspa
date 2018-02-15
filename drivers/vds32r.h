@@ -13,8 +13,7 @@
 
 #ifndef VDS32R_H
 #define VDS32R_H
-#pragma options push
-#pragma option -a-
+#pragma pack(push,1)
 
 typedef struct
 {
@@ -40,7 +39,7 @@ typedef struct
 {
   ssbool SIGN[32]; // Результат счета каналов 1-8   
 } vds32r_data;
-#pragma options pop
+#pragma pack(pop)
 
 #define VDS32R 0xC2
 #define VDS32R_SIZE sizeof(vds32r_data)

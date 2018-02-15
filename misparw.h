@@ -13,10 +13,10 @@
 
 #ifndef MISPARW_H
 #define MISPARW_H
-#define ADR_BOX     0xD000
+#define ADR_BOX     0xD0000
 #define SIZE_BOX    0xff
 
-#define MRQ          0x05    //; запрос на обслуживание
+#define MRQ         0x05    //; запрос на обслуживание
 #define SV          0x06    //; флаг захвата ПЯ со стороны ФП
 #define SVE         0x07    //; флаг завершения обслуживания ПЯ
 #define MASTER      0x08    //; флаг задатчика времени
