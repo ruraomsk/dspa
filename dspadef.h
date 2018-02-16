@@ -61,17 +61,17 @@ typedef struct {
 static char logstr[120];
 
 void log_init(table_drv* tdrv) {
-    sprintf(logstr, "Driver %hhx adr %d init ", tdrv->tdrv.codedrv, tdrv->address.i);
-    printk(KERN_INFO "log:%s\n", logstr);
+//    sprintf(logstr, "Driver %hhx adr %d init ", tdrv->tdrv.codedrv, tdrv->address.i);
+//    printk(KERN_INFO "log:%s\n", logstr);
 }
 
 void log_debug(void) {
-    printk(KERN_INFO "log:%s\n", logstr);
+//    printk(KERN_INFO "log:%s\n", logstr);
 }
 
 void log_step(table_drv* tdrv) {
-    sprintf(logstr, "Driver %hhx adr %d step ", tdrv->tdrv.codedrv, tdrv->address.i);
-    printk(KERN_INFO "log:%s\n", logstr);
+//    sprintf(logstr, "Driver %hhx adr %d step ", tdrv->tdrv.codedrv, tdrv->address.i);
+//    printk(KERN_INFO "log:%s\n", logstr);
 }
 #define MISPA_PORTS 10
 #define MISPA_SIGNAL_PORT 0x100
@@ -111,6 +111,7 @@ static int table_ports[MISPA_PORTS] = {
  */
 
 #define ERR_MEM irq_count 
+#define CLEAR_MEM irq_count=0;
 //static unsigned long int drv_timer=0L;
 //unsigned long int read_timer(void){
 ////    timezone tz;

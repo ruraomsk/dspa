@@ -33,7 +33,7 @@ typedef struct {
     void * init;
     void * step1;
     void * step2;
-    char * td; // указатель в пространстве памяти на структуру данных table_drv
+    void * td; // указатель в пространстве памяти на структуру данных table_drv
 
 } user_area;
 

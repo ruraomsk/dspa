@@ -29,34 +29,16 @@ void free_memory() {
 }
 
 unsigned char ReadPort(int port) {
-    irq_count = 0;
-    drv_flag = 1;
-    //    printk(KERN_INFO "read port %x start\n",port);
     unsigned char c;
     c = inb(port);
-    //    printk(KERN_INFO "read port %x end\n",port);
-    drv_flag = 0;
     return c;
 }
 
 void WritePort(int port, unsigned char byte) {
-    irq_count = 0;
-    drv_flag = 1;
     outb(byte, port);
-    drv_flag = 0;
     return;
 }
 
-unsigned char ReadMem(int adr) {
-    irq_count = 0;
-    drv_flag = 1;
-    printk(KERN_INFO "read mem %x start\n", adr);
-    char c;
-    c = ioread8((unsigned char *) rambase + adr);
-    printk(KERN_INFO "read mem %x end %hhx\n", adr, c);
-    drv_flag = 0;
-    return c;
-}
 
 void SetBoxLen(int lenBox) {
     
@@ -64,9 +46,11 @@ void SetBoxLen(int lenBox) {
 }
 
 int WriteBox(unsigned char ptr, unsigned char value) {
+    CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     value = !value;
+    CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
     return 0;
@@ -75,11 +59,13 @@ int WriteBox(unsigned char ptr, unsigned char value) {
 int ReadBox(unsigned char ptr, unsigned char *value) {
 //    sprintf(logstr, "ReadBox_1 %x ", ptr);
 //    log_debug();
+    CLEAR_MEM
     unsigned char val = ioread8((unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     unsigned char lav;
 //    sprintf(logstr, "ReadBox_2 %x ", ( (Box_len - ptr)));
 //    log_debug();
+    CLEAR_MEM
     lav = ioread8(rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
     if ((!lav) != val) return NEGC_BOX;
@@ -88,6 +74,7 @@ int ReadBox(unsigned char ptr, unsigned char *value) {
 }
 
 int ReadSinglBox(unsigned char ptr, unsigned char *value) {
+    CLEAR_MEM
     unsigned char val = ioread8((unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     *value = val;
@@ -95,6 +82,7 @@ int ReadSinglBox(unsigned char ptr, unsigned char *value) {
 }
 
 int WriteSinglBox(unsigned char ptr, unsigned char value) {
+    CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     return 0;
