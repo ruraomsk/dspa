@@ -26,6 +26,7 @@
 #include "drivers/vds32r.c"
 #include "drivers/vas84r.c"
 
+#pragma pack(push, 1)
 typedef struct {
     int lenght; // размер буфера ввода/вывода
     unsigned char *inimod; // данные инициализации в области данных пользователя
@@ -34,16 +35,19 @@ typedef struct {
     void * step1;
     void * step2;
     void * td; // указатель в пространстве памяти на структуру данных table_drv
-
 } user_area;
+#pragma pop
 
+#pragma pack(push, 1)
 typedef struct {
     int type;
     void (*init)(table_drv*);
     void (*step1)(table_drv*);
     void (*step2)(table_drv*);
 } type_drivers;
+#pragma pop
 
+#pragma pack(push, 1)
 static type_drivers tab_t[MAX_DRIVERS] = {
     { FDS16R,
         &fds16r_ini,
@@ -62,6 +66,7 @@ static type_drivers tab_t[MAX_DRIVERS] = {
 
     {-1, NULL, NULL,NULL},
 };
+#pragma pop
 static user_area drv_len_data[MAX_DRIVERS];
 static table_drv table_drvs[MAX_DRIVERS];
 

@@ -21,13 +21,16 @@ static int drv_count = 0;
 static int drv_flag = 0;
 static unsigned int irq_count;
 
-typedef struct __attribute__ ((__packed__)) {
+#pragma pack(push, 1)
+typedef struct {
     unsigned char code_driver;
     unsigned char address;
     unsigned short len_buffer;
 }
 def_dev;
+#pragma pop
 
+#pragma pack(push, 1)
 typedef struct {
 
     union {
@@ -45,6 +48,7 @@ typedef struct {
     unsigned long int time;
     short error;
 } table_drv;
+#pragma pop
 
 //#define DRIVER_TEST1 0x1c
 //void testdrv1_ini(table_drv* tdrv);

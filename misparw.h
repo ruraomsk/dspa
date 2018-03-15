@@ -13,7 +13,7 @@
 
 #ifndef MISPARW_H
 #define MISPARW_H
-#define ADR_BOX     0xD0000
+#define ADR_BOX     0xСС000
 #define SIZE_BOX    0xff
 
 #define MRQ         0x05    //; запрос на обслуживание

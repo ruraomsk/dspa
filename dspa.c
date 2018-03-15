@@ -15,7 +15,7 @@
 #define DEVICE_COUNT 1
 #define MODNAME "spa_device"
 #define EOK 0
-#define SHARED_IRQ 13
+#define SHARED_IRQ 6
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Yury Rusinov <ruraomsk@list.ru>");
 MODULE_VERSION("1.0");
@@ -35,10 +35,15 @@ static union {
 // Обрабатываем прерывание на отсутствие модуля по МИСПА
 
 static irqreturn_t no_port_irq(int irq, void *dev_id) {
+    unsigned char in;
+    if ((in = ReadPort(0x120))&1 == 1) {
         irq_count++;
         printk(KERN_INFO "Not ready counter=%d\n", irq_count);
-//    return IRQ_NONE;
-    return IRQ_HANDLED;
+        WritePort(0x120, in & 0x2);
+        return IRQ_HANDLED;
+    }
+    return IRQ_NONE;
+
 }
 
 void clearMemory(void) {
@@ -84,18 +89,18 @@ int make_init(int driver_no) {
 static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
     int i;
-//    short errors[128];
-//    if(*ppos==0){
-//        //вернуть коды ошибок
-//        int i;
-//        for (i = 0; i < drv_count; i++) {
-//            errors[i]=table_drvs[i].error;
-//        }
-//            if (copy_to_user(buf, errors, drv_count*sizeof(short))) {
-//                printk(KERN_ERR "=== Can not move data spa-ps device region\n");
-//                return -EINVAL;
-//            }
-//    }
+    //    short errors[128];
+    //    if(*ppos==0){
+    //        //вернуть коды ошибок
+    //        int i;
+    //        for (i = 0; i < drv_count; i++) {
+    //            errors[i]=table_drvs[i].error;
+    //        }
+    //            if (copy_to_user(buf, errors, drv_count*sizeof(short))) {
+    //                printk(KERN_ERR "=== Can not move data spa-ps device region\n");
+    //                return -EINVAL;
+    //            }
+    //    }
 
     for (i = 0; i < drv_count; i++) {
         // reading data from user area
@@ -104,7 +109,7 @@ static ssize_t dev_read(struct file * file, char * buf,
         void (*ptr)(table_drv *) = NULL;
         if (*ppos == 1) ptr = drv_len_data[i].step1;
         if (*ppos == 2) ptr = drv_len_data[i].step2;
-        
+
         if (ptr != NULL) {
             if (copy_from_user(table_drvs[i].data, drv_len_data[i].data, count)) {
                 printk(KERN_ERR "=== Can not move data spa-ps device region\n");
@@ -117,11 +122,12 @@ static ssize_t dev_read(struct file * file, char * buf,
                 printk(KERN_ERR "=== Can not move data spa-ps device region\n");
                 return -EINVAL;
             }
-            void *pt_error=drv_len_data[i].td+sizeof(table_drv)-sizeof(short)+2;
-            void *pt_time=pt_error-sizeof(long long int); 
-//            printk(KERN_INFO "move data buf: %x %x %x driver:%d\n",drv_len_data[i].td,pt_time,pt_error,table_drvs[i].tdrv.typedev);
-            copy_to_user(pt_error,&table_drvs[i].error,sizeof(short));
-            copy_to_user(pt_time,&table_drvs[i].time,sizeof(long long int));
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+            void *pt_error = drv_len_data[i].td + sizeof (table_drv) - sizeof (short); //+2;
+            void *pt_time = pt_error - sizeof (long long int);
+            //            printk(KERN_INFO "move data buf: %x %x %x driver:%d\n",drv_len_data[i].td,pt_time,pt_error,table_drvs[i].tdrv.typedev);
+            copy_to_user(pt_error, &table_drvs[i].error, sizeof (short));
+            copy_to_user(pt_time, &table_drvs[i].time, sizeof (long long int));
         }
         //        printk(KERN_INFO "end step section %d\n",i);
     }
@@ -139,8 +145,8 @@ static ssize_t dev_write(struct file * file, const char * buf,
         printk(KERN_INFO "=== end init block : %s\n", DEVNAME);
         return -EBUSY;
     }
-//    printk(KERN_INFO "init table sizeof loff:%d %ld\n", sizeof (loff), loff.ppos);
-//    printk(KERN_INFO "init table len: %d driver:%d adr:%d lenData:%d\n", count, loff.df.code_driver, loff.df.address, loff.df.len_buffer);
+    //    printk(KERN_INFO "init table sizeof loff:%d %ld\n", sizeof (loff), loff.ppos);
+    //    printk(KERN_INFO "init table len: %d driver:%d adr:%d lenData:%d\n", count, loff.df.code_driver, loff.df.address, loff.df.len_buffer);
     init_buf_ptr = kmalloc(count, GFP_KERNEL);
     if (NULL == init_buf_ptr) {
         printk(KERN_ERR "=== memory allocation error spa-ps device region\n");
@@ -163,8 +169,8 @@ static ssize_t dev_write(struct file * file, const char * buf,
     drv_len_data[drv_count].data = td->data;
     drv_len_data[drv_count].inimod = td->inimod;
     drv_len_data[drv_count].td = buf;
-//    printk(KERN_INFO "init table buf: %x %x driver:%d adr:%d \n",drv_len_data[drv_count].td,buf,loff.df.code_driver, loff.df.address);
-    
+    //    printk(KERN_INFO "init table buf: %x %x driver:%d adr:%d \n",drv_len_data[drv_count].td,buf,loff.df.code_driver, loff.df.address);
+
 
 
     table_drvs[drv_count].tdrv.codedrv = loff.df.code_driver;
@@ -174,11 +180,11 @@ static ssize_t dev_write(struct file * file, const char * buf,
     table_drvs[drv_count].error = 0;
     table_drvs[drv_count].time = 0;
     if (make_init(drv_count) == 0) {
-//        printk(KERN_INFO "run init section\n");
+        //        printk(KERN_INFO "run init section\n");
         void (*ptr)(table_drv *) = NULL;
         ptr = drv_len_data[drv_count].init;
         ptr(&table_drvs[drv_count]);
-//        printk(KERN_INFO "end init section\n");
+        //        printk(KERN_INFO "end init section\n");
     };
     drv_count++;
     if (copy_to_user(td->data, in_buf_ptr, loff.df.len_buffer)) {
