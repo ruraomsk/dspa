@@ -29,12 +29,18 @@ void free_memory() {
 }
 
 unsigned char ReadPort(int port) {
+//    return 0;
     unsigned char c;
     c = inb(port);
     return c;
 }
 
 void WritePort(int port, unsigned char byte) {
+//    return;
+//    char logstr[120];
+//    sprintf(logstr, "write port %hhhhx = %hhx ", port,byte);
+//    printk(KERN_INFO "log:%s\n", logstr);
+
     outb(byte, port);
     return;
 }

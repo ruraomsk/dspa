@@ -115,7 +115,7 @@ void vas84r_dw(table_drv* tdrv)
 
 // установить адрес модуля на МИСПА
 
-  RQ = tdrv->address.c[0];
+  RQ = (char) (tdrv->address&0xff);
   WritePort(ADR_MISPA,RQ);
   tdrv->error = 0;
 

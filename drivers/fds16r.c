@@ -63,7 +63,7 @@ void fds16r_ini(table_drv* tdrv) {
 
     SetBoxLen(inipar->BoxLen);
 
-    WritePort(ADR_MISPA, tdrv->address.c[0]); //адрес модуля на миспа
+    WritePort(ADR_MISPA, (char)(tdrv->address&0xff)); //адрес модуля на миспа
     tdrv->error = 0;
     // проверка типа модуля 
 
@@ -320,7 +320,7 @@ void fds16r_dw(table_drv* tdrv) {
 
     SetBoxLen(inipar->BoxLen);
 
-    WritePort(ADR_MISPA, tdrv->address.c[0]);
+    WritePort(ADR_MISPA, (char)(tdrv->address&0xff));
     tdrv->error = 0;
 
     for (i = 7, j = 0x80, ch18 = 0, msk = inipar->UsMask18; i >= 0; i--) { // упаковать используемые каналы 1 - 8

@@ -51,10 +51,7 @@
           <cleanCommand>./clean.bash</cleanCommand>
           <executablePath></executablePath>
           <cTool>
-            <standard>10</standard>
-            <incDir>
-              <pElem>D:/cpc108/include</pElem>
-            </incDir>
+            <standard>3</standard>
             <preprocessorList>
               <Elem>CC_HAVE_ASM_GOTO</Elem>
               <Elem>CONFIG_AS_AVX2=1</Elem>

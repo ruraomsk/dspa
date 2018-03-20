@@ -8,6 +8,7 @@
 #include <linux/kernel.h>
 #include <linux/miscdevice.h>
 #include <linux/slab.h>
+#include <asm/io.h>
 #include "dspa.h"
 #include "misparw.h"
 #define DEVNAME "dspa"
@@ -15,7 +16,7 @@
 #define DEVICE_COUNT 1
 #define MODNAME "spa_device"
 #define EOK 0
-#define SHARED_IRQ 6
+#define SHARED_IRQ 7
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Yury Rusinov <ruraomsk@list.ru>");
 MODULE_VERSION("1.0");
@@ -36,10 +37,18 @@ static union {
 
 static irqreturn_t no_port_irq(int irq, void *dev_id) {
     unsigned char in;
-    if ((in = ReadPort(0x120))&1 == 1) {
+    in = ReadPort(0x120);
+    if (in&1) {
+        outb(0x130,1);
         irq_count++;
-        printk(KERN_INFO "Not ready counter=%d\n", irq_count);
-        WritePort(0x120, in & 0x2);
+        printk(KERN_INFO "Ettor read module %hhhhx=%d\n",inb(0x118), irq_count);
+        WritePort(0x120, 0);
+        return IRQ_HANDLED;
+    }
+    if(in&4){
+        printk(KERN_INFO "Timer! =%hhx\n", in);
+        outb(0x130,1);
+        WritePort(0x120, 0);
         return IRQ_HANDLED;
     }
     return IRQ_NONE;
@@ -57,15 +66,20 @@ void clearMemory(void) {
 }
 
 static int dev_open(struct inode *n, struct file *f) {
-    if (device_open) return -EBUSY;
+//    if (device_open) return -EBUSY;
     clearMemory();
-    device_open++;
-    return EOK;
+    device_open=1;
+    outb(0x00,0x128);
+    outb(0x00,0x108);
+    outb(0xff,0x128);
+    outb(1,0x138);   // Типа мы ведущие захватываем мир!
+    if(inb(0x112)&0x2) return EOK;
+    return -EBUSY;
 }
 
 static int dev_release(struct inode *n, struct file *f) {
     clearMemory();
-    device_open--;
+    device_open=0;
     return EOK;
 }
 
@@ -85,10 +99,27 @@ int make_init(int driver_no) {
     return 1;
 
 }
+static int ports[10]={0x100,0x108,0x110,0x112,0x114,0x118,0x120,0x128,0x130,0x138};
+void printports(void) {
+//    ioperm(0x110, 10, 1);
+//    ioperm(0x138, 2, 1);
+    int port;
+    for (port = 0; port < 10; port++) {
+        printk(KERN_ERR "%x=%hhx \n",ports[port], inb(ports[port]));
+    }
+}
 
 static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
     int i;
+    printports();
+    outb(1,0x130);          // типа мы работаем!
+    if(count==0) {          // Запрос не мастер ли  мы?
+        if(inb(0x112)&0x2==0) return 1; // нет не мастер
+        return EOK;        
+    }
+    if(inb(0x112)&0x2==0) return 1;  //Slave
+    
     //    short errors[128];
     //    if(*ppos==0){
     //        //вернуть коды ошибок
@@ -105,7 +136,7 @@ static ssize_t dev_read(struct file * file, char * buf,
     for (i = 0; i < drv_count; i++) {
         // reading data from user area
         int count = drv_len_data[i].lenght;
-        //        printk(KERN_INFO "run step section %d\n",i);
+//                printk(KERN_INFO "run step section %d\n",i);
         void (*ptr)(table_drv *) = NULL;
         if (*ppos == 1) ptr = drv_len_data[i].step1;
         if (*ppos == 2) ptr = drv_len_data[i].step2;
@@ -123,13 +154,13 @@ static ssize_t dev_read(struct file * file, char * buf,
                 return -EINVAL;
             }
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            void *pt_error = drv_len_data[i].td + sizeof (table_drv) - sizeof (short); //+2;
-            void *pt_time = pt_error - sizeof (long long int);
-            //            printk(KERN_INFO "move data buf: %x %x %x driver:%d\n",drv_len_data[i].td,pt_time,pt_error,table_drvs[i].tdrv.typedev);
+            void *pt_error = drv_len_data[i].td + 16;//sizeof (table_drv) - sizeof (short)+3; //+2;
+//            void *pt_time = pt_error - 8;
+////                        printk(KERN_INFO "move data buf: %x %x %x driver:%d\n",drv_len_data[i].td,pt_time,pt_error,table_drvs[i].address);
             copy_to_user(pt_error, &table_drvs[i].error, sizeof (short));
-            copy_to_user(pt_time, &table_drvs[i].time, sizeof (long long int));
+//            copy_to_user(pt_time, &table_drvs[i].time, sizeof (long long int));
         }
-        //        printk(KERN_INFO "end step section %d\n",i);
+//                printk(KERN_INFO "end step section %d\n",i);
     }
     return EOK;
 
@@ -137,6 +168,7 @@ static ssize_t dev_read(struct file * file, char * buf,
 
 static ssize_t dev_write(struct file * file, const char * buf,
         size_t count, loff_t *ppos) {
+    if(inb(0x112)&0x2==0) return EOK;  //Slave
     loff.ppos = *ppos;
     unsigned char *in_buf_ptr;
     unsigned char *init_buf_ptr;
@@ -145,8 +177,8 @@ static ssize_t dev_write(struct file * file, const char * buf,
         printk(KERN_INFO "=== end init block : %s\n", DEVNAME);
         return -EBUSY;
     }
-    //    printk(KERN_INFO "init table sizeof loff:%d %ld\n", sizeof (loff), loff.ppos);
-    //    printk(KERN_INFO "init table len: %d driver:%d adr:%d lenData:%d\n", count, loff.df.code_driver, loff.df.address, loff.df.len_buffer);
+//        printk(KERN_INFO "init table sizeof loff:%d %ld\n", sizeof (loff), loff.ppos);
+//        printk(KERN_INFO "init table len: %d driver:%d adr:%d lenData:%d\n", count, loff.df.code_driver, loff.df.address, loff.df.len_buffer);
     init_buf_ptr = kmalloc(count, GFP_KERNEL);
     if (NULL == init_buf_ptr) {
         printk(KERN_ERR "=== memory allocation error spa-ps device region\n");
@@ -169,22 +201,22 @@ static ssize_t dev_write(struct file * file, const char * buf,
     drv_len_data[drv_count].data = td->data;
     drv_len_data[drv_count].inimod = td->inimod;
     drv_len_data[drv_count].td = buf;
-    //    printk(KERN_INFO "init table buf: %x %x driver:%d adr:%d \n",drv_len_data[drv_count].td,buf,loff.df.code_driver, loff.df.address);
+//    printk(KERN_INFO "init table buf: %x %x driver:%d adr:%d \n",drv_len_data[drv_count].td,buf,loff.df.code_driver, loff.df.address);
 
 
 
     table_drvs[drv_count].tdrv.codedrv = loff.df.code_driver;
-    table_drvs[drv_count].address.i = loff.df.address;
+    table_drvs[drv_count].address = loff.df.address;
     table_drvs[drv_count].inimod = init_buf_ptr;
     table_drvs[drv_count].data = in_buf_ptr;
     table_drvs[drv_count].error = 0;
     table_drvs[drv_count].time = 0;
     if (make_init(drv_count) == 0) {
-        //        printk(KERN_INFO "run init section\n");
+//                printk(KERN_INFO "run init section\n");
         void (*ptr)(table_drv *) = NULL;
         ptr = drv_len_data[drv_count].init;
         ptr(&table_drvs[drv_count]);
-        //        printk(KERN_INFO "end init section\n");
+//                printk(KERN_INFO "end init section\n");
     };
     drv_count++;
     if (copy_to_user(td->data, in_buf_ptr, loff.df.len_buffer)) {

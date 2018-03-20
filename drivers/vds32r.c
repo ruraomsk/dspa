@@ -104,7 +104,7 @@ void vds32r_ini(table_drv* tdrv) {
 
     SetBoxLen(inipar->BoxLen);
 
-    RQ = tdrv->address.c[0];
+    RQ = (unsigned char)(tdrv->address&0xff);
     WritePort(ADR_MISPA, RQ);
     tdrv->error = 0;
 
@@ -285,7 +285,7 @@ void vds32r_dw(table_drv* tdrv) {
     }
 
     ADR_MISPA = 0x118;
-    WritePort(ADR_MISPA, tdrv->address.c[0]);
+    WritePort(ADR_MISPA, (unsigned char)(tdrv->address&0xff));
 
     RH = ReadBox3(AdrStatus0,&stat0);
 

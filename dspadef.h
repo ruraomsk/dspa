@@ -22,6 +22,7 @@ static int drv_flag = 0;
 static unsigned int irq_count;
 
 #pragma pack(push, 1)
+
 typedef struct {
     unsigned char code_driver;
     unsigned char address;
@@ -31,6 +32,7 @@ def_dev;
 #pragma pop
 
 #pragma pack(push, 1)
+
 typedef struct {
 
     union {
@@ -38,10 +40,7 @@ typedef struct {
         unsigned short codedrv;
     } tdrv;
 
-    union {
-        unsigned short i;
-        unsigned char c[2];
-    } address;
+    unsigned short address;
 
     unsigned char *inimod;
     unsigned char *data;
@@ -65,16 +64,16 @@ typedef struct {
 static char logstr[120];
 
 void log_init(table_drv* tdrv) {
-//    sprintf(logstr, "Driver %hhx adr %d init ", tdrv->tdrv.codedrv, tdrv->address.i);
+//    sprintf(logstr, "Driver %hhx adr %d init ", tdrv->tdrv.codedrv, tdrv->address);
 //    printk(KERN_INFO "log:%s\n", logstr);
 }
 
 void log_debug(void) {
-//    printk(KERN_INFO "log:%s\n", logstr);
+    //    printk(KERN_INFO "log:%s\n", logstr);
 }
 
 void log_step(table_drv* tdrv) {
-//    sprintf(logstr, "Driver %hhx adr %d step ", tdrv->tdrv.codedrv, tdrv->address.i);
+//    sprintf(logstr, "Driver %hhx adr %d step ", tdrv->tdrv.codedrv, tdrv->address);
 //    printk(KERN_INFO "log:%s\n", logstr);
 }
 #define MISPA_PORTS 10
