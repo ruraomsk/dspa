@@ -104,19 +104,24 @@ void vds32r_ini(table_drv* tdrv) {
 
     SetBoxLen(inipar->BoxLen);
 
-    RQ = (unsigned char)(tdrv->address&0xff);
+    RQ = (unsigned char) (tdrv->address & 0xff);
+    CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
+    if (ERR_MEM) {
+        tdrv->error = 0x80;
+        return;
+    }
     tdrv->error = 0;
 
     //сброс регистров модуля
 
-    RH =WriteSinglBox(4,0);
+    RH = WriteSinglBox(4, 0);
     if (RH) {
         tdrv->error = 0xA0;
         return;
     }
 
-    RH=WriteSinglBox(6,0);
+    RH = WriteSinglBox(6, 0);
 
     if (RH) {
         tdrv->error = 0xA0;
@@ -127,7 +132,7 @@ void vds32r_ini(table_drv* tdrv) {
     // проверка типа модуля 
 
 
-    RH =ReadBox3(AdrType,&RL);
+    RH = ReadBox3(AdrType, &RL);
     RQ = inipar->type;
     if (RH) {
         if (RH == 0x80) {
@@ -148,7 +153,7 @@ void vds32r_ini(table_drv* tdrv) {
     //Регистры настройки времени антидребезга
 
     RQ = inipar->tadr116; // каналы 1-16   0x20
-    RH =WriteBox(AdrAntiTrembl0,RQ);
+    RH = WriteBox(AdrAntiTrembl0, RQ);
     if (RH) {
         tdrv->error = 0xA0;
         return;
@@ -156,7 +161,7 @@ void vds32r_ini(table_drv* tdrv) {
     //Регистры маски каналов
 
     RQ = inipar->Dmask116; // каналы 1-16   0x21
-    RH =WriteBox(AdrChanlsMask0,RQ);
+    RH = WriteBox(AdrChanlsMask0, RQ);
     if (RH) {
         tdrv->error = 0xA0;
         return;
@@ -165,7 +170,7 @@ void vds32r_ini(table_drv* tdrv) {
     //Регистры настройки времени антидребезга
 
     RQ = inipar->tadr1732; // каналы 17-32  0x23
-    RH =WriteBox(AdrAntiTrembl1,RQ);
+    RH = WriteBox(AdrAntiTrembl1, RQ);
 
     if (RH) {
         tdrv->error = 0xA0;
@@ -175,7 +180,7 @@ void vds32r_ini(table_drv* tdrv) {
     //Регистры маски каналов
 
     RQ = inipar->Dmask1732; // каналы 17-32  0x24
-    RH = WriteBox(AdrChanlsMask1,RQ);
+    RH = WriteBox(AdrChanlsMask1, RQ);
 
     if (RH) {
         tdrv->error = 0xA0;
@@ -184,7 +189,7 @@ void vds32r_ini(table_drv* tdrv) {
 
     //Регистрыы статуса
 
-    RH = ReadBox3(AdrStatus0,&RL);
+    RH = ReadBox3(AdrStatus0, &RL);
 
     if (RH == 0x80) {
         tdrv->error = RH;
@@ -201,7 +206,7 @@ void vds32r_ini(table_drv* tdrv) {
         return;
     } // ошибка конфигурирования модуля
 
-    RH = ReadBox3(AdrStatus1,&RL);
+    RH = ReadBox3(AdrStatus1, &RL);
 
     if (RH == 0x80) {
         tdrv->error = RH;
@@ -224,7 +229,7 @@ void vds32r_ini(table_drv* tdrv) {
 
     //  проверка запроса обслуживания
 
-    RH = ReadBox3(AdrRQ,&RL);
+    RH = ReadBox3(AdrRQ, &RL);
 
 
     if ((tdrv->error = RH) == 0x80) {
@@ -271,23 +276,28 @@ void vds32r_dw(table_drv* tdrv) {
     unsigned char ercn = 0, erdn, obr, kz, i, j;
     sschar rc, ro; // rz;
     unsigned char msk = 0;
-    unsigned char RH;   // RL;
-//    unsigned char RQ;
+    unsigned char RH; // RL;
+    //    unsigned char RQ;
     log_step(tdrv);
     int k = 0; // указатель заполняемого данного
     int ADR_MISPA;
-    
+
     SetBoxLen(0xFF);
 
 
     if (tdrv->error & 0x80) {
-        //    return;          // пока повременить
+        return;          // пока повременить
     }
 
     ADR_MISPA = 0x118;
-    WritePort(ADR_MISPA, (unsigned char)(tdrv->address&0xff));
+    CLEAR_MEM
+    WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
+    if (ERR_MEM) {
+        tdrv->error = 0x80;
+        return;
+    }
 
-    RH = ReadBox3(AdrStatus0,&stat0);
+    RH = ReadBox3(AdrStatus0, &stat0);
 
     if (RH == 0x80) {
         tdrv->error = 0x80;
@@ -304,7 +314,7 @@ void vds32r_dw(table_drv* tdrv) {
     else
         ercn = 0;
 
-    RH = ReadBox3(AdrStatus1,&stat1);
+    RH = ReadBox3(AdrStatus1, &stat1);
 
     if (RH == 0x80) {
         tdrv->error = 0x80;
@@ -339,8 +349,8 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры состояния контактов датчиков
 
         if (stat0 & 1) {
-            RH = ReadBox3(AdrSostContact0,&chn1);
-            chn1=!chn1;
+            RH = ReadBox3(AdrSostContact0, &chn1);
+            chn1 = !chn1;
             if (RH == 0x80) {
                 tdrv->error = 0x80;
                 return;
@@ -366,7 +376,7 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры обрывов линий связи с датчиками
 
         if (stat0 & 4) {
-            RH = ReadBox3(AdrOpnCircuit0,&obr);
+            RH = ReadBox3(AdrOpnCircuit0, &obr);
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -387,8 +397,8 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры коротких замыканий линий связи с датчиками
 
         if (stat0 & 0x10) {
-            RH = ReadBox3(AdrShortCircuit0,&kz);
-            kz=!kz;
+            RH = ReadBox3(AdrShortCircuit0, &kz);
+            kz = !kz;
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -444,8 +454,8 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры состояния контактов датчиков
 
         if (stat0 & 2) {
-            RH = ReadBox3(AdrSostContact1,&chn2);
-            chn2=!chn2;
+            RH = ReadBox3(AdrSostContact1, &chn2);
+            chn2 = !chn2;
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -469,7 +479,7 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры обрывов линий связи с датчиками
 
         if (stat0 & 0x8) {
-            RH = ReadBox3(AdrOpnCircuit1,&obr);
+            RH = ReadBox3(AdrOpnCircuit1, &obr);
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -487,8 +497,8 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры коротких замыканий линий связи с датчиками
 
         if (stat0 & 0x20) {
-            RH = ReadBox3(AdrShortCircuit1,&kz);
-            kz=!kz;
+            RH = ReadBox3(AdrShortCircuit1, &kz);
+            kz = !kz;
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -540,8 +550,8 @@ void vds32r_dw(table_drv* tdrv) {
         // Регистры состояния контактов датчиков
 
         if (stat1 & 0x1) {
-            RH = ReadBox3(AdrSostContact2,&chn3);
-            chn3=!chn3;
+            RH = ReadBox3(AdrSostContact2, &chn3);
+            chn3 = !chn3;
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -568,7 +578,7 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры обрывов линий связи с датчиками
 
         if (stat1 & 0x4) {
-            RH = ReadBox3(AdrOpnCircuit2,&obr);
+            RH = ReadBox3(AdrOpnCircuit2, &obr);
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -587,8 +597,8 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры коротких замыканий линий связи с датчиками
 
         if (stat1 & 0x10) {
-            RH = ReadBox3(AdrShortCircuit2,&kz);
-            kz=!kz;
+            RH = ReadBox3(AdrShortCircuit2, &kz);
+            kz = !kz;
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -645,8 +655,8 @@ void vds32r_dw(table_drv* tdrv) {
 
         if (stat1 & 0x2) {
 
-            RH = ReadBox3(AdrSostContact3,&chn4);
-            chn4=!chn4;
+            RH = ReadBox3(AdrSostContact3, &chn4);
+            chn4 = !chn4;
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -672,7 +682,7 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры обрывов линий связи с датчиками
 
         if (stat1 & 0x8) {
-            RH = ReadBox3(AdrOpnCircuit3,&obr);
+            RH = ReadBox3(AdrOpnCircuit3, &obr);
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;
@@ -692,8 +702,8 @@ void vds32r_dw(table_drv* tdrv) {
         //Регистры коротких замыканий линий связи с датчиками
 
         if (stat1 & 0x20) {
-            RH=ReadBox3(AdrShortCircuit3,&kz);
-            kz=!kz;
+            RH = ReadBox3(AdrShortCircuit3, &kz);
+            kz = !kz;
 
             if (RH == 0x80) {
                 tdrv->error = 0x80;

@@ -26,11 +26,6 @@ typedef struct
   unsigned char Aprt;    // default = 0x17;  // апертура 
 } vas84r_inipar;
 
-typedef struct 
-{
- short i;
- uspaint8 error;
-}ssint;
 
 typedef struct
 {

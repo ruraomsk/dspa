@@ -5,11 +5,15 @@
       <df name="drivers">
         <in>fds16r.c</in>
         <in>fds16r.h</in>
+        <in>sbkfp7.c</in>
+        <in>sbkfp7.h</in>
         <in>testdrv1.c</in>
         <in>testdrv2.c</in>
         <in>testdrv3.c</in>
         <in>vas84r.c</in>
         <in>vas84r.h</in>
+        <in>vchs2.c</in>
+        <in>vchs2.h</in>
         <in>vds32r.c</in>
         <in>vds32r.h</in>
       </df>
@@ -18,6 +22,7 @@
       <in>dspadef.h</in>
       <in>misparw.c</in>
       <in>misparw.h</in>
+      <in>vchs2.h</in>
     </df>
     <df root="D:/cpc108/include" name="1">
       <df name="acpi">

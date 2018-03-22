@@ -25,8 +25,11 @@
 #include "drivers/fds16r.c"
 #include "drivers/vds32r.c"
 #include "drivers/vas84r.c"
+#include "drivers/vchs2.h"
+#include "drivers/sbkfp7.h"
 
 #pragma pack(push, 1)
+
 typedef struct {
     int lenght; // размер буфера ввода/вывода
     unsigned char *inimod; // данные инициализации в области данных пользователя
@@ -39,6 +42,7 @@ typedef struct {
 #pragma pop
 
 #pragma pack(push, 1)
+
 typedef struct {
     int type;
     void (*init)(table_drv*);
@@ -51,8 +55,8 @@ typedef struct {
 static type_drivers tab_t[MAX_DRIVERS] = {
     { FDS16R,
         &fds16r_ini,
-        &fds16r_dw,
-        NULL,},
+        NULL,
+        &fds16r_dw,},
 
     { VDS32R,
         &vds32r_ini,
@@ -63,8 +67,17 @@ static type_drivers tab_t[MAX_DRIVERS] = {
         &vas84r_ini,
         &vas84r_dw,
         NULL,},
+    { VCHS,
+        &vchs_ini,
+        &vchs_dr,
+        NULL,},
+    { SBK,
+        &vchs_ini,
+        &vchs_dr,
+        NULL,},
 
-    {-1, NULL, NULL,NULL},
+
+    {-1, NULL, NULL, NULL},
 };
 #pragma pop
 static user_area drv_len_data[MAX_DRIVERS];

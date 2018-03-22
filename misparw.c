@@ -32,16 +32,16 @@ unsigned char ReadPort(int port) {
 //    return 0;
     unsigned char c;
     c = inb(port);
+//    printk(KERN_INFO "read port %x = %hhx \n", port,c);
     return c;
 }
 
 void WritePort(int port, unsigned char byte) {
 //    return;
-//    char logstr[120];
-//    sprintf(logstr, "write port %hhhhx = %hhx ", port,byte);
-//    printk(KERN_INFO "log:%s\n", logstr);
+//    printk(KERN_INFO "write port %x = %hhx \n", port,byte);
 
     outb(byte, port);
+//    if(port==0x118) msleep_interruptible(1); 
     return;
 }
 
@@ -74,7 +74,8 @@ int ReadBox(unsigned char ptr, unsigned char *value) {
     CLEAR_MEM
     lav = ioread8(rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
-    if ((!lav) != val) return NEGC_BOX;
+//    printk(KERN_INFO "read adr %x ptr %d = %x !=%x\n", inb(0x118),ptr,val,lav);
+    if ((lav+val)!=0xff) return NEGC_BOX;
     *value = val;
     return 0;
 }
@@ -157,5 +158,5 @@ unsigned long decodegray(unsigned long k) {
 }
 
 void delaymcs(int x) {
-    msleep(x);
+    ndelay(x);
 }

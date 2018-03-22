@@ -13,8 +13,8 @@
 
 #ifndef MISPARW_H
 #define MISPARW_H
-#define ADR_BOX     0xcc000
-#define SIZE_BOX    0xff
+#define ADR_BOX     0xd0000
+#define SIZE_BOX    0x1fff
 
 #define MRQ         0x05    //; запрос на обслуживание
 #define SV          0x06    //; флаг захвата ПЯ со стороны ФП
@@ -47,6 +47,16 @@ typedef struct {
   uspaint8 b;
   uspaint8 error;
 }ssbool;
+typedef struct 
+{
+ short i;
+ uspaint8 error;
+}ssint;
+typedef struct 
+{
+ float f;
+ uspaint8 error;
+}ssfloat;
 
 int init_memory(void);
 void free_memory(void);

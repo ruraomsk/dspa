@@ -64,8 +64,7 @@ typedef struct {
 static char logstr[120];
 
 void log_init(table_drv* tdrv) {
-//    sprintf(logstr, "Driver %hhx adr %d init ", tdrv->tdrv.codedrv, tdrv->address);
-//    printk(KERN_INFO "log:%s\n", logstr);
+//    printk(KERN_INFO "Driver adr %x init \n", tdrv->address);
 }
 
 void log_debug(void) {
@@ -73,8 +72,7 @@ void log_debug(void) {
 }
 
 void log_step(table_drv* tdrv) {
-//    sprintf(logstr, "Driver %hhx adr %d step ", tdrv->tdrv.codedrv, tdrv->address);
-//    printk(KERN_INFO "log:%s\n", logstr);
+//    printk(KERN_INFO "Driver adr %x step \n", tdrv->address);
 }
 #define MISPA_PORTS 10
 #define MISPA_SIGNAL_PORT 0x100
