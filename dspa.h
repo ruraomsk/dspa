@@ -25,12 +25,12 @@
 #include "drivers/fds16r.c"
 #include "drivers/vds32r.c"
 #include "drivers/vas84r.c"
-#include "drivers/vchs2.h"
-#include "drivers/sbkfp7.h"
+//#include "drivers/vchs2.c"
+#include "drivers/sbkfp7.c"
 
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
 
-typedef struct {
+typedef struct __attribute__((packed)){
     int lenght; // размер буфера ввода/вывода
     unsigned char *inimod; // данные инициализации в области данных пользователя
     unsigned char *data; // область ввода-вывода данных в пространнстве пользователя
@@ -39,19 +39,19 @@ typedef struct {
     void * step2;
     void * td; // указатель в пространстве памяти на структуру данных table_drv
 } user_area;
-#pragma pop
+//#pragma pop
 
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
 
-typedef struct {
+typedef struct __attribute__((packed)){
     int type;
     void (*init)(table_drv*);
     void (*step1)(table_drv*);
     void (*step2)(table_drv*);
 } type_drivers;
-#pragma pop
+//#pragma pop
 
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
 static type_drivers tab_t[MAX_DRIVERS] = {
     { FDS16R,
         &fds16r_ini,
@@ -67,19 +67,19 @@ static type_drivers tab_t[MAX_DRIVERS] = {
         &vas84r_ini,
         &vas84r_dw,
         NULL,},
-    { VCHS,
-        &vchs_ini,
-        &vchs_dr,
-        NULL,},
+//    { VCHS,
+//        &vchs_ini,
+//        &vchs_dw,
+//        NULL,},
     { SBK,
-        &vchs_ini,
-        &vchs_dr,
+        &sbkfp7_ini,
+        &sbkfp7_dw,
         NULL,},
 
 
     {-1, NULL, NULL, NULL},
 };
-#pragma pop
+//#pragma pop
 static user_area drv_len_data[MAX_DRIVERS];
 static table_drv table_drvs[MAX_DRIVERS];
 

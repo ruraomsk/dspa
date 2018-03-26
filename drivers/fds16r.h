@@ -14,9 +14,8 @@
 #ifndef FDS16R_H
 #define FDS16R_H
 
-#pragma pack(push,1)
 
-typedef struct
+typedef struct __attribute__((packed))
 {
   unsigned char type;       // default = 0xC2;  тип модуля 
   unsigned int  BoxLen;     // default = 0xFF;  длина ПЯ, уменьшенная на 1 
@@ -40,11 +39,11 @@ typedef struct
   unsigned char s132;       // default = 0x0;   история флагов состояния каналов 13-16  
 } fds16r_inipar;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
   sschar SIGN[16]; // Результат счета каналов 1-8   
 } fds16r_data;
-#pragma pack(pop)
+
 #define FDS16R 0x04
 #define FDS16R_SIZE sizeof(fds16r_data)
 

@@ -59,8 +59,8 @@ static irqreturn_t no_port_irq(int irq, void *dev_id) {
 }
 
 void clearMemory(void) {
-    if (drv_count <= 0) return;
     int i;
+    if (drv_count <= 0) return;
     for (i = 0; i < drv_count; i++) {
         kfree(table_drvs[i].inimod);
         kfree(table_drvs[i].data);
@@ -70,11 +70,12 @@ void clearMemory(void) {
 
 static int dev_open(struct inode *n, struct file *f) {
     //    if (device_open) return -EBUSY;
+    unsigned char in;
     clearMemory();
     device_open = 1;
     WritePort(0x128, 0xff);
-    unsigned char in=ReadPort(0x108); 
-//    if(in&0x80) WritePort(0x108, 0xc8);
+    in = ReadPort(0x108);
+    //    if(in&0x80) WritePort(0x108, 0xc8);
     WritePort(0x108, 0x48);
     WritePort(0x128, 0x00);
     WritePort(0x110, 0); //WD-D
@@ -126,10 +127,20 @@ static ssize_t dev_read(struct file * file, char * buf,
         if (ReadPort(0x112)&0x2 == 0) return 1; // нет не мастер
         return EOK;
     }
-    if (ReadPort(0x112)&0x2 == 0) return 1; //Slave
+    if ((ReadPort(0x112)&0x2) == 0) return 1; //Slave
+    if (count == 2) { //Запрос кодов завершения
+        short ret_error[256];
+        for (i = 0; i < drv_count; i++) {
+            ret_error[i] = table_drvs[i].error;
+//            printk(KERN_INFO "Error  %hhx =%hhx\n", table_drvs[i].address, table_drvs[i].error);
+        }
+        copy_to_user(buf, ret_error, drv_count * sizeof (short));
+        return drv_count;
+    }
     for (i = 0; i < drv_count; i++) {
         // reading data from user area
-        int count = drv_len_data[i].lenght;
+        int count;
+        count = drv_len_data[i].lenght;
         //                printk(KERN_INFO "run step section %d\n",i);
         void (*ptr)(table_drv *) = NULL;
         if (*ppos == 1) ptr = drv_len_data[i].step1;
@@ -148,10 +159,10 @@ static ssize_t dev_read(struct file * file, char * buf,
                 return -EINVAL;
             }
             //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-            void *pt_error = drv_len_data[i].td + 16; //sizeof (table_drv) - sizeof (short)+3; //+2;
+            //            void *pt_error = drv_len_data[i].td + 16; //sizeof (table_drv) - sizeof (short)+3; //+2;
             //            void *pt_time = pt_error - 8;
             ////                        printk(KERN_INFO "move data buf: %x %x %x driver:%d\n",drv_len_data[i].td,pt_time,pt_error,table_drvs[i].address);
-            copy_to_user(pt_error, &table_drvs[i].error, sizeof (short));
+            //            copy_to_user(pt_error, &table_drvs[i].error, sizeof (short));
             //            copy_to_user(pt_time, &table_drvs[i].time, sizeof (long long int));
         }
         //                printk(KERN_INFO "end step section %d\n",i);

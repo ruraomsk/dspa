@@ -65,10 +65,11 @@ int WriteBox(unsigned char ptr, unsigned char value) {
 int ReadBox(unsigned char ptr, unsigned char *value) {
 //    sprintf(logstr, "ReadBox_1 %x ", ptr);
 //    log_debug();
-    CLEAR_MEM
-    unsigned char val = ioread8((unsigned char *) rambase + ptr);
-    if (ERR_MEM) return BUSY_BOX;
+    unsigned char val;
     unsigned char lav;
+    CLEAR_MEM
+    val= ioread8((unsigned char *) rambase + ptr);
+    if (ERR_MEM) return BUSY_BOX;
 //    sprintf(logstr, "ReadBox_2 %x ", ( (Box_len - ptr)));
 //    log_debug();
     CLEAR_MEM
@@ -81,8 +82,9 @@ int ReadBox(unsigned char ptr, unsigned char *value) {
 }
 
 int ReadSinglBox(unsigned char ptr, unsigned char *value) {
+    unsigned char val;
     CLEAR_MEM
-    unsigned char val = ioread8((unsigned char *) rambase + ptr);
+    val = ioread8((unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     *value = val;
     return 0;

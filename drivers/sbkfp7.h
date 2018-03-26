@@ -14,8 +14,7 @@
 #ifndef SBKFP7_H
 #define SBKFP7_H
 
-#pragma pack(push,1)
-typedef struct
+typedef struct __attribute__((packed))
 {
   unsigned char type;       // default = 0xC2;  С‚РёРї РјРѕРґСѓР»СЏ 
   unsigned int  BoxLen;     // default = 0xFF;  РґР»РёРЅР° РџРЇ, СѓРјРµРЅСЊС€РµРЅРЅР°СЏ РЅР° 1 
@@ -23,7 +22,7 @@ typedef struct
   unsigned char NumCh;      // default = 8;     РєРѕР»РёС‡РµСЃС‚РІРѕ РєР°РЅР°Р»РѕРІ 
 } sbk_inipar;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
  /* РџРѕСЂС‚ СѓРїСЂР°РІР»РµРЅРёСЏ 110h */
 
@@ -45,11 +44,11 @@ typedef struct
  ssbool  SbkMpPB25;   /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 2 - 5 */
 } sbk_data;
 
-#pragma pack(pop)
+
+#define SBK 0x01
+#define SBK_SIZE sizeof(sbk_data)
 
 void sbkfp7_ini(table_drv* drv);
-void sbkfp7_dr(table_drv* drv);
-#define SBK 0xc4
-#define SBK_SIZE sizeof(sbk_data)
+void sbkfp7_dw(table_drv* drv);
 
 #endif /* SBKFP7_H */

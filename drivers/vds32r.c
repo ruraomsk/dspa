@@ -99,8 +99,9 @@ typedef struct
 void vds32r_ini(table_drv* tdrv) {
     unsigned char RQ;
     unsigned char RH, RL;
+    int ADR_MISPA;
     log_init(tdrv);
-    int ADR_MISPA = 0x118;
+    ADR_MISPA = 0x118;
 
     SetBoxLen(inipar->BoxLen);
 
@@ -286,7 +287,7 @@ void vds32r_dw(table_drv* tdrv) {
 
 
     if (tdrv->error & 0x80) {
-        return;          // пока повременить
+        return; // пока повременить
     }
 
     ADR_MISPA = 0x118;
@@ -526,11 +527,12 @@ void vds32r_dw(table_drv* tdrv) {
                 if (erdn || chn2er & 0x10)
                     ercn = 2;
                 else
-                    if (stat0 & 0x2)
+                    if (stat0 & 0x2) {
                     if (chn2 & j)
                         tdrv->data[k] = 1;
                     else
                         tdrv->data[k] = 0;
+                }
                 ++k;
                 tdrv->data[k] = erdn | chn2er;
                 ++k;
@@ -626,11 +628,12 @@ void vds32r_dw(table_drv* tdrv) {
                 if (erdn || chn3er & 0x10)
                     ercn = 4;
                 else
-                    if (stat1 & 0x1)
+                    if (stat1 & 0x1) {
                     if (chn3 & j)
                         tdrv->data[k] = 1;
                     else
                         tdrv->data[k] = 0;
+                }
 
                 ++k;
 
@@ -732,11 +735,12 @@ void vds32r_dw(table_drv* tdrv) {
                 if (erdn || chn4er & 0x10)
                     ercn = 8;
                 else
-                    if (stat1 & 0x2)
+                    if (stat1 & 0x2) {
                     if (chn4 & j)
                         tdrv->data[k] = 1;
                     else
                         tdrv->data[k] = 0;
+                }
                 ++k;
                 tdrv->data[k] = erdn | chn4er;
                 ++k;

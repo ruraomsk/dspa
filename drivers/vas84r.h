@@ -13,9 +13,8 @@
 
 #ifndef VAS84R_H
 #define VAS84R_H
-#pragma pack(push,1)
 
-typedef struct
+typedef struct __attribute__((packed))
 {
   unsigned char type;    // default = 0xC6; // тип модуля 
   unsigned int  BoxLen;  // default = 0xFF; // длина ПЯ, уменьшенная на 1 
@@ -27,12 +26,11 @@ typedef struct
 } vas84r_inipar;
 
 
-typedef struct
+typedef struct __attribute__((packed))
 {
   ssint SIGN[8];   // Результат счета каналов 1-8   
   sschar widesos;  // расширенный байт состояния
 } vas84r_data;
-#pragma pack(pop)
 
 #define VAS84R 0xC6
 #define VAS84R_SIZE sizeof(vas84r_data)

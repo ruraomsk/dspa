@@ -58,8 +58,9 @@ void fds16r_ini(table_drv* tdrv) {
     unsigned char RQ;
     unsigned char RH, RL, ch18, ch916, j, k, msk,
             st14, st58, st912, st1316, is18, is916;
+    int ADR_MISPA, i;
     log_init(tdrv);
-    int ADR_MISPA = 0x118, i;
+    ADR_MISPA = 0x118;
 
     SetBoxLen(inipar->BoxLen);
     CLEAR_MEM

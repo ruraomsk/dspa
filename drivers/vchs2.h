@@ -14,8 +14,7 @@
 #ifndef VCHS2_H
 #define VCHS2_H
 
-#pragma pack(push,1)
-typedef struct
+typedef struct __attribute__((packed))
 {
   unsigned char type;    // default = 0xC6;    тип модуля 
   unsigned int  BoxLen;  // default = 0xFF;    длина ПЯ, уменьшенная на 1 
@@ -31,7 +30,7 @@ typedef struct
   float         Gmax2;   // default = 1000000; верхняя граница измерения частоты 
 } vchs_inipar;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
   ssfloat K01VCHS;          // частота 1 канал 
   ssfloat K02VCHS;          // частота 2 канал 
@@ -57,11 +56,11 @@ typedef struct
   float   fTimS2;           // суммарное время измерения накопленных импульсов от счетного канала 2
   unsigned long lSmS2;      // суммарное измеренное количество импульсов от счётного канала 2
 } vchs_data;
-#pragma pack(pop)
 
-void vchs_ini(table_drv* drv);
-void vchs_dr(table_drv* drv);
 #define VCHS 0xc4
 #define VCHS_SIZE sizeof(vchs_data)
+
+void vchs_ini(table_drv* drv);
+void vchs_dw(table_drv* drv);
 
 #endif /* VCHS2_H */

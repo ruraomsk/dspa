@@ -11,11 +11,13 @@
  * Created on 22 марта 2018 г., 9:59
  */
 
-#include <math.h>
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "vchs2.h"
-
+float fabsf(float f){
+    if(f<0) f=0-f;
+    return f;
+}
 /*
 typedef struct
 {
@@ -249,10 +251,11 @@ extern unsigned char flag_ini;
 //===========================================================
 
 void vchs_ini(table_drv* tdrv) {
-    unsigned char SV;
+    unsigned char SVS;
     unsigned char STAT;
     unsigned char RQ, RH, RL, S01VCHS, S02VCHS;
     int ADR_MISPA = 0x118, i;
+    log_init(tdrv);
 
     VchDate->K01VCHS.f = VchDate->K02VCHS.f = 0.0;
     VchDate->K01VCHS.error = VchDate->K02VCHS.error = 0;
@@ -316,13 +319,13 @@ void vchs_ini(table_drv* tdrv) {
         return;
     }
 
-    RH =ReadBox3(AdrSVE,&SV);
+    RH =ReadBox3(AdrSVE,&SVS);
     if (RH)
         if (RH == 0x80) {
             tdrv->error = RH;
             return;
         } else {
-            RH =ReadBox3(AdrSVE,&SV);
+            RH =ReadBox3(AdrSVE,&SVS);
             if (RH)
                 if (RH == 0x80) {
                     tdrv->error = RH;
@@ -331,7 +334,7 @@ void vchs_ini(table_drv* tdrv) {
                     tdrv->error = 0xC0;
                     return;
                 }
-            if (!SV) { //ПЯ не захвачен! ошибка статуса 
+            if (!SVS) { //ПЯ не захвачен! ошибка статуса 
                 {
                     tdrv->error = 0x90;
                     return;
@@ -340,9 +343,9 @@ void vchs_ini(table_drv* tdrv) {
         }
 
 
-    if (!SV) { //ПЯ не захвачен!  повторить 
+    if (!SVS) { //ПЯ не захвачен!  повторить 
         CatchBox();
-        RH = ReadBox3(AdrSVE,&SV);
+        RH = ReadBox3(AdrSVE,&SVS);
         if (RH)
             if (RH == 0x80) {
                 tdrv->error = RH;
@@ -351,7 +354,7 @@ void vchs_ini(table_drv* tdrv) {
                 tdrv->error = 0xC0;
                 return;
             }
-        if (!SV) { //ПЯ не захвачен! ошибка статуса 
+        if (!SVS) { //ПЯ не захвачен! ошибка статуса 
             {
                 tdrv->error = 0x90;
                 return;
@@ -491,14 +494,14 @@ void vchs_ini(table_drv* tdrv) {
 
     // очистим счётный регистр 
 
-    RH = ReadSinglBox(CountCh1Low);
+    RH = ReadSinglBox(CountCh1Low,&RL);
 
     if (RH == 0x80) {
         tdrv->error = 0x80;
         return;
     } // ошибка миспа
 
-    RH = ReadSinglBox(CountCh2Low);
+    RH = ReadSinglBox(CountCh2Low,&RL);
 
     if (RH == 0x80) {
         tdrv->error = 0x80;
@@ -515,14 +518,14 @@ void vchs_ini(table_drv* tdrv) {
 
     // взбодрим интервальный регистр 
 
-    RH = ReadSinglBox(IntrvCh1Low);
+    RH = ReadSinglBox(IntrvCh1Low,&RL);
 
     if (RH == 0x80) {
         tdrv->error = 0x80;
         return;
     } // ошибка миспа
 
-    RH = ReadSinglBox(IntrvCh2Low);
+    RH = ReadSinglBox(IntrvCh2Low,&RL);
 
     if (RH == 0x80) {
         tdrv->error = 0x80;
@@ -719,17 +722,19 @@ void vchs_ini(table_drv* tdrv) {
 ===========================================================
 
  */
-void vchs_dr(table_drv* tdrv) {
+void vchs_dw(table_drv* tdrv) {
     unsigned char schn1 = 0, schn2 = 0, S01VCHS, S02VCHS;
     unsigned chn1er = 0, chn2er = 0;
     unsigned char Coun1, Coun2, Intrv1, Intrv2;
     float fslow, ffast;
-    unsigned char SV;
+    unsigned char SVS;
     unsigned char RH, RL, RQ;
     int ADR_MISPA;
     unsigned long int il;
     sschar rc;
     ssfloat rf;
+    log_step(tdrv);
+
     SetBoxLen(0xFF);
 
     ADR_MISPA = 0x118;
@@ -796,22 +801,22 @@ void vchs_dr(table_drv* tdrv) {
             return;
         }
 
-        SV = ReadSinglBox(AdrSVE);
+        SVS = ReadSinglBox(AdrSVE,&RL);
 
         if (RH) {
             tdrv->error = RH;
             return;
         } // ошибка миспа
 
-        if (!SV) { //ПЯ не захвачен!  повторить
+        if (!SVS) { //ПЯ не захвачен!  повторить
 
             CatchBox();
-            SV = ReadSinglBox(AdrSVE);
+            SVS = ReadSinglBox(AdrSVE,&RL);
             if (RH) {
                 tdrv->error = RH;
                 return;
             } // ошибка миспа
-            if (!SV) { //ПЯ не захвачен! ошибка статуса
+            if (!SVS) { //ПЯ не захвачен! ошибка статуса
                 {
                     tdrv->error = 0x90;
                     return;
@@ -840,7 +845,7 @@ void vchs_dr(table_drv* tdrv) {
                 chn1er |= 1; //переполнение счётного канала
                 VchDate->K01VCHS.error = 1;
                 S01VCHS = 0;
-                ReadSinglBox(CountCh1Low);
+                ReadSinglBox(CountCh1Low,&RL);
                 VchDate->Cyklen.c = 10;
                 // очистим регистр состояния канала
                 WriteBox(RgSost1,0xFF);
@@ -1076,7 +1081,7 @@ void vchs_dr(table_drv* tdrv) {
                 chn2er |= 1; //ошибки счётного канала
                 VchDate->K02VCHS.error = 1;
                 S02VCHS = 0;
-                ReadSinglBox(CountCh1Low);
+                ReadSinglBox(CountCh1Low,&RL);
                 VchDate->Cyklen.c = 10;
                 WriteBox(RgSost2,0xFF);
             } else { // читаем счётный канал
@@ -1091,7 +1096,7 @@ void vchs_dr(table_drv* tdrv) {
                     chn2er |= 1;
                 } // неинверсия старшего байта
 
-                Coun2 =ReadBox(CountCh2High);
+                Coun2 =ReadBox(CountCh2High,&RL);
 
                 if (RH == 0x80) {
                     tdrv->error = 0x80;
@@ -1290,8 +1295,8 @@ void vchs_dr(table_drv* tdrv) {
             return;
         }
     } else {// читать-то неча из-за статуса
-        ReadSinglBox(CountCh1Low);
-        ReadSinglBox(CountCh2Low);
+        ReadSinglBox(CountCh1Low,&RL);
+        ReadSinglBox(CountCh2Low,&RL);
         VchDate->Cyklen.c = 10;
 
         VchDate->K01VCHS.error = chn1er;

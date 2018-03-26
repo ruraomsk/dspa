@@ -39,24 +39,32 @@ typedef signed char spaint8;
 //#define delaymcs(x) DelaySec(((double)(x))/1000000.0)
 //#define delaymcs(x)  inline sleep_spa(int ms){
 
-typedef struct {
+//#pragma pack(push, 1)
+typedef struct __attribute__((packed)){
   uspaint8 c;
   uspaint8 error;
 }sschar;
-typedef struct {
+//#pragma pop
+//#pragma pack(push, 1)
+typedef struct __attribute__((packed)){
   uspaint8 b;
   uspaint8 error;
 }ssbool;
-typedef struct 
+//#pragma pop
+//#pragma pack(push, 1)
+typedef struct __attribute__((packed))
 {
  short i;
  uspaint8 error;
 }ssint;
-typedef struct 
+//#pragma pop
+//#pragma pack(push, 1)
+typedef struct __attribute__((packed))
 {
  float f;
  uspaint8 error;
 }ssfloat;
+//#pragma pop
 
 int init_memory(void);
 void free_memory(void);

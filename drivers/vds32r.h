@@ -13,9 +13,8 @@
 
 #ifndef VDS32R_H
 #define VDS32R_H
-#pragma pack(push,1)
 
-typedef struct
+typedef struct __attribute__((packed))
 {
   unsigned char type;       // default = 0xC2;  тип модуля 
   unsigned int  BoxLen;     // default = 0xFF;  длина ПЯ, уменьшенная на 1 
@@ -35,11 +34,10 @@ typedef struct
   unsigned char ChMask2532; // default = 0x0;   маска изменения состояния каналов 25-32
 } vds32r_inipar;
 
-typedef struct
+typedef struct __attribute__((packed))
 {
   ssbool SIGN[32]; // Результат счета каналов 1-8   
 } vds32r_data;
-#pragma pack(pop)
 
 #define VDS32R 0xC2
 #define VDS32R_SIZE sizeof(vds32r_data)
