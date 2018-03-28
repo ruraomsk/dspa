@@ -26,8 +26,8 @@
 #include "drivers/vds32r.c"
 #include "drivers/vas84r.c"
 //#include "drivers/vchs2.c"
-#include "drivers/sbkfp7.c"
-
+//#include "drivers/sbkfp7.c"
+#include "drivers/sbkfp7.h"
 //#pragma pack(push, 1)
 
 typedef struct __attribute__((packed)){

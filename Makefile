@@ -3,8 +3,18 @@ CURRENT = $(shell uname -r)
 KDIR = /lib/modules/$(CURRENT)/build
 PWD = $(shell pwd)
 DEST = /lib/modules/$(CURRENT)/misc
+
+DRIVE = /drivers
+ObjDr = sbkfp7
+
+#gcc -c test.c -o test // создание объекта с именем
+
+#TARGET1 = hello_printk
 TARGET = dspa
 obj-m := $(TARGET).o 
+
+
+
 default:
 #    @echo "Starting ...." $(MAKE) -C -I$(HPATH) $(KDIR) M=$(PWD) modules
 #    $(MAKE) -C $(KDIR) M=$(PWD) modules
