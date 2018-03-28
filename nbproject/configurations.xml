@@ -112,14 +112,14 @@
       <folder path="0/drivers">
         <cTool>
           <incDir>
-            <pElem>../../../cpc108/include</pElem>
+            <pElem>../../cpc108/include</pElem>
           </incDir>
         </cTool>
       </folder>
       <item path="misparw.c" ex="false" tool="0" flavor2="10">
         <cTool flags="0">
           <incDir>
-            <pElem>../../../cpc108/include</pElem>
+            <pElem>../../cpc108/include</pElem>
           </incDir>
         </cTool>
       </item>

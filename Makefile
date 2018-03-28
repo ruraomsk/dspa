@@ -3,7 +3,6 @@ CURRENT = $(shell uname -r)
 KDIR = /lib/modules/$(CURRENT)/build
 PWD = $(shell pwd)
 DEST = /lib/modules/$(CURRENT)/misc
-#TARGET1 = hello_printk
 TARGET = dspa
 obj-m := $(TARGET).o 
 default:
