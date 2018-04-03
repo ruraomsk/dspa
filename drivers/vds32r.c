@@ -43,7 +43,8 @@
 
 /*
 extern unsigned char flag_ini;
- */
+*/
+extern unsigned int irq_count;
 
 
 /*
@@ -100,7 +101,7 @@ void vds32r_ini(table_drv* tdrv) {
     unsigned char RQ;
     unsigned char RH, RL;
     int ADR_MISPA;
-    log_init(tdrv);
+//    log_init(tdrv);
     ADR_MISPA = 0x118;
 
     SetBoxLen(inipar->BoxLen);
@@ -279,7 +280,7 @@ void vds32r_dw(table_drv* tdrv) {
     unsigned char msk = 0;
     unsigned char RH; // RL;
     //    unsigned char RQ;
-    log_step(tdrv);
+//    log_step(tdrv);
     int k = 0; // указатель заполняемого данного
     int ADR_MISPA;
 
@@ -428,11 +429,15 @@ void vds32r_dw(table_drv* tdrv) {
                 if (erdn || chn1er & 0x10) //обрыв или кз или неинверсия данных
                     ercn = 1;
                 else
+                {
                     if (stat0 & 1)
-                    if (chn1 & j)
-                        tdrv->data[k] = 1;
-                    else
-                        tdrv->data[k] = 0;
+                    {
+                	if (chn1 & j)
+                    	    tdrv->data[k] = 1;
+                	else
+                    	    tdrv->data[k] = 0;
+                    }
+                }
                 ++k;
                 tdrv->data[k] = erdn | chn1er;
                 ++k;

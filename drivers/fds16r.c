@@ -54,12 +54,14 @@
 #define AdrSost1316      0x08 // регистр состояния каналов 13-16   
 
 
+extern unsigned int irq_count;
+
 void fds16r_ini(table_drv* tdrv) {
     unsigned char RQ;
     unsigned char RH, RL, ch18, ch916, j, k, msk,
             st14, st58, st912, st1316, is18, is916;
     int ADR_MISPA, i;
-    log_init(tdrv);
+//    log_init(tdrv);
     ADR_MISPA = 0x118;
 
     SetBoxLen(inipar->BoxLen);
@@ -321,7 +323,7 @@ void fds16r_dw(table_drv* tdrv) {
     unsigned char RH, RL, ch18, ch916, j, k, msk,
             st14, st58, st912, st1316, is18, is916;
 
-    log_step(tdrv);
+    //log_step(tdrv);
     int ADR_MISPA = 0x118, i;
     if(tdrv->error == 0x80) return;
     SetBoxLen(inipar->BoxLen);

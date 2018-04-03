@@ -27,6 +27,7 @@ static int major = 0;
 module_param(irq, int, S_IRUGO);
 static int device_open = 0;
 static char name_dev[] = "spa_device_ports";
+unsigned int irq_count = 0;
 
 static union {
     loff_t ppos;

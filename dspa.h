@@ -21,15 +21,21 @@
 
 #include "dspadef.h"
 
-#include "misparw.c"
-#include "drivers/fds16r.c"
-#include "drivers/vds32r.c"
-#include "drivers/vas84r.c"
+//#include "misparw.c"
+#include "misparw.h"
+//#include "drivers/fds16r.c"
+#include "drivers/fds16r.h"
+//#include "drivers/vds32r.c"
+#include "drivers/vds32r.h"
+//#include "drivers/vas84r.c"
+#include "drivers/vas84r.h"
 //#include "drivers/vchs2.c"
 //#include "drivers/sbkfp7.c"
 #include "drivers/sbkfp7.h"
 //#pragma pack(push, 1)
 
+static int drv_count = 0;
+static int drv_flag = 0;
 typedef struct __attribute__((packed)){
     int lenght; // размер буфера ввода/вывода
     unsigned char *inimod; // данные инициализации в области данных пользователя

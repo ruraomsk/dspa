@@ -3,24 +3,22 @@ CURRENT = $(shell uname -r)
 KDIR = /lib/modules/$(CURRENT)/build
 PWD = $(shell pwd)
 DEST = /lib/modules/$(CURRENT)/misc
+VPATH = /drivers
+DR = drivers/
+OBJS = dspa.o misparw.o $(DR)sbkfp7.o $(DR)fds16r.o $(DR)vas84r.o $(DR)vds32r.o 
 
-DRIVE = /drivers
-ObjDr = sbkfp7
+TARGET = dsp
+obj-m := $(TARGET).o
+$(TARGET)-objs := $(OBJS)
 
-#gcc -c test.c -o test // создание объекта с именем
-
-#TARGET1 = hello_printk
-TARGET = dspa
-obj-m := $(TARGET).o 
-
-
+all: default
 
 default:
-#    @echo "Starting ...." $(MAKE) -C -I$(HPATH) $(KDIR) M=$(PWD) modules
-#    $(MAKE) -C $(KDIR) M=$(PWD) modules
-
+	$(MAKE) -C/usr/src/linux SUBDIRS=$(PWD) modules
+$(TARGET).o: $(OBJS)
+	$(LD) -r -o $@ $^
 clean:
-#    @rm -f *.o *.cmd *.flags *.mod.c *.order
-#    @rm -f *.*.cmd *.symvers TODO.*
-#    @rm -fR tmp*
-#    @rm -rf tmp_versions
+	@rm -f *.o *.mod.o *.mod.c
+	@rm -f *.cmd *.*.cmd .*.*.cmd
+	@rm -f *.ko *.order *.symvers
+	@rm -f drivers/.*.*.cmd drivers/*.o

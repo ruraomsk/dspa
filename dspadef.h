@@ -17,9 +17,9 @@
 
 #define MAX_DRIVERS 100
 #define SPA_DEBUG 1
-static int drv_count = 0;
-static int drv_flag = 0;
-static unsigned int irq_count;
+//static int drv_count = 0;
+//static int drv_flag = 0;
+//static unsigned int irq_count;
 
 //#pragma pack(push, 1)
 
@@ -61,12 +61,12 @@ typedef struct __attribute__((packed)) {
 //void testdrv3_step(table_drv* tdrv);
 
 
-void log_init(table_drv* tdrv) {
+//void log_init(table_drv* tdrv) {
 //    printk(KERN_INFO "Driver adr %x init \n", tdrv->address);
-}
-void log_step(table_drv* tdrv) {
+//}
+//void log_step(table_drv* tdrv) {
 //    printk(KERN_INFO "Driver adr %x step \n", tdrv->address);
-}
+//}
 //#define MISPA_PORTS 10
 //#define MISPA_SIGNAL_PORT 0x100
 //#define MISPA_COMMON_CTRL_PORT 0x108

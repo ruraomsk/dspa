@@ -13,6 +13,7 @@
 
 static int Box_len=0xff;
 static void __iomem *rambase = NULL;
+extern unsigned int irq_count;
 
 int init_memory() {
     if (rambase == NULL) {

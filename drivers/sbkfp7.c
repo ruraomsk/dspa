@@ -27,7 +27,7 @@ static int UpRead = 0;
 
 void sbkfp7_ini(table_drv *drv)
 {
-    log_init(drv);
+//    log_init(drv);
   NewDate->SbkPower1.b = 0;
   NewDate->SbkPower1.error = 0;
   NewDate->SbkPower2.b = 0;
@@ -81,7 +81,7 @@ void sbkfp7_dw(table_drv *drv)
 {
   ssbool SBKTemp;
   // Port 110h
-    log_step(drv);
+//    log_step(drv);
   drv->error = 0;
   if (UpRead == 0){ // РџР•Р Р’Р«Р™ Р’РҐРћР”               РџРћР Рў 110 - 1
     WritePort(0x108, 0xd);

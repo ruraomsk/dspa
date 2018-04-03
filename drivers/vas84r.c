@@ -6,6 +6,12 @@
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "vas84r.h"
+
+int abs (int a){
+    if (a<0) return -a;
+    return a;
+};
+extern unsigned int irq_count;
 /*
 typedef struct
 {
@@ -28,7 +34,7 @@ typedef struct
 
 #define inipar  ((vas84r_inipar*)(tdrv->inimod)) 
 
-#define CT_GLOB   tdrv->tdrv.typedev[0]    // последний счетчик переворотов ПЯ
+//#define CT_GLOB   tdrv->tdrv.typedev[0]    // последний счетчик переворотов ПЯ
 #define CounGL    tdrv->tdrv.typedev[1]    // счетчик непереворотов ПЯ
 
 #define ModData ((vas84r_data*)(tdrv->data))
@@ -103,7 +109,7 @@ void vas84r_ini(table_drv* tdrv) {
     //?????????????????????????????????????????????????????????????????????????
     int ADR_MISPA = 0x118;
     unsigned char RQ = (unsigned char) (tdrv->address & 0xff);
-    log_init(tdrv);
+    //log_init(tdrv);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
     if (ERR_MEM) {
@@ -118,7 +124,7 @@ void vas84r_dw(table_drv* tdrv) {
     unsigned char STAT, RQ;
     int RH, i, k;
     int ADR_MISPA = 0x118;
-    log_step(tdrv);
+//    log_step(tdrv);
     ssint rr = {0, 0};
     sschar rc = {0, 0};
     SetBoxLen(inipar->BoxLen);
