@@ -64,7 +64,13 @@ typedef struct __attribute__((packed))
  float f;
  uspaint8 error;
 }ssfloat;
-//#pragma pop
+
+
+typedef struct __attribute__((packed)){
+  int l;
+  uspaint8 error;
+}sslong;
+
 
 int init_memory(void);
 void free_memory(void);
