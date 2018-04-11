@@ -71,6 +71,11 @@ typedef struct __attribute__((packed)){
   uspaint8 error;
 }sslong;
 
+typedef sschar *pschar; 
+typedef ssbool *psbool; 
+typedef ssint *psint; 
+typedef ssfloat *psfloat; 
+typedef sslong *pslong; 
 
 int init_memory(void);
 void free_memory(void);
