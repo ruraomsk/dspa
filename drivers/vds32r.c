@@ -6,6 +6,7 @@
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "vds32r.h"
+#include "linux/printk.h"
 
 #define inipar  ((vds32r_inipar*)(tdrv->inimod)) 
 #define NewDate ((vds32r_inipar*)(tdrv->data)) 
@@ -105,7 +106,7 @@ void vds32r_ini(table_drv* tdrv) {
     ADR_MISPA = 0x118;
 
     SetBoxLen(inipar->BoxLen);
-
+    
     RQ = (unsigned char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);

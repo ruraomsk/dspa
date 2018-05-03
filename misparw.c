@@ -11,7 +11,7 @@
 #include "asm/io.h"
 #include "linux/kernel.h"
 
-static int Box_len=0xff;
+static int Box_len = 0xff;
 static void __iomem *rambase = NULL;
 extern unsigned int irq_count;
 
@@ -30,26 +30,25 @@ void free_memory() {
 }
 
 unsigned char ReadPort(int port) {
-//    return 0;
+    //    return 0;
     unsigned char c;
     c = inb(port);
-//    printk(KERN_INFO "read port %x = %hhx \n", port,c);
+    //    printk(KERN_INFO "read port %x = %hhx \n", port,c);
     return c;
 }
 
 void WritePort(int port, unsigned char byte) {
-//    return;
-//    printk(KERN_INFO "write port %x = %hhx \n", port,byte);
+    //    return;
+    //    printk(KERN_INFO "write port %x = %hhx \n", port,byte);
 
     outb(byte, port);
-//    if(port==0x118) msleep_interruptible(1); 
+    //    if(port==0x118) msleep_interruptible(1); 
     return;
 }
 
-
 void SetBoxLen(int lenBox) {
-    
-//    Box_len = lenBox;
+
+    //    Box_len = lenBox;
 }
 
 int WriteBox(unsigned char ptr, unsigned char value) {
@@ -64,20 +63,20 @@ int WriteBox(unsigned char ptr, unsigned char value) {
 }
 
 int ReadBox(unsigned char ptr, unsigned char *value) {
-//    sprintf(logstr, "ReadBox_1 %x ", ptr);
-//    log_debug();
+    //    sprintf(logstr, "ReadBox_1 %x ", ptr);
+    //    log_debug();
     unsigned char val;
     unsigned char lav;
     CLEAR_MEM
-    val= ioread8((unsigned char *) rambase + ptr);
+    val = ioread8((unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
-//    sprintf(logstr, "ReadBox_2 %x ", ( (Box_len - ptr)));
-//    log_debug();
+    //    sprintf(logstr, "ReadBox_2 %x ", ( (Box_len - ptr)));
+    //    log_debug();
     CLEAR_MEM
     lav = ioread8(rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
-//    printk(KERN_INFO "read adr %x ptr %d = %x !=%x\n", inb(0x118),ptr,val,lav);
-    if ((lav+val)!=0xff) return NEGC_BOX;
+    //    printk(KERN_INFO "read adr %x ptr %d = %x !=%x\n", inb(0x118),ptr,val,lav);
+    if ((lav + val) != 0xff) return NEGC_BOX;
     *value = val;
     return 0;
 }
@@ -114,8 +113,8 @@ int ReadBox3(unsigned char ptr, unsigned char *value) {
     char RH;
 
     for (i = 0; i < 3; i++) {
-//        sprintf(logstr, "ReadBox3 %hhx", ptr);
-//        log_debug();
+        //        sprintf(logstr, "ReadBox3 %hhx", ptr);
+        //        log_debug();
         RH = ReadBox(ptr, value);
         if (RH != 0xC0)
             break;
@@ -125,32 +124,51 @@ int ReadBox3(unsigned char ptr, unsigned char *value) {
 
 int CatchBox(void) {
     char ret;
-    int RH = WriteSinglBox(SV, 1);
-    if (RH) return BUSY_BOX;
-    RH = ReadSinglBox(SV, &ret);
-    if (RH) return BUSY_BOX;
-    if (ret == 1) return 0;
-    if (ret == 0) {
-        RH = WriteSinglBox(SV, 1);
-        if (RH) return BUSY_BOX;
-        return 0;
+    int count = 0;
+    while (count != 7) {
+        WriteSinglBox(SV, 1);
+        ReadSinglBox(SV, &ret);
+        if (ret == 1) return 0;
+        count++;
     }
     return BUSY_BOX;
+
+    //    int RH = WriteSinglBox(SV, 1);
+    //    if (RH) return BUSY_BOX;
+    //    RH = ReadSinglBox(SV, &ret);
+    //    if (RH) return BUSY_BOX;
+    //    if (ret == 1) return 0;
+    //    if (ret == 0) {
+    //        RH = WriteSinglBox(SV, 1);
+    //        if (RH) return BUSY_BOX;
+    //        return 0;
+    //    }
+    //    return BUSY_BOX;
+
 }
 
 int FreeBox(void) {
     char ret;
-    int RH = WriteSinglBox(SV, 0);
-    if (RH) return BUSY_BOX;
-    RH = ReadSinglBox(SV, &ret);
-    if (RH) return BUSY_BOX;
-    if (ret == 0) return 0;
-    if (ret == 1) {
-        RH = WriteSinglBox(SV, 0);
-        if (RH) return BUSY_BOX;
-        return 0;
+    int count = 0;
+    while (count != 7) {
+        WriteSinglBox(SV, 0);
+        ReadSinglBox(SV, &ret);
+        if (ret == 0) return 0;
+        count++;
     }
     return BUSY_BOX;
+
+    //    int RH = WriteSinglBox(SV, 0);
+    //    if (RH) return BUSY_BOX;
+    //    RH = ReadSinglBox(SV, &ret);
+    //    if (RH) return BUSY_BOX;
+    //    if (ret == 0) return 0;
+    //    if (ret == 1) {
+    //        RH = WriteSinglBox(SV, 0);
+    //        if (RH) return BUSY_BOX;
+    //        return 0;
+    //    }
+    //    return BUSY_BOX;
 }
 
 unsigned long decodegray(unsigned long k) {

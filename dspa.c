@@ -121,6 +121,8 @@ void printports(void) {
 static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
     int i;
+    table_drv *tdi;
+
     //    printports();
     WritePort(0x110, 0); //WD-D
     WritePort(0x130, 1); // типа мы работаем!
@@ -133,7 +135,7 @@ static ssize_t dev_read(struct file * file, char * buf,
         short ret_error[256];
         for (i = 0; i < drv_count; i++) {
             ret_error[i] = table_drvs[i].error;
-//            printk(KERN_INFO "Error  %hhx =%hhx\n", table_drvs[i].address, table_drvs[i].error);
+            //            printk(KERN_INFO "Error  %hhx =%hhx\n", table_drvs[i].address, table_drvs[i].error);
         }
         copy_to_user(buf, ret_error, drv_count * sizeof (short));
         return drv_count;
@@ -144,9 +146,15 @@ static ssize_t dev_read(struct file * file, char * buf,
         count = drv_len_data[i].lenght;
         //                printk(KERN_INFO "run step section %d\n",i);
         void (*ptr)(table_drv *) = NULL;
+        tdi = (table_drv *) drv_len_data[i].td;
         if (*ppos == 1) ptr = drv_len_data[i].step1;
         if (*ppos == 2) ptr = drv_len_data[i].step2;
-
+        if (*ppos == 3) {
+            if ((tdi->error == 0x80) || (tdi->error == 0x90)) {
+                printk("Vizov init %d",tdi->address);
+                ptr = drv_len_data[i].init;
+            }
+        }
         if (ptr != NULL) {
             if (copy_from_user(table_drvs[i].data, drv_len_data[i].data, count)) {
                 printk(KERN_ERR "=== Can not move data spa-ps device region\n");

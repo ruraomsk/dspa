@@ -255,7 +255,7 @@ void vchs_ini(table_drv* tdrv) {
     unsigned char STAT;
     unsigned char RQ, RH, RL, S01VCHS, S02VCHS;
     int ADR_MISPA = 0x118, i;
-    log_init(tdrv);
+//    log_init(tdrv);
 
     VchDate->K01VCHS.f = VchDate->K02VCHS.f = 0.0;
     VchDate->K01VCHS.error = VchDate->K02VCHS.error = 0;
@@ -733,7 +733,7 @@ void vchs_dw(table_drv* tdrv) {
     unsigned long int il;
     sschar rc;
     ssfloat rf;
-    log_step(tdrv);
+//    log_step(tdrv);
 
     SetBoxLen(0xFF);
 

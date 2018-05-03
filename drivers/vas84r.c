@@ -6,6 +6,7 @@
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "vas84r.h"
+//#include "linux/printk.h"
 
 int abs (int a){
     if (a<0) return -a;
@@ -128,10 +129,10 @@ void vas84r_dw(table_drv* tdrv) {
     ssint rr = {0, 0};
     sschar rc = {0, 0};
     SetBoxLen(inipar->BoxLen);
-
+  
     if(tdrv->error == 0x80) return;
     // установить адрес модуля на МИСПА
-
+  
     RQ = (char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
@@ -148,7 +149,7 @@ void vas84r_dw(table_drv* tdrv) {
         //инициализация процессорного модуля
 
         if (tdrv->error & 0x80)
-            break;
+            return;
 
         // захват ПЯ модуля 
 
