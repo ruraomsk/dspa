@@ -11,8 +11,10 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/D:/newPro/dspa/dspa.c</file>
+            <file>file:/D:/newPro/dspa/drivers/vas84r.c</file>
             <file>file:/D:/newPro/dspa/dspa.h</file>
-            <file>file:/D:/cpc108/include/fcntl.h</file>
+            <file>file:/D:/newPro/dspa/misparw.c</file>
+            <file>file:/D:/newPro/dspa/drivers/vds32r.c</file>
         </group>
     </open-files>
 </project-private>

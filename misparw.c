@@ -125,7 +125,7 @@ int ReadBox3(unsigned char ptr, unsigned char *value) {
 int CatchBox(void) {
     char ret;
     int count = 0;
-    while (count != 7) {
+    while (count < 5) {
         WriteSinglBox(SV, 1);
         ReadSinglBox(SV, &ret);
         if (ret == 1) return 0;
@@ -150,7 +150,7 @@ int CatchBox(void) {
 int FreeBox(void) {
     char ret;
     int count = 0;
-    while (count != 7) {
+    while (count <  5) {
         WriteSinglBox(SV, 0);
         ReadSinglBox(SV, &ret);
         if (ret == 0) return 0;
