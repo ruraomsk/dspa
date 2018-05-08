@@ -13,8 +13,10 @@
 
 #ifndef MISPARW_H
 #define MISPARW_H
-#define ADR_BOX     0xd0000
-#define SIZE_BOX    0x1fff
+ #define ADR_BOX     0xd0000
+//#define ADR_BOX     0xcc000
+#define SIZE_BOX    0x0fff
+// #define SIZE_BOX    0xffff
 
 #define MRQ         0x05    //; запрос на обслуживание
 #define SV          0x06    //; флаг захвата ПЯ со стороны ФП

@@ -18,7 +18,8 @@ typedef struct __attribute__((packed))
 {
   unsigned char type;       // default = 0xC2;  тип модуля 
   unsigned int  BoxLen;     // default = 0xFF;  длина ПЯ, уменьшенная на 1 
-  unsigned char vip;        // default = 0;     флаг критически важного для системы модуля 
+//  unsigned char vip;        // default = 0;     флаг критически важного для системы модуля 
+  unsigned char inv;        // флаг инверсии 0 - прямой 1 - инверстный 
   unsigned char NumCh;      // default = 8;     количество каналов 
   unsigned char tadr116;    // default = 0xFF;  Время антидребезга каналов 1-16  
   unsigned char tadr1732;   // default = 0xFF;  Время антидребезга каналов 17-32 
@@ -38,6 +39,14 @@ typedef struct __attribute__((packed))
 {
   ssbool SIGN[32]; // Результат счета каналов 1-8   
 } vds32r_data;
+
+typedef struct __attribute__((packed))
+{
+  unsigned char stat[2];
+  unsigned char sost[4];
+  unsigned char obr[4];
+  unsigned char kz[4];
+} vds32r_str;
 
 #define VDS32R 0xC2
 #define VDS32R_SIZE sizeof(vds32r_data)
