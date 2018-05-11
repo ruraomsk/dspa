@@ -152,7 +152,7 @@ static ssize_t dev_read(struct file * file, char * buf,
         if (*ppos == 1) ptr = drv_len_data[i].step1;
         if (*ppos == 2) ptr = drv_len_data[i].step2;
         if (*ppos == 3) {
-            if ((tdi->error == 0x80) || (tdi->error == 0x90)) {
+            if ((tdi->error == 0x80) || (tdi->error == 0x90) || tdi->error == 0xc0) {
                 printk("Vizov init %d",tdi->address);
                 ptr = drv_len_data[i].init;
             }

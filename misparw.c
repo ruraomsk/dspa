@@ -55,7 +55,7 @@ int WriteBox(unsigned char ptr, unsigned char value) {
     CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
-    value = !value;
+    value = ~value;
     CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
