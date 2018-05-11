@@ -6,7 +6,7 @@
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "vas84r.h"
-//#include "linux/printk.h"
+#include "linux/printk.h"
 
 int abs (int a){
     if (a<0) return -a;
@@ -107,7 +107,6 @@ typedef struct
 //
 
 void vas84r_ini(table_drv* tdrv) {
-    //?????????????????????????????????????????????????????????????????????????
     int ADR_MISPA = 0x118;
     unsigned char RQ = (unsigned char) (tdrv->address & 0xff);
     //log_init(tdrv);
@@ -144,7 +143,7 @@ void vas84r_dw(table_drv* tdrv) {
     tdrv->error = 0;
 
 
-    while (1) {
+     while (1) {
 
         //инициализация процессорного модуля
 
@@ -154,14 +153,16 @@ void vas84r_dw(table_drv* tdrv) {
         // захват ПЯ модуля 
 
         RH = CatchBox();
+        printk("CRH - %hhx",RH);
         if (RH) {
             tdrv->error = RH;
-            break;
+            return;
         } // не могу захватить ПЯ
+
         RH = ReadBox3(AdrCT_GLOB, &RL);
+        printk("GlobRH - %hhx",RH);
         rc.error = RH;
         rc.c = RL;
-        //     WDEBUG_PRINT_HEX(3,"CT_GLOB=",&rc);
 
         if (RH) {
             if (RH == 0x80) {
@@ -188,10 +189,10 @@ void vas84r_dw(table_drv* tdrv) {
         // загрузить слово состояния 
 
         RH = ReadBox3(AdrSTAT, &STAT);
-        rc.c = STAT;
-        rc.error = RH;
-
-        //     WDEBUG_PRINT_HEX(4,"STAT=",&rc);
+        // rc.c = STAT;
+        // rc.error = RH;
+        printk("StRH - %hhx",RH);
+        
 
         if (RH) { //ошибка статуса модуля
             if (RH == 0x80)
@@ -206,39 +207,34 @@ void vas84r_dw(table_drv* tdrv) {
         // есть данные ?
 
         RH = ReadBox3(AdrRQ, &RQ);
+        printk("ReRH - %hhx",RH);
+        // if (RH) { // ошибка готовности модуля
+        //     if (RH == 0x80)
+        //         tdrv->error = RH;
+        //     else
+        //         tdrv->error = 0x90;
+        //     break;
+        // }
 
-        if (RH) { // ошибка готовности модуля
-            if (RH == 0x80)
-                tdrv->error = RH;
-            else
-                tdrv->error = 0x90;
-            break;
-        }
+        // if (RQ) { // есть новые данные
 
-        if (RQ) { // есть новые данные
-
-            //  unsigned char NumCh;   // default = 8;    // количество каналов 
-            //  unsigned char UsMask;  // default = 0xFF; // маска использования каналов
-            //  unsigned char ChMask;  // default = 0x0;  // флаги изменения каналов 
-            //  unsigned char Aprt;    // default = 0x17;  // апертура 
 
             RH = ReadBox3(AdrSOST, &SOST);
+            printk(" SOST - %hhx",SOST);
             rc.c = SOST;
             rc.error = RH;
 
-            //       WDEBUG_PRINT_HEX(5,"Wsost=",&rc);
 
-            if (RH) { //ошибка статуса модуля
-                if (RH == 0x80)
-                    tdrv->error = RH;
-                else
-                    tdrv->error = 0xC0; // 
-                break;
-            }
+            // if (RH) { //ошибка статуса модуля
+            //     if (RH == 0x80)
+            //         tdrv->error = RH;
+            //     else
+            //         tdrv->error = 0xC0; // 
+            //     break;
+            // }
 
             ModData->widesos.c = SOST;
             ModData->widesos.error = 0;
-            inipar->ChMask = 0;
             for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {
                 if ((inipar->UsMask & k) && !(SOST & k)) { // канал используется и исправен
 
@@ -246,7 +242,7 @@ void vas84r_dw(table_drv* tdrv) {
                     //  pschar widesos;  // расширенный байт состояния
 
                     RH = ReadBox3(AdrData + (i * 3), &RL);
-
+                    printk(" RL - %hhx",RL);
                     if (RH) {
                         if (RH == 0x80) {
                             tdrv->error = RH;
@@ -258,7 +254,7 @@ void vas84r_dw(table_drv* tdrv) {
                         ModData->SIGN[i].error = 0x0; // 
 
                     RH = ReadBox3(AdrData + (i * 3) + 1, &RQ);
-
+                    printk(" RQ - %hhx",RQ);    
                     if (RH) {
                         if (RH == 0x80) {
                             tdrv->error = RH;
@@ -275,18 +271,24 @@ void vas84r_dw(table_drv* tdrv) {
                     }
                     ModData->SIGN[i].i = rr.i;
 
-                    //            WDEBUG_PRINT_INT(10+i,"VAS84 =",&ModData->SIGN[i]);
 
                 }
+
+
+
+
+
+
+
                 k <<= 1;
             }
             rc.c = inipar->ChMask;
             rc.error = 0;
-            //        WDEBUG_PRINT_HEX(20,"ChMask=",&rc);
 
-        }
-        break;
-    }
+        // }
+         break;
+     }
+
     //ящик обслужен
     RH = WriteBox(AdrSVE, 1);
 
@@ -298,13 +300,14 @@ void vas84r_dw(table_drv* tdrv) {
     if (RH) {
         tdrv->error = RH; // ошибка миспа
     }
+    printk("FREEE - %hhx",RH);
 
-    if (tdrv->error & 0x80) {
-        for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {
-            ModData->SIGN[i].error = tdrv->error;
-        }
-        ModData->widesos.error = tdrv->error;
-    }
+    // if (tdrv->error & 0x80) {
+    //     for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {
+    //         ModData->SIGN[i].error = tdrv->error;
+    //     }
+    //     ModData->widesos.error = tdrv->error;
+    // }
 
 }
 

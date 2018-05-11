@@ -16,7 +16,7 @@
 #include "sbkfp7.h"
 
 #define inipar ((sbk_inipar *)(drv->inimod))
-#define NewDate ((sbk_data *)(drv->data))
+#define sbkDate ((sbk_data *)(drv->data))
 #define LastIn ((char *)(&drv->time))
  
 static int UpRead = 0;
@@ -28,32 +28,32 @@ static int UpRead = 0;
 void sbkfp7_ini(table_drv *drv)
 {
 //    log_init(drv);
-  NewDate->SbkPower1.b = 0;
-  NewDate->SbkPower1.error = 0;
-  NewDate->SbkPower2.b = 0;
-  NewDate->SbkPower2.error = 0;
-  NewDate->SbkDoor.b = 0;
-  NewDate->SbkDoor.error = 0;
-  NewDate->SbkT43.b = 0;
-  NewDate->SbkT43.error = 0;
-  NewDate->SbkT53.b = 0;
-  NewDate->SbkT53.error = 0;
-  NewDate->SbkPB124.b = 0;
-  NewDate->SbkPB124.error = 0;
-  NewDate->SbkPB15.b = 0;
-  NewDate->SbkPB15.error = 0;
-  NewDate->SbkPB224.b = 0;
-  NewDate->SbkPB224.error = 0;
-  NewDate->SbkPB25.b = 0;
-  NewDate->SbkPB25.error = 0;
-  NewDate->SbkMpPB124.b = 0;
-  NewDate->SbkMpPB124.error = 0;
-  NewDate->SbkMpPB15.b = 0;
-  NewDate->SbkMpPB15.error = 0;
-  NewDate->SbkMpPB224.b = 0;
-  NewDate->SbkMpPB224.error = 0;
-  NewDate->SbkMpPB25.b = 0;
-  NewDate->SbkMpPB25.error = 0;
+  sbkDate->SbkPower1.b = 0;
+  sbkDate->SbkPower1.error = 0;
+  sbkDate->SbkPower2.b = 0;
+  sbkDate->SbkPower2.error = 0;
+  sbkDate->SbkDoor.b = 0;
+  sbkDate->SbkDoor.error = 0;
+  sbkDate->SbkT43.b = 0;
+  sbkDate->SbkT43.error = 0;
+  sbkDate->SbkT53.b = 0;
+  sbkDate->SbkT53.error = 0;
+  sbkDate->SbkPB124.b = 0;
+  sbkDate->SbkPB124.error = 0;
+  sbkDate->SbkPB15.b = 0;
+  sbkDate->SbkPB15.error = 0;
+  sbkDate->SbkPB224.b = 0;
+  sbkDate->SbkPB224.error = 0;
+  sbkDate->SbkPB25.b = 0;
+  sbkDate->SbkPB25.error = 0;
+  sbkDate->SbkMpPB124.b = 0;
+  sbkDate->SbkMpPB124.error = 0;
+  sbkDate->SbkMpPB15.b = 0;
+  sbkDate->SbkMpPB15.error = 0;
+  sbkDate->SbkMpPB224.b = 0;
+  sbkDate->SbkMpPB224.error = 0;
+  sbkDate->SbkMpPB25.b = 0;
+  sbkDate->SbkMpPB25.error = 0;
   drv->error = 0;
 }
 
@@ -89,31 +89,31 @@ void sbkfp7_dw(table_drv *drv)
 
   if (UpRead == 1){ // Р’РўРћР РћР™ Р’РҐРћР”
     SBKTemp.b = ReadPort(0x110);
-    NewDate->SbkPower1.b = (SBKTemp.b >> 0) & 1;
-    NewDate->SbkPower2.b = (SBKTemp.b >> 1) & 1;
-    NewDate->SbkDoor.b = (SBKTemp.b >> 3) & 1;
-    NewDate->SbkT43.b = (SBKTemp.b >> 4) & 1;
-    NewDate->SbkT53.b = (SBKTemp.b >> 5) & 1;
-    if (NewDate->SbkPower1.b == 1)
-      NewDate->SbkPower1.error = 0x1;
+    sbkDate->SbkPower1.b = (SBKTemp.b >> 0) & 1;
+    sbkDate->SbkPower2.b = (SBKTemp.b >> 1) & 1;
+    sbkDate->SbkDoor.b = (SBKTemp.b >> 3) & 1;
+    sbkDate->SbkT43.b = (SBKTemp.b >> 4) & 1;
+    sbkDate->SbkT53.b = (SBKTemp.b >> 5) & 1;
+    if (sbkDate->SbkPower1.b == 1)
+      sbkDate->SbkPower1.error = 0x1;
     else
-      NewDate->SbkPower1.error = 0x0;
-    if (NewDate->SbkPower2.b == 1)
-      NewDate->SbkPower2.error = 0x1;
+      sbkDate->SbkPower1.error = 0x0;
+    if (sbkDate->SbkPower2.b == 1)
+      sbkDate->SbkPower2.error = 0x1;
     else
-      NewDate->SbkPower2.error = 0x0;
-    if (NewDate->SbkDoor.b == 1)
-      NewDate->SbkDoor.error = 0x2;
+      sbkDate->SbkPower2.error = 0x0;
+    if (sbkDate->SbkDoor.b == 1)
+      sbkDate->SbkDoor.error = 0x2;
     else
-      NewDate->SbkDoor.error = 0x0;
-    if (NewDate->SbkT43.b == 0)
-      NewDate->SbkT43.error = 0x4;
+      sbkDate->SbkDoor.error = 0x0;
+    if (sbkDate->SbkT43.b == 0)
+      sbkDate->SbkT43.error = 0x4;
     else
-      NewDate->SbkT43.error = 0x0;
-    if (NewDate->SbkT53.b == 1)
-      NewDate->SbkT53.error = 0x4;
+      sbkDate->SbkT43.error = 0x0;
+    if (sbkDate->SbkT53.b == 1)
+      sbkDate->SbkT53.error = 0x4;
     else
-      NewDate->SbkT53.error = 0x0;
+      sbkDate->SbkT53.error = 0x0;
   }
 
   if (UpRead == 2){ // РўР Р•РўРР™ Р’РҐРћР”      РџРћР Рў 110 - 2
@@ -122,26 +122,26 @@ void sbkfp7_dw(table_drv *drv)
 
   if (UpRead == 3){// Р§Р•РўР’Р•Р РўР«Р™ Р’РҐРћР”
     SBKTemp.b = ReadPort(0x110);
-    NewDate->SbkPB124.b = (SBKTemp.b >> 0) & 1;
-    NewDate->SbkPB15.b = (SBKTemp.b >> 1) & 1;
-    NewDate->SbkPB224.b = (SBKTemp.b >> 2) & 1;
-    NewDate->SbkPB25.b = (SBKTemp.b >> 3) & 1;
-    if (NewDate->SbkPB124.b == 1)
-      NewDate->SbkPB124.error = 0x8;
+    sbkDate->SbkPB124.b = (SBKTemp.b >> 0) & 1;
+    sbkDate->SbkPB15.b = (SBKTemp.b >> 1) & 1;
+    sbkDate->SbkPB224.b = (SBKTemp.b >> 2) & 1;
+    sbkDate->SbkPB25.b = (SBKTemp.b >> 3) & 1;
+    if (sbkDate->SbkPB124.b == 1)
+      sbkDate->SbkPB124.error = 0x8;
     else
-      NewDate->SbkPB124.error = 0x0;
-    if (NewDate->SbkPB15.b == 1)
-      NewDate->SbkPB15.error = 0x8;
+      sbkDate->SbkPB124.error = 0x0;
+    if (sbkDate->SbkPB15.b == 1)
+      sbkDate->SbkPB15.error = 0x8;
     else
-      NewDate->SbkPB15.error = 0x0;
-    if (NewDate->SbkPB224.b == 1)
-      NewDate->SbkPB224.error = 0x8;
+      sbkDate->SbkPB15.error = 0x0;
+    if (sbkDate->SbkPB224.b == 1)
+      sbkDate->SbkPB224.error = 0x8;
     else
-      NewDate->SbkPB224.error = 0x0;
-    if (NewDate->SbkPB25.b == 1)
-      NewDate->SbkPB25.error = 0x8;
+      sbkDate->SbkPB224.error = 0x0;
+    if (sbkDate->SbkPB25.b == 1)
+      sbkDate->SbkPB25.error = 0x8;
     else
-      NewDate->SbkPB25.error = 0x0;
+      sbkDate->SbkPB25.error = 0x0;
     }
 
   if(UpRead!=3)
@@ -152,25 +152,25 @@ void sbkfp7_dw(table_drv *drv)
   // Port 114h - С‡РёС‚Р°РµС‚ РєР°Р¶РґС‹Р№ СЂР°Р·
 
   SBKTemp.b = ReadPort(0x114);
-  NewDate->SbkMpPB124.b = (SBKTemp.b >> 0) & 1;
-  NewDate->SbkMpPB15.b = (SBKTemp.b >> 1) & 1;
-  NewDate->SbkMpPB224.b = (SBKTemp.b >> 6) & 1;
-  NewDate->SbkMpPB25.b = (SBKTemp.b >> 7) & 1;
+  sbkDate->SbkMpPB124.b = (SBKTemp.b >> 0) & 1;
+  sbkDate->SbkMpPB15.b = (SBKTemp.b >> 1) & 1;
+  sbkDate->SbkMpPB224.b = (SBKTemp.b >> 6) & 1;
+  sbkDate->SbkMpPB25.b = (SBKTemp.b >> 7) & 1;
 
-  if (NewDate->SbkMpPB124.b == 1)
-    NewDate->SbkMpPB124.error = 0x10;
+  if (sbkDate->SbkMpPB124.b == 1)
+    sbkDate->SbkMpPB124.error = 0x10;
   else
-    NewDate->SbkMpPB124.error = 0x0;
-  if (NewDate->SbkMpPB15.b == 1)
-    NewDate->SbkMpPB15.error = 0x10;
+    sbkDate->SbkMpPB124.error = 0x0;
+  if (sbkDate->SbkMpPB15.b == 1)
+    sbkDate->SbkMpPB15.error = 0x10;
   else
-    NewDate->SbkMpPB15.error = 0x0;
-  if (NewDate->SbkMpPB224.b == 1)
-    NewDate->SbkMpPB224.error = 0x10;
+    sbkDate->SbkMpPB15.error = 0x0;
+  if (sbkDate->SbkMpPB224.b == 1)
+    sbkDate->SbkMpPB224.error = 0x10;
   else
-    NewDate->SbkMpPB224.error = 0x0;
-  if (NewDate->SbkMpPB25.b == 1)
-    NewDate->SbkMpPB25.error = 0x10;
+    sbkDate->SbkMpPB224.error = 0x0;
+  if (sbkDate->SbkMpPB25.b == 1)
+    sbkDate->SbkMpPB25.error = 0x10;
   else
-    NewDate->SbkMpPB25.error = 0x0;
+    sbkDate->SbkMpPB25.error = 0x0;
 }

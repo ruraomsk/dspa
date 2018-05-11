@@ -12,9 +12,12 @@
         <group>
             <file>file:/D:/newPro/dspa/dspa.c</file>
             <file>file:/D:/newPro/dspa/drivers/vds32r.h</file>
+            <file>file:/D:/newPro/dspa/drivers/vas84r.c</file>
             <file>file:/D:/newPro/dspa/misparw.h</file>
             <file>file:/D:/newPro/dspa/misparw.c</file>
+            <file>file:/D:/newPro/dspa/drivers/vas84r.h</file>
             <file>file:/D:/newPro/dspa/drivers/vds32r.c</file>
+            <file>file:/D:/newPro/dspa/drivers/fds16r.c</file>
         </group>
     </open-files>
 </project-private>

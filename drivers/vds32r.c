@@ -9,7 +9,7 @@
 #include "linux/printk.h"
 
 #define inipar ((vds32r_inipar *)(tdrv->inimod))
-#define NewDate ((vds32r_data *)(tdrv->data))
+#define vdsDate ((vds32r_data *)(tdrv->data))
 #define LastIn ((char *)(&tdrv->time))
 
 #define AdrType 0x04 // тип модуля
@@ -114,11 +114,11 @@ void vds32r_ini(table_drv *tdrv) {
     if (aRH == 0x80) { // нет устройства
         tdrv->error = 0x80;
         return;
-    }
-    //    else if (aRH == 0xC0) { // NEGC_BOX
-    //        tdrv->error = 0xC0;
-    //        return;
-    //    }
+    } 
+    // else if (aRH == 0xC0) { // NEGC_BOX
+    //     tdrv->error = 0xC0;
+    //     return;
+    // }
 }
 
 //===========================================================/
@@ -174,7 +174,7 @@ void vds32r_dw(table_drv *tdrv) {
     // printk("db - %hhx", RH);
 
     for (k = 0; k < 32; k++)
-        NewDate->SIGN[k].error = 0xff;
+        vdsDate->SIGN[k].error = 0xff;
 
     RH = ReadBox3(AdrStatus0, &vdsValue.stat[0]);
     aRH |= RH;
@@ -208,25 +208,21 @@ void vds32r_dw(table_drv *tdrv) {
     if (aRH == 0x80) { // нет устройства
         tdrv->error = 0x80;
         return;
-    }
-    //    else if (aRH == 0xC0) { // NEGC_BOX
-    //        tdrv->error = 0xC0;
-    //        return;
-    //    }
-    printk("new");
-    i = 3;
-     printk("%hhx",i);
-     i = ~i;
-     printk("%hhx",i);
+    } 
+    // else if (aRH == 0xC0) { // NEGC_BOX
+    //     tdrv->error = 0xC0;
+    //     return;
+    // }
+
     if (!inipar->inv) {
-        for (k = 0; k < 4; k++) {
-
-            printk("%hhx 1", vdsValue.sost[k]);
+        for (k = 0; k < 4; k++)
             vdsValue.sost[k] = ~vdsValue.sost[k];
-            printk("%hhx - 2", vdsValue.sost[k]);
-
-        }
     }
+
+    // ReadBox3(0x10, &RH);
+    // printk("10 - %hhx", RH);
+    // ReadBox3(0xef, &RH);
+    // printk("ef - %hhx", RH);
 
 
     for (i = 0, k = 0; i < 4; i++) {
@@ -237,30 +233,14 @@ void vds32r_dw(table_drv *tdrv) {
                 SErr |= 0x0c;
             if (!(vdsValue.kz[i] & j))
                 SErr |= 0x30;
-            NewDate->SIGN[k].error = SErr;
+            vdsDate->SIGN[k].error = SErr;
 
             if (vdsValue.sost[i] & j)
-                NewDate->SIGN[k].b = 1;
+                vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 1;
             else
-                NewDate->SIGN[k].b = 0;
+                vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 0;
             j <<= 1;
             k++;
         }
     }
-    // for (i = 0; i < 4; i++) {
-    //     for (z = 0; z < 8; z++) {
-    //         temp = NewDate->SIGN[z+(i*8)];
-    //         // printk("temp - %hhx",temp.b);
-    //         NewDate->SIGN[z+(i*8)] = NewDate->SIGN[(8*(i+1))+(8*i)-1-(z+(i*8))];
-    //          printk("%d - ",z+(i*8));
-    //          printk(" - %hhx",NewDate->SIGN[z+(i*8)].b);
-    //         NewDate->SIGN[(8*(i+1))+(8*i)-1-(z+(i*8))] = temp;
-    //         // printk("2 - %hhx",NewDate->SIGN[(8*(i+1))+(8*i)-1-(z+(i*8))].b);
-    //     }
-    // }
-    // if (!inipar->inv) {
-    //     for (k = 0; k < 32; k++)
-    //         NewDate->SIGN[k].b = !NewDate->SIGN[k].b;
-    // }
-
 }
