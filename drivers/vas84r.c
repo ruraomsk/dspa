@@ -38,7 +38,7 @@ typedef struct
 //#define CT_GLOB   tdrv->tdrv.typedev[0]    // последний счетчик переворотов ПЯ
 #define CounGL    tdrv->tdrv.typedev[1]    // счетчик непереворотов ПЯ
 
-#define ModData ((vas84r_data*)(tdrv->data))
+#define VasData ((vas84r_data*)(tdrv->data))
 
 #define AdrType       0x0   // тип модуля   
 
@@ -143,164 +143,166 @@ void vas84r_dw(table_drv* tdrv) {
     tdrv->error = 0;
 
 
-     while (1) {
+    // while (1) {
 
-        //инициализация процессорного модуля
+    //     //инициализация процессорного модуля
 
-        if (tdrv->error & 0x80)
-            return;
+    //     if (tdrv->error & 0x80)
+    //         return;
 
-        // захват ПЯ модуля 
+    //     // захват ПЯ модуля 
 
         RH = CatchBox();
-        printk("CRH - %hhx",RH);
         if (RH) {
             tdrv->error = RH;
-            return;
+            // break;
         } // не могу захватить ПЯ
 
-        RH = ReadBox3(AdrCT_GLOB, &RL);
-        printk("GlobRH - %hhx",RH);
-        rc.error = RH;
-        rc.c = RL;
 
-        if (RH) {
-            if (RH == 0x80) {
-                tdrv->error = RH;
-            } else
-                // неинверсия на счётчик переворотов
-                tdrv->error = 0xA0; // ящик не крутится
-            break;
-        }
+    //       for (i = 1; i < 255; i++) {
+    //     ReadBox3(i, &RQ);
+    //     printk("%d - %hhx", i, RQ);
+    // }
+    //     RH = ReadBox3(AdrCT_GLOB, &RL);
+    //     rc.error = RH;
+    //     rc.c = RL;
+    //     //     WDEBUG_PRINT_HEX(3,"CT_GLOB=",&rc);
 
-        if ((RL == tdrv->tdrv.typedev[0]) || (tdrv->error == 0xA0)) { // ящик не крутился
-            if (CounGL < 120)
-                ++CounGL;
-            else {
-                tdrv->error |= 0x20;
-                break;
-            } // ??  в прототипе - нет
+    //     if (RH) {
+    //         if (RH == 0x80) {
+    //             tdrv->error = RH;
+    //         } else
+    //             // неинверсия на счётчик переворотов
+    //             tdrv->error = 0xA0; // ящик не крутится
+    //         break;
+    //     }
 
-        } else {
-            CounGL = 0;
-            tdrv->tdrv.typedev[0] = RL;
-        }
+    //     if ((RL == tdrv->tdrv.typedev[0]) || (tdrv->error == 0xA0)) { // ящик не крутился
+    //         if (CounGL < 120)
+    //             ++CounGL;
+    //         else {
+    //             tdrv->error |= 0x20;
+    //             break;
+    //         } // ??  в прототипе - нет
 
-        // загрузить слово состояния 
+    //     } else {
+    //         CounGL = 0;
+    //         tdrv->tdrv.typedev[0] = RL;
+    //     }
 
-        RH = ReadBox3(AdrSTAT, &STAT);
-        // rc.c = STAT;
-        // rc.error = RH;
-        printk("StRH - %hhx",RH);
-        
+    //     // загрузить слово состояния 
 
-        if (RH) { //ошибка статуса модуля
-            if (RH == 0x80)
-                tdrv->error = RH;
-            else
-                tdrv->error = 0xC0;
-            break;
-        } else
-            if ((tdrv->error = STAT) & 0x80)
-            break; //ошибка статуса модуля
+    //     RH = ReadBox3(AdrSTAT, &STAT);
+    //     rc.c = STAT;
+    //     rc.error = RH;
 
-        // есть данные ?
+    //     //     WDEBUG_PRINT_HEX(4,"STAT=",&rc);
 
-        RH = ReadBox3(AdrRQ, &RQ);
-        printk("ReRH - %hhx",RH);
-        // if (RH) { // ошибка готовности модуля
-        //     if (RH == 0x80)
-        //         tdrv->error = RH;
-        //     else
-        //         tdrv->error = 0x90;
-        //     break;
-        // }
+    //     if (RH) { //ошибка статуса модуля
+    //         if (RH == 0x80)
+    //             tdrv->error = RH;
+    //         else
+    //             tdrv->error = 0xC0;
+    //         break;
+    //     } else
+    //         if ((tdrv->error = STAT) & 0x80)
+    //         break; //ошибка статуса модуля
 
-        // if (RQ) { // есть новые данные
+    //     // есть данные ?
 
+    //     RH = ReadBox3(AdrRQ, &RQ);
 
-            RH = ReadBox3(AdrSOST, &SOST);
-            printk(" SOST - %hhx",SOST);
-            rc.c = SOST;
-            rc.error = RH;
+    //     if (RH) { // ошибка готовности модуля
+    //         if (RH == 0x80)
+    //             tdrv->error = RH;
+    //         else
+    //             tdrv->error = 0x90;
+    //         break;
+    //     }
 
+    //     if (RQ) { // есть новые данные
 
-            // if (RH) { //ошибка статуса модуля
-            //     if (RH == 0x80)
-            //         tdrv->error = RH;
-            //     else
-            //         tdrv->error = 0xC0; // 
-            //     break;
-            // }
+    //         //  unsigned char NumCh;   // default = 8;    // количество каналов 
+    //         //  unsigned char UsMask;  // default = 0xFF; // маска использования каналов
+    //         //  unsigned char ChMask;  // default = 0x0;  // флаги изменения каналов 
+    //         //  unsigned char Aprt;    // default = 0x17;  // апертура 
 
-            ModData->widesos.c = SOST;
-            ModData->widesos.error = 0;
-            for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {
-                if ((inipar->UsMask & k) && !(SOST & k)) { // канал используется и исправен
+    //         RH = ReadBox3(AdrSOST, &SOST);
+    //         rc.c = SOST;
+    //         rc.error = RH;
 
-                    //  psint SIGN[8];   // Результат счета каналов 1-8   
-                    //  pschar widesos;  // расширенный байт состояния
+    //         //       WDEBUG_PRINT_HEX(5,"Wsost=",&rc);
 
-                    RH = ReadBox3(AdrData + (i * 3), &RL);
-                    printk(" RL - %hhx",RL);
-                    if (RH) {
-                        if (RH == 0x80) {
-                            tdrv->error = RH;
-                            break;
-                        } else
-                            ModData->SIGN[i].error |= 0x20; // 
+    //         if (RH) { //ошибка статуса модуля
+    //             if (RH == 0x80)
+    //                 tdrv->error = RH;
+    //             else
+    //                 tdrv->error = 0xC0; // 
+    //             break;
+    //         }
 
-                    } else
-                        ModData->SIGN[i].error = 0x0; // 
+    //         ModData->widesos.c = SOST;
+    //         ModData->widesos.error = 0;
+    //         inipar->ChMask = 0;
+    //         for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {
+    //             if ((inipar->UsMask & k) && !(SOST & k)) { // канал используется и исправен
 
-                    RH = ReadBox3(AdrData + (i * 3) + 1, &RQ);
-                    printk(" RQ - %hhx",RQ);    
-                    if (RH) {
-                        if (RH == 0x80) {
-                            tdrv->error = RH;
-                            break;
-                        } else
-                            ModData->SIGN[i].error |= 0x20; // 
+    //                 //  psint SIGN[8];   // Результат счета каналов 1-8   
+    //                 //  pschar widesos;  // расширенный байт состояния
 
-                    }
-                    if (!ModData->SIGN[i].error)
+    //                 RH = ReadBox3(AdrData + (i * 3), &RL);
 
-                        rr.i = (int) RL * 256 + RQ;
-                    if (abs(rr.i - ModData->SIGN[i].i) > inipar->Aprt) {
-                        inipar->ChMask |= k;
-                    }
-                    ModData->SIGN[i].i = rr.i;
+    //                 if (RH) {
+    //                     if (RH == 0x80) {
+    //                         tdrv->error = RH;
+    //                         break;
+    //                     } else
+    //                         ModData->SIGN[i].error |= 0x20; // 
 
+    //                 } else
+    //                     ModData->SIGN[i].error = 0x0; // 
 
-                }
+    //                 RH = ReadBox3(AdrData + (i * 3) + 1, &RQ);
 
+    //                 if (RH) {
+    //                     if (RH == 0x80) {
+    //                         tdrv->error = RH;
+    //                         break;
+    //                     } else
+    //                         ModData->SIGN[i].error |= 0x20; // 
 
+    //                 }
+    //                 if (!ModData->SIGN[i].error)
 
+    //                     rr.i = (int) RL * 256 + RQ;
+    //                 if (abs(rr.i - ModData->SIGN[i].i) > inipar->Aprt) {
+    //                     inipar->ChMask |= k;
+    //                 }
+    //                 ModData->SIGN[i].i = rr.i;
 
+    //                 //            WDEBUG_PRINT_INT(10+i,"VAS84 =",&ModData->SIGN[i]);
 
+    //             }
+    //             k <<= 1;
+    //         }
+    //         rc.c = inipar->ChMask;
+    //         rc.error = 0;
+    //         //        WDEBUG_PRINT_HEX(20,"ChMask=",&rc);
 
+    //     }
+    //     break;
+    // }
+    // //ящик обслужен
+    // RH = WriteBox(AdrSVE, 1);
 
-                k <<= 1;
-            }
-            rc.c = inipar->ChMask;
-            rc.error = 0;
-
-        // }
-         break;
-     }
-
-    //ящик обслужен
-    RH = WriteBox(AdrSVE, 1);
-
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-    }
+    // if (RH) {
+    //     tdrv->error = RH; // ошибка миспа
+    // }
 
     RH = FreeBox(); // освободить ПЯ
     if (RH) {
         tdrv->error = RH; // ошибка миспа
     }
-    printk("FREEE - %hhx",RH);
 
     // if (tdrv->error & 0x80) {
     //     for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {
@@ -310,5 +312,4 @@ void vas84r_dw(table_drv* tdrv) {
     // }
 
 }
-
 

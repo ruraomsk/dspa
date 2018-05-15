@@ -80,6 +80,7 @@ static int dev_open(struct inode *n, struct file *f) {
 //    WritePort(0x108, 0x48);
 //    WritePort(0x108, 0x12);
     WritePort(0x108, 0x5a);
+    WritePort(0x100, 0x06);
     WritePort(0x128, 0x00);
     WritePort(0x110, 0); //WD-D
     WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
