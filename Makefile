@@ -11,14 +11,19 @@ TARGET = dsp
 obj-m := $(TARGET).o
 $(TARGET)-objs := $(OBJS)
 
-all: default
+all: clean default insmod
 
 default:
 	$(MAKE) -C/usr/src/linux SUBDIRS=$(PWD) modules
 $(TARGET).o: $(OBJS)
 	$(LD) -r -o $@ $^
+	
+insmod:
+	@insmod dsp.ko
+
 clean:
 	@rm -f *.o *.mod.o *.mod.c
 	@rm -f *.cmd *.*.cmd .*.*.cmd
 	@rm -f *.ko *.order *.symvers
 	@rm -f drivers/.*.*.cmd drivers/*.o
+	@-rmmod dsp

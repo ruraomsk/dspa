@@ -47,12 +47,12 @@ static irqreturn_t no_port_irq(int irq, void *dev_id) {
         return IRQ_HANDLED;
     }
     if (in & 4) {
-        printk(KERN_INFO "Timer! %x=%hhx\n", inb(0x118), in);
+//        printk(KERN_INFO "Timer! %x=%hhx\n", inb(0x118), in);
         WritePort(0x130, 1);
         WritePort(0x120, in & 0xf8);
         return IRQ_HANDLED;
     }
-    printk(KERN_INFO "Ops! %x=%hhx %d\n", inb(0x118), in, irq_count);
+//    printk(KERN_INFO "Ops! %x=%hhx %d\n", inb(0x118), in, irq_count);
     WritePort(0x130, 1);
     WritePort(0x120, 0);
     irq_count++;
@@ -130,7 +130,7 @@ static ssize_t dev_read(struct file * file, char * buf,
     WritePort(0x110, 0); //WD-D
     WritePort(0x130, 1); // типа мы работаем!
     if (count == 0) { // Запрос не мастер ли  мы?
-        if (ReadPort(0x112)&0x2 == 0) return 1; // нет не мастер
+        if ((ReadPort(0x112)&0x2) == 0) return 1; // нет не мастер
         return EOK;
     }
     if ((ReadPort(0x112)&0x2) == 0) return 1; //Slave
@@ -146,9 +146,10 @@ static ssize_t dev_read(struct file * file, char * buf,
     for (i = 0; i < drv_count; i++) {
         // reading data from user area
         int count;
+        void (*ptr)(table_drv *);
         count = drv_len_data[i].lenght;
         //                printk(KERN_INFO "run step section %d\n",i);
-        void (*ptr)(table_drv *) = NULL;
+        ptr = NULL;
         tdi = (table_drv *) drv_len_data[i].td;
         if (*ppos == 1) ptr = drv_len_data[i].step1;
         if (*ppos == 2) ptr = drv_len_data[i].step2;
@@ -183,12 +184,11 @@ static ssize_t dev_read(struct file * file, char * buf,
 
 }
 
-static ssize_t dev_write(struct file * file, const char * buf,
-        size_t count, loff_t *ppos) {
-    if (ReadPort(0x112)&0x2 == 0) return EOK; //Slave
-    loff.ppos = *ppos;
+static ssize_t dev_write(struct file * file, const char * buf, size_t count, loff_t *ppos) {
     unsigned char *in_buf_ptr;
     unsigned char *init_buf_ptr;
+    if ((ReadPort(0x112)&0x2) == 0) return EOK; //Slave
+    loff.ppos = *ppos;
     table_drv *td = (table_drv *) buf;
     if (*ppos == 0) {
         printk(KERN_INFO "=== end init block : %s\n", DEVNAME);
@@ -261,7 +261,7 @@ static struct cdev hcdev;
 static struct class *devclass;
 
 static int __init dev_init(void) {
-    int ret;
+    int ret, i;
     dev_t dev;
 
     //    printk("file property = %s {%d}\n", name_file, strlen(name_file));
@@ -286,7 +286,6 @@ static int __init dev_init(void) {
         goto err;
     }
     devclass = class_create(THIS_MODULE, "dyn_class");
-    int i;
     for (i = 0; i < DEVICE_COUNT; i++) {
 
         dev = MKDEV(major, DEVICE_FIRST + i);
@@ -308,11 +307,11 @@ err:
 }
 
 static void __exit dev_exit(void) {
+    dev_t dev;
+    int i;
     //чисти память за собой
     clearMemory();
     // Осбождаем устройство
-    dev_t dev;
-    int i;
     for (i = 0; i < DEVICE_COUNT; i++) {
         dev = MKDEV(major, DEVICE_FIRST + i);
         device_destroy(devclass, dev);

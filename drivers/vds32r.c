@@ -64,12 +64,9 @@ extern unsigned int irq_count;
 
  */
 
-//===========================================================
-//  Инициализация модуля ВДС-32Р
-//===========================================================
 
 void vds32r_ini(table_drv *tdrv) {
-    unsigned char RQ, RH, RL, aRH = 0;
+    unsigned char RQ, RH = 0, RL;
     int ADR_MISPA;
     ADR_MISPA = 0x118;
 
@@ -86,69 +83,38 @@ void vds32r_ini(table_drv *tdrv) {
     }
     tdrv->error = 0;
 
-    RH = WriteSinglBox(6, 0);
-    aRH |= RH;
+    RH |= WriteSinglBox(6, 0);
     //    проверка типа модуля
-    RH = ReadBox3(AdrType, &RL);
-    aRH |= RH;
+    RH |= ReadBx3w(AdrType, &RL);
     if (RL != inipar->type) {
-        aRH |= 0x80;
+        RH |= 0x80;
         return;
     } //ошибка типа модуля
-    RH = WriteBox(AdrAntiTrembl0, inipar->tadr116); // каналы 1-16   0x20
-    aRH |= RH;
+    RH |= WriteBox(AdrAntiTrembl0, inipar->tadr116); // каналы 1-16   0x20
     // RH = WriteBox(AdrChanlsMask0, inipar->Dmask116); // каналы 1-16   0x21
-    RH = WriteBox(AdrChanlsMask0, 0x0); // каналы 1-16   0x21
-    aRH |= RH;
-    RH = WriteBox(AdrAntiTrembl1, inipar->tadr1732); // каналы 17-32  0x23
-    aRH |= RH;
+    RH |= WriteBox(AdrChanlsMask0, 0x0); // каналы 1-16   0x21
+    RH |= WriteBox(AdrAntiTrembl1, inipar->tadr1732); // каналы 17-32  0x23
     // RH = WriteBox(AdrChanlsMask1, inipar->Dmask1732); // каналы 17-32  0x24
-    RH = WriteBox(AdrChanlsMask1, 0x0); // каналы 1-16   0x21
-    aRH |= RH;
-    RH = ReadBox3(AdrStatus0, &RL);
-    aRH |= RH;
-    RH = ReadBox3(AdrStatus1, &RL);
-    aRH |= RH;
-    RH = ReadBox3(AdrRQ, &RL);
-    aRH |= RH;
-    if (aRH == 0x80) { // нет устройства
+    RH |= WriteBox(AdrChanlsMask1, 0x0); // каналы 1-16   0x21
+    RH |= ReadBx3w(AdrStatus0, &RL);
+    RH |= ReadBx3w(AdrStatus1, &RL);
+    RH |= ReadBx3w(AdrRQ, &RL);
+    if (RH == 0x80) { // нет устройства
         tdrv->error = 0x80;
         return;
-    } 
-    // else if (aRH == 0xC0) { // NEGC_BOX
+    }
+    // else if (RH == 0xC0) { // NEGC_BOX
     //     tdrv->error = 0xC0;
     //     return;
     // }
 }
 
-//===========================================================/
-//  Прием данных из модуля ВДС-32Р
-//===========================================================
-
-/*
-===========================================================
-структура байта достоверности канала 
- 
-  Бит         Значение
-
-   0   -   обрыв линии связи
-   1   -   короткое замыкание линии связи
-   2   -   неинверсия чтения диагностики обрыва
-   3   -   неинверсия чтения диагностики короткого замыкания линии связи  
-   4   -   неинверсия чтения данных  
-   5   -   ошибка конфигурирования
-   6   -   ошибка типа модуля
-   7   -   критическая ошибка или нет доступа к ПЯ
-
-===========================================================
- */
 void vds32r_dw(table_drv *tdrv) {
     vds32r_str vdsValue;
     unsigned char i, j, z;
-    unsigned char RH, aRH = 0, SErr = 0; // RL;
+    unsigned char RH = 0, SErr = 0; // RL;
     int k = 0;
     int ADR_MISPA;
-    ssbool temp;
     SetBoxLen(0xFF);
 
     if (tdrv->error & 0x80) {
@@ -163,53 +129,29 @@ void vds32r_dw(table_drv *tdrv) {
         return;
     }
 
-    // ReadBox3(0x21, &RH);
-    // printk("21 - %hhx", RH);
-    // ReadBox3(0xde, &RH);
-    // printk("de - %hhx", RH);
-
-    // ReadBox3(0x24, &RH);
-    // printk("24 - %hhx", RH);
-    // ReadBox3(0xdb, &RH);
-    // printk("db - %hhx", RH);
-
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
 
-    RH = ReadBox3(AdrStatus0, &vdsValue.stat[0]);
-    aRH |= RH;
-    RH = ReadBox3(AdrStatus1, &vdsValue.stat[1]);
-    aRH |= RH;
-    RH = ReadBox3(AdrSostContact0, &vdsValue.sost[0]);
-    aRH |= RH;
-    RH = ReadBox3(AdrSostContact1, &vdsValue.sost[1]);
-    aRH |= RH;
-    RH = ReadBox3(AdrSostContact2, &vdsValue.sost[2]);
-    aRH |= RH;
-    RH = ReadBox3(AdrSostContact3, &vdsValue.sost[3]);
-    aRH |= RH;
-    RH = ReadBox3(AdrOpnCircuit0, &vdsValue.obr[0]);
-    aRH |= RH;
-    RH = ReadBox3(AdrOpnCircuit1, &vdsValue.obr[1]);
-    aRH |= RH;
-    RH = ReadBox3(AdrOpnCircuit2, &vdsValue.obr[2]);
-    aRH |= RH;
-    RH = ReadBox3(AdrOpnCircuit3, &vdsValue.obr[3]);
-    aRH |= RH;
-    RH = ReadBox3(AdrShortCircuit0, &vdsValue.kz[0]);
-    aRH |= RH;
-    RH = ReadBox3(AdrShortCircuit1, &vdsValue.kz[1]);
-    aRH |= RH;
-    RH = ReadBox3(AdrShortCircuit2, &vdsValue.kz[2]);
-    aRH |= RH;
-    RH = ReadBox3(AdrShortCircuit3, &vdsValue.kz[3]);
-    aRH |= RH;
+    RH |= ReadBx3w(AdrStatus0, &vdsValue.stat[0]);
+    RH |= ReadBx3w(AdrStatus1, &vdsValue.stat[1]);
+    RH |= ReadBx3w(AdrSostContact0, &vdsValue.sost[0]);
+    RH |= ReadBx3w(AdrSostContact1, &vdsValue.sost[1]);
+    RH |= ReadBx3w(AdrSostContact2, &vdsValue.sost[2]);
+    RH |= ReadBx3w(AdrSostContact3, &vdsValue.sost[3]);
+    RH |= ReadBx3w(AdrOpnCircuit0, &vdsValue.obr[0]);
+    RH |= ReadBx3w(AdrOpnCircuit1, &vdsValue.obr[1]);
+    RH |= ReadBx3w(AdrOpnCircuit2, &vdsValue.obr[2]);
+    RH |= ReadBx3w(AdrOpnCircuit3, &vdsValue.obr[3]);
+    RH |= ReadBx3w(AdrShortCircuit0, &vdsValue.kz[0]);
+    RH |= ReadBx3w(AdrShortCircuit1, &vdsValue.kz[1]);
+    RH |= ReadBx3w(AdrShortCircuit2, &vdsValue.kz[2]);
+    RH |= ReadBx3w(AdrShortCircuit3, &vdsValue.kz[3]);
 
-    if (aRH == 0x80) { // нет устройства
+    if (RH == 0x80) { // нет устройства
         tdrv->error = 0x80;
         return;
-    } 
-    // else if (aRH == 0xC0) { // NEGC_BOX
+    }
+    // else if (RH == 0xC0) { // NEGC_BOX
     //     tdrv->error = 0xC0;
     //     return;
     // }
@@ -218,12 +160,6 @@ void vds32r_dw(table_drv *tdrv) {
         for (k = 0; k < 4; k++)
             vdsValue.sost[k] = ~vdsValue.sost[k];
     }
-
-    // ReadBox3(0x10, &RH);
-    // printk("10 - %hhx", RH);
-    // ReadBox3(0xef, &RH);
-    // printk("ef - %hhx", RH);
-
 
     for (i = 0, k = 0; i < 4; i++) {
         j = 1;

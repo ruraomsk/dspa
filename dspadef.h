@@ -103,9 +103,9 @@ typedef struct __attribute__((packed)) {
  * Команды чтения и записи в порт МИСПА
  * нужно заметить что наличе ошибок нужно проверять макросом ERR_PORT
  */
-
+void delaymcs(int );
 #define ERR_MEM irq_count 
-#define CLEAR_MEM irq_count=0;
+#define CLEAR_MEM irq_count=0; 
 //static unsigned long int drv_timer=0L;
 //unsigned long int read_timer(void){
 ////    timezone tz;

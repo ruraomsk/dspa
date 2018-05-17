@@ -108,8 +108,8 @@ typedef struct
 
 void vas84r_ini(table_drv* tdrv) {
     int ADR_MISPA = 0x118;
-    tdrv->error = 0;
     unsigned char RQ = (unsigned char) (tdrv->address & 0xff);
+    tdrv->error = 0;
     //log_init(tdrv);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
@@ -118,14 +118,14 @@ void vas84r_ini(table_drv* tdrv) {
         return;
     }
 
-    CatchBox();
+    // CatchBox();
 
-    WriteBox(AdrRQ, 0);
-    WriteBox(AdrSVE,0);
+    // WriteBox(AdrRQ, 0);
+    // WriteBox(AdrSVE,0);
 
-    
-    FreeBox();
-    
+
+    // FreeBox();
+
     // ReadBox3(AdrType, &RQ);
     // printk("rl- %hhx",RQ);
     // printk("type - %hhx",inipar->type);
@@ -138,15 +138,12 @@ void vas84r_ini(table_drv* tdrv) {
 }
 
 void vas84r_dw(table_drv* tdrv) {
-    unsigned char SOST, RL;
-    unsigned char STAT, RQ;
-    int RH, i, k;
-    int ADR_MISPA = 0x118;
+    unsigned char RQ, RH, RL;
+    short temp;
+    int i, ADR_MISPA = 0x118;
     //    log_step(tdrv);
-    ssint rr = {0, 0};
-    sschar rc = {0, 0};
-    SetBoxLen(inipar->BoxLen);
 
+    SetBoxLen(inipar->BoxLen);
     if (tdrv->error == 0x80) return;
     // установить адрес модуля на МИСПА
 
@@ -158,127 +155,67 @@ void vas84r_dw(table_drv* tdrv) {
         return;
     }
 
+    for (i = 0; i < 8; i++)
+        VasData->SIGN[i].error = 0xff;
 
-
-
-    // while (1) {
-
-    //     //инициализация процессорного модуля
-
-    //     if (tdrv->error & 0x80)
-    //         return;
 
     //     // захват ПЯ модуля 
     while (1) {
         RH = CatchBox();
-        // printk("CRH - %hhx", RH);
         if (RH) {
             tdrv->error = RH;
             break;
         } // не могу захватить ПЯ
-    
 
-        // WriteBox(1,1);
-        // WriteBox(2,2);
-        // WriteBox(3,3);
-        // WriteBox(4,4);
-        // WriteBox(5,5);
-        // ReadBox3(AdrSTAT, &RQ);
-        // printk("STAT - %hhx", RQ);
-    
-        //     for (i = 1; i < 255; i++) {
-        //     ReadBox3(i, &RQ);
-        //     printk("%d - %hhx", i, RQ);
-        // }
+        for(i=0;i <40 ; i++){
+            ReadBx3w(i,&RQ);
+            printk("%d - %hhx",i,RQ);
+        }    
+
+        RH |= ReadBx3w(AdrSOST, &VasData->widesos.c);
+        RH |= ReadBx3w(AdrSTAT, &RQ);
+        if (RQ & 0x80) {
+            tdrv->error = RQ;
+            break;
+        }
+        if (RH == 0x80) { // нет устройства
+            tdrv->error = RH;
+            break;
+        }
+        ReadBx3w(AdrRQ, &RQ);
+        if(RQ == 0)
+            break;
+        RH = 0;
+        for (i = 0; i < 8; i++) {
+            RH |= ReadBx3w(16 + (i * 3), &RL);
+            RH |= ReadBx3w(16 + (i * 3) + 1, &RQ);
+            printk("RL[%d] = %hhx",i,RL);
+            printk("RQ[%d] = %hhx",i,RQ);
+            printk("SIGN = %d",((RL << 8) | RQ));
+            printk("RH = %hhx",RH);
+            if (RH == 0x80) {
+                tdrv->error = RH;
+                break;
+            }
+            temp = ((RL << 8) | RQ);
+            printk("temp = %d",temp);
+            VasData->SIGN[i].i = temp;
+            VasData->SIGN[i].error = 0;
+        }
         break;
     }
+    WriteBox(AdrRQ,0);
+    WriteBox(AdrSVE, 1);
 
-    //     RH = ReadBox3(AdrCT_GLOB, &RL);
-    //     rc.error = RH;
-    //     rc.c = RL;
-    //     //     WDEBUG_PRINT_HEX(3,"CT_GLOB=",&rc);
+    RH = FreeBox(); // освободить ПЯ
+    if (RH) {
 
-    //     if (RH) {
-    //         if (RH == 0x80) {
-    //             tdrv->error = RH;
-    //         } else
-    //             // неинверсия на счётчик переворотов
-    //             tdrv->error = 0xA0; // ящик не крутится
-    //         break;
-    //     }
+        tdrv->error = RH; // ошибка миспа
+    }
 
-    //     if ((RL == tdrv->tdrv.typedev[0]) || (tdrv->error == 0xA0)) { // ящик не крутился
-    //         if (CounGL < 120)
-    //             ++CounGL;
-    //         else {
-    //             tdrv->error |= 0x20;
-    //             break;
-    //         } // ??  в прототипе - нет
-
-    //     } else {
-    //         CounGL = 0;
-    //         tdrv->tdrv.typedev[0] = RL;
-    //     }
-
-    //     // загрузить слово состояния 
-
-    //     RH = ReadBox3(AdrSTAT, &STAT);
-    //     rc.c = STAT;
-    //     rc.error = RH;
-
-    //     //     WDEBUG_PRINT_HEX(4,"STAT=",&rc);
-
-    //     if (RH) { //ошибка статуса модуля
-    //         if (RH == 0x80)
-    //             tdrv->error = RH;
-    //         else
-    //             tdrv->error = 0xC0;
-    //         break;
-    //     } else
-    //         if ((tdrv->error = STAT) & 0x80)
-    //         break; //ошибка статуса модуля
-
-    //     // есть данные ?
-
-    //     RH = ReadBox3(AdrRQ, &RQ);
-
-    //     if (RH) { // ошибка готовности модуля
-    //         if (RH == 0x80)
-    //             tdrv->error = RH;
-    //         else
-    //             tdrv->error = 0x90;
-    //         break;
-    //     }
-
-    //     if (RQ) { // есть новые данные
-
-    //         //  unsigned char NumCh;   // default = 8;    // количество каналов 
-    //         //  unsigned char UsMask;  // default = 0xFF; // маска использования каналов
-    //         //  unsigned char ChMask;  // default = 0x0;  // флаги изменения каналов 
-    //         //  unsigned char Aprt;    // default = 0x17;  // апертура 
-
-    //         RH = ReadBox3(AdrSOST, &SOST);
-    //         rc.c = SOST;
-    //         rc.error = RH;
-
-    //         //       WDEBUG_PRINT_HEX(5,"Wsost=",&rc);
-
-    //         if (RH) { //ошибка статуса модуля
-    //             if (RH == 0x80)
-    //                 tdrv->error = RH;
-    //             else
-    //                 tdrv->error = 0xC0; // 
-    //             break;
-    //         }
-
-    //         ModData->widesos.c = SOST;
-    //         ModData->widesos.error = 0;
-    //         inipar->ChMask = 0;
     //         for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {
     //             if ((inipar->UsMask & k) && !(SOST & k)) { // канал используется и исправен
 
-    //                 //  psint SIGN[8];   // Результат счета каналов 1-8   
-    //                 //  pschar widesos;  // расширенный байт состояния
 
     //                 RH = ReadBox3(AdrData + (i * 3), &RL);
 
@@ -329,12 +266,7 @@ void vas84r_dw(table_drv* tdrv) {
     //     tdrv->error = RH; // ошибка миспа
     // }
 
-    RH = FreeBox(); // освободить ПЯ
-    printk("free - %hhx", RH);
-    if (RH) {
 
-        tdrv->error = RH; // ошибка миспа
-    }
 
     // if (tdrv->error & 0x80) {
     //     for (i = 0, k = 1, inipar->ChMask = 0; i < 8; i++) {

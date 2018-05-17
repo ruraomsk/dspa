@@ -8294,8 +8294,8 @@
       <makefileType>
         <makeTool>
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
-          <buildCommand>./maker.bash</buildCommand>
-          <cleanCommand>./clean.bash</cleanCommand>
+          <buildCommand>make all</buildCommand>
+          <cleanCommand>make clean</cleanCommand>
           <executablePath></executablePath>
           <cTool>
             <standard>2</standard>
