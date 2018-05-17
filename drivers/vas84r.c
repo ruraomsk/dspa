@@ -8,8 +8,8 @@
 #include "vas84r.h"
 #include "linux/printk.h"
 
-int abs (int a){
-    if (a<0) return -a;
+int abs(int a) {
+    if (a < 0) return -a;
     return a;
 };
 extern unsigned int irq_count;
@@ -40,7 +40,7 @@ typedef struct
 
 #define VasData ((vas84r_data*)(tdrv->data))
 
-#define AdrType       0x0   // тип модуля   
+#define AdrType       0x4   // тип модуля   
 
 #define AdrRQ         0x5   // запрос на обслуживание  
 
@@ -108,6 +108,7 @@ typedef struct
 
 void vas84r_ini(table_drv* tdrv) {
     int ADR_MISPA = 0x118;
+    tdrv->error = 0;
     unsigned char RQ = (unsigned char) (tdrv->address & 0xff);
     //log_init(tdrv);
     CLEAR_MEM
@@ -116,7 +117,24 @@ void vas84r_ini(table_drv* tdrv) {
         tdrv->error = 0x80;
         return;
     }
-    tdrv->error = 0;
+
+    CatchBox();
+
+    WriteBox(AdrRQ, 0);
+    WriteBox(AdrSVE,0);
+
+    
+    FreeBox();
+    
+    // ReadBox3(AdrType, &RQ);
+    // printk("rl- %hhx",RQ);
+    // printk("type - %hhx",inipar->type);
+    // if (RQ != inipar->type) {
+    //     tdrv->error = 0x80;
+    //     return;
+    // } //ошибка типа модуля
+
+
 }
 
 void vas84r_dw(table_drv* tdrv) {
@@ -124,14 +142,14 @@ void vas84r_dw(table_drv* tdrv) {
     unsigned char STAT, RQ;
     int RH, i, k;
     int ADR_MISPA = 0x118;
-//    log_step(tdrv);
+    //    log_step(tdrv);
     ssint rr = {0, 0};
     sschar rc = {0, 0};
     SetBoxLen(inipar->BoxLen);
-  
-    if(tdrv->error == 0x80) return;
+
+    if (tdrv->error == 0x80) return;
     // установить адрес модуля на МИСПА
-  
+
     RQ = (char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
@@ -140,7 +158,7 @@ void vas84r_dw(table_drv* tdrv) {
         return;
     }
 
-    tdrv->error = 0;
+
 
 
     // while (1) {
@@ -151,18 +169,30 @@ void vas84r_dw(table_drv* tdrv) {
     //         return;
 
     //     // захват ПЯ модуля 
-
+    while (1) {
         RH = CatchBox();
+        // printk("CRH - %hhx", RH);
         if (RH) {
             tdrv->error = RH;
-            // break;
+            break;
         } // не могу захватить ПЯ
+    
 
+        // WriteBox(1,1);
+        // WriteBox(2,2);
+        // WriteBox(3,3);
+        // WriteBox(4,4);
+        // WriteBox(5,5);
+        // ReadBox3(AdrSTAT, &RQ);
+        // printk("STAT - %hhx", RQ);
+    
+        //     for (i = 1; i < 255; i++) {
+        //     ReadBox3(i, &RQ);
+        //     printk("%d - %hhx", i, RQ);
+        // }
+        break;
+    }
 
-    //       for (i = 1; i < 255; i++) {
-    //     ReadBox3(i, &RQ);
-    //     printk("%d - %hhx", i, RQ);
-    // }
     //     RH = ReadBox3(AdrCT_GLOB, &RL);
     //     rc.error = RH;
     //     rc.c = RL;
@@ -300,7 +330,9 @@ void vas84r_dw(table_drv* tdrv) {
     // }
 
     RH = FreeBox(); // освободить ПЯ
+    printk("free - %hhx", RH);
     if (RH) {
+
         tdrv->error = RH; // ошибка миспа
     }
 

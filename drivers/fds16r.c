@@ -83,7 +83,7 @@ void fds16r_ini(table_drv* tdrv) {
 };
 
 void fds16r_dw(table_drv* tdrv) {
-    unsigned char RH, temp;
+    unsigned char RH, RQ, temp;
     int ADR_MISPA = 0x118, i, j;
 
     if (tdrv->error == 0x80)
@@ -115,7 +115,18 @@ void fds16r_dw(table_drv* tdrv) {
         WriteBox(i + 1, temp);
     }
 
-
+    ReadBox(AdrISP18,&RQ);
+    // printk("AdrISP18 = %hhx", RQ);
+    ReadBox(AdrISP916,&RQ);
+    // printk("AdrISP916 = %hhx", RQ);
+    ReadBox(AdrSost14,&RQ);
+    // printk("AdrSost14 = %hhx", RQ);
+    ReadBox(AdrSost58,&RQ);
+    // printk("AdrSost58 = %hhx", RQ);
+    ReadBox(AdrSost912,&RQ);
+    // printk("AdrSost912 = %hhx", RQ);
+    ReadBox(AdrSost1316,&RQ);
+    // printk("AdrSost1316 = %hhx", RQ);
 
     //     for (i = 7, j = 0x80, ch18 = 0, msk = inipar->UsMask18; i >= 0; i--) { // упаковать используемые каналы 1 - 8
     //         ch18 <<= 1;

@@ -56,7 +56,7 @@ int WriteBox(unsigned char ptr, unsigned char value) {
     iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM) return BUSY_BOX;
     value = ~value;
-    delaymcs(20);
+    // delaymcs(20);
     CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
@@ -73,7 +73,7 @@ int ReadBox(unsigned char ptr, unsigned char *value) {
     if (ERR_MEM) return BUSY_BOX;
     //    sprintf(logstr, "ReadBox_2 %x ", ( (Box_len - ptr)));
     //    log_debug();
-    delaymcs(20);
+    // delaymcs(20);
     CLEAR_MEM
     lav = ioread8(rambase + (Box_len - ptr));
     if (ERR_MEM) return BUSY_BOX;
