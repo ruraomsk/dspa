@@ -126,13 +126,13 @@ void vas84r_ini(table_drv* tdrv) {
 
     // FreeBox();
 
-    // ReadBox3(AdrType, &RQ);
+    ReadBox3(AdrType, &RQ);
     // printk("rl- %hhx",RQ);
     // printk("type - %hhx",inipar->type);
-    // if (RQ != inipar->type) {
-    //     tdrv->error = 0x80;
-    //     return;
-    // } //ошибка типа модуля
+    if (RQ != inipar->type) {
+        tdrv->error = 0x80;
+        return;
+    } //ошибка типа модуля
 
 
 }
@@ -167,10 +167,10 @@ void vas84r_dw(table_drv* tdrv) {
             break;
         } // не могу захватить ПЯ
 
-        for(i=0;i <40 ; i++){
-            ReadBx3w(i,&RQ);
-            printk("%d - %hhx",i,RQ);
-        }    
+        for (i = 0; i < 40; i++) {
+            ReadBx3w(i, &RQ);
+            printk("%d - %hhx", i, RQ);
+        }
 
         RH |= ReadBx3w(AdrSOST, &VasData->widesos.c);
         RH |= ReadBx3w(AdrSTAT, &RQ);
@@ -183,28 +183,28 @@ void vas84r_dw(table_drv* tdrv) {
             break;
         }
         ReadBx3w(AdrRQ, &RQ);
-        if(RQ == 0)
+        if (RQ == 0)
             break;
         RH = 0;
         for (i = 0; i < 8; i++) {
-            RH |= ReadBx3w(16 + (i * 3), &RL);
-            RH |= ReadBx3w(16 + (i * 3) + 1, &RQ);
-            printk("RL[%d] = %hhx",i,RL);
-            printk("RQ[%d] = %hhx",i,RQ);
-            printk("SIGN = %d",((RL << 8) | RQ));
-            printk("RH = %hhx",RH);
+            RH |= ReadBx3w(AdrData + (i * 3), &RL);
+            RH |= ReadBx3w(AdrData + (i * 3) + 1, &RQ);
+            printk("RL[%d] = %hhx", i, RL);
+            printk("RQ[%d] = %hhx", i, RQ);
+            printk("SIGN = %d", ((RL << 8) | RQ));
+            printk("RH = %hhx", RH);
             if (RH == 0x80) {
                 tdrv->error = RH;
                 break;
             }
             temp = ((RL << 8) | RQ);
-            printk("temp = %d",temp);
-            VasData->SIGN[i].i = temp;
+            printk("temp = %d", temp);
+            VasData->SIGN[i]. = temp;
             VasData->SIGN[i].error = 0;
         }
         break;
     }
-    WriteBox(AdrRQ,0);
+    WriteBox(AdrRQ, 0);
     WriteBox(AdrSVE, 1);
 
     RH = FreeBox(); // освободить ПЯ
