@@ -21,6 +21,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Yury Rusinov <ruraomsk@list.ru>");
 MODULE_VERSION("1.0");
 
+static SostPort SP;
 static int irq = SHARED_IRQ;
 static int spa_dev_id;
 static int major = 0;
@@ -47,12 +48,12 @@ static irqreturn_t no_port_irq(int irq, void *dev_id) {
         return IRQ_HANDLED;
     }
     if (in & 4) {
-//        printk(KERN_INFO "Timer! %x=%hhx\n", inb(0x118), in);
+        //        printk(KERN_INFO "Timer! %x=%hhx\n", inb(0x118), in);
         WritePort(0x130, 1);
         WritePort(0x120, in & 0xf8);
         return IRQ_HANDLED;
     }
-//    printk(KERN_INFO "Ops! %x=%hhx %d\n", inb(0x118), in, irq_count);
+    //    printk(KERN_INFO "Ops! %x=%hhx %d\n", inb(0x118), in, irq_count);
     WritePort(0x130, 1);
     WritePort(0x120, 0);
     irq_count++;
@@ -72,18 +73,21 @@ void clearMemory(void) {
 static int dev_open(struct inode *n, struct file *f) {
     //    if (device_open) return -EBUSY;
     unsigned char in;
+    int i;
     clearMemory();
     device_open = 1;
     WritePort(0x128, 0xff);
     in = ReadPort(0x108);
     //    if(in&0x80) WritePort(0x108, 0xc8);
-//    WritePort(0x108, 0x48);
-//    WritePort(0x108, 0x12);
+    //    WritePort(0x108, 0x48);
+    //    WritePort(0x108, 0x12);
     WritePort(0x108, 0x5a);
     WritePort(0x100, 0x06);
     WritePort(0x128, 0x00);
     WritePort(0x110, 0); //WD-D
     WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
+    for(i=0;i<40;i++)
+        SP.Port[i]=0;
     if (ReadPort(0x112)&0x2) return EOK;
     return -EBUSY;
 }
@@ -110,14 +114,17 @@ int make_init(int driver_no) {
     return 1;
 
 }
-static int ports[10] = {0x100, 0x108, 0x110, 0x112, 0x114, 0x118, 0x120, 0x128, 0x130, 0x138};
+static int ports[8] = {0x100, 0x108, 0x110, 0x112, 0x114, 0x128, 0x130, 0x138};
 
-void printports(void) {
-    //    ioperm(0x110, 10, 1);
-    //    ioperm(0x138, 2, 1);
-    int port;
-    for (port = 0; port < 10; port++) {
-        printk(KERN_ERR "%x=%hhx \n", ports[port], inb(ports[port]));
+void WatchPort(void) {
+    unsigned char temp;
+    int i;
+    for (i = 0; i < 8; i++) {
+        temp = ReadPort(ports[i]);
+        if (temp != SP.Port[i]) {
+            printk("Izmenenie port %x Sost = %hhx, Temp = %hhx\n",ports[i], SP.Port[i], temp);
+            SP.Port[i] = temp;
+        }
     }
 }
 
@@ -125,7 +132,7 @@ static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
     int i;
     table_drv *tdi;
-
+    WatchPort();
     //    printports();
     WritePort(0x110, 0); //WD-D
     WritePort(0x130, 1); // типа мы работаем!
@@ -133,6 +140,8 @@ static ssize_t dev_read(struct file * file, char * buf,
         if ((ReadPort(0x112)&0x2) == 0) return 1; // нет не мастер
         return EOK;
     }
+    WritePort(0x110, 0); //WD-D
+    WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
     if ((ReadPort(0x112)&0x2) == 0) return 1; //Slave
     if (count == 2) { //Запрос кодов завершения
         short ret_error[256];
@@ -155,7 +164,7 @@ static ssize_t dev_read(struct file * file, char * buf,
         if (*ppos == 2) ptr = drv_len_data[i].step2;
         if (*ppos == 3) {
             if ((tdi->error == 0x80) || (tdi->error == 0x90) || tdi->error == 0xc0) {
-                printk("Vizov init %d",tdi->address);
+                printk("Vizov init %d", tdi->address);
                 ptr = drv_len_data[i].init;
             }
         }

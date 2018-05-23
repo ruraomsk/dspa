@@ -84,7 +84,9 @@ void sbkfp7_dw(table_drv *drv)
 //    log_step(drv);
   drv->error = 0;
   if (UpRead == 0){ // РџР•Р Р’Р«Р™ Р’РҐРћР”               РџРћР Рў 110 - 1
-    WritePort(0x108, 0xd);
+    SBKTemp.b = ReadPort(0x108);
+    SBKTemp.b &= 0xfd;
+    WritePort(0x108, SBKTemp.b);
   }
 
   if (UpRead == 1){ // Р’РўРћР РћР™ Р’РҐРћР”
@@ -117,7 +119,9 @@ void sbkfp7_dw(table_drv *drv)
   }
 
   if (UpRead == 2){ // РўР Р•РўРР™ Р’РҐРћР”      РџРћР Рў 110 - 2
-    WritePort(0x108, 0xb);
+    SBKTemp.b = ReadPort(0x108);
+    SBKTemp.b &= 0xfb;
+    WritePort(0x108, SBKTemp.b);
   }
 
   if (UpRead == 3){// Р§Р•РўР’Р•Р РўР«Р™ Р’РҐРћР”

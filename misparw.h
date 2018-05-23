@@ -73,6 +73,11 @@ typedef struct __attribute__((packed)){
   uspaint8 error;
 }sslong;
 
+typedef struct __attribute__((packed)){
+  unsigned char Port[9];
+}SostPort;
+
+
 typedef sschar *pschar; 
 typedef ssbool *psbool; 
 typedef ssint *psint; 
