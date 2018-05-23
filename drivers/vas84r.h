@@ -35,7 +35,7 @@ typedef struct __attribute__((packed))
 #define VAS84R 0xC6
 #define VAS84R_SIZE sizeof(vas84r_data)
 
-void vas84r_dw(table_drv* drv);
+void vas84r_rd(table_drv* drv);
 void vas84r_ini(table_drv* drv);
 
 

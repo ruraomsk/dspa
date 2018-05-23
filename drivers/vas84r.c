@@ -119,7 +119,7 @@ void vas84r_ini(table_drv* tdrv) {
     }
 }
 
-void vas84r_dw(table_drv* tdrv) {
+void vas84r_rd(table_drv* tdrv) {
     unsigned char RQ, RH, RL;
     short temp;
     int i, ADR_MISPA = 0x118;

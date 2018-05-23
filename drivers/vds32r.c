@@ -109,7 +109,7 @@ void vds32r_ini(table_drv *tdrv) {
     // }
 }
 
-void vds32r_dw(table_drv *tdrv) {
+void vds32r_rd(table_drv *tdrv) {
     vds32r_str vdsValue;
     unsigned char i, j, z;
     unsigned char RH = 0, SErr = 0; // RL;

@@ -55,18 +55,19 @@ typedef struct __attribute__((packed)){
 static type_drivers tab_t[MAX_DRIVERS] = {
     { FDS16R,
         &fds16r_ini,
+        &fds16r_dw,
         NULL,
-        &fds16r_dw,},
-
+    },
     { VDS32R,
         &vds32r_ini,
-        &vds32r_dw,
-        NULL,},
-
+        NULL,
+        &vds32r_rd,
+    },
     { VAS84R,
         &vas84r_ini,
-        &vas84r_dw,
-        NULL,},
+        NULL,
+        &vas84r_rd,
+    },
 //    { VCHS,
 //        &vchs_ini,
 //        &vchs_dw,
@@ -74,9 +75,8 @@ static type_drivers tab_t[MAX_DRIVERS] = {
     { SBK,
         &sbkfp7_ini,
         &sbkfp7_dw,
-        NULL,},
-
-
+        NULL,
+    },
     {-1, NULL, NULL, NULL},
 };
 //#pragma pop

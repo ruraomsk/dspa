@@ -70,12 +70,29 @@ void clearMemory(void) {
     drv_count = 0;
 }
 
+static int ports[8] = {0x100, 0x108, 0x110, 0x112, 0x114, 0x128, 0x130, 0x138};
+
+void WatchPort(void) {
+    unsigned char temp;
+    int i;
+    for (i = 0; i < 8; i++) {
+        temp = ReadPort(ports[i]);
+        if (temp != SP.Port[i]) {
+            printk("Izmenenie port %x Sost = %hhx, Temp = %hhx\n", ports[i], SP.Port[i], temp);
+            SP.Port[i] = temp;
+        }
+    }
+}
+
 static int dev_open(struct inode *n, struct file *f) {
     //    if (device_open) return -EBUSY;
     unsigned char in;
     int i;
     clearMemory();
     device_open = 1;
+    WatchPort();
+//    if ((ReadPort(0x100)&0x20) == 0)
+//        return -EBUSY;
     WritePort(0x128, 0xff);
     in = ReadPort(0x108);
     //    if(in&0x80) WritePort(0x108, 0xc8);
@@ -86,8 +103,7 @@ static int dev_open(struct inode *n, struct file *f) {
     WritePort(0x128, 0x00);
     WritePort(0x110, 0); //WD-D
     WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
-    for(i=0;i<40;i++)
-        SP.Port[i]=0;
+
     if (ReadPort(0x112)&0x2) return EOK;
     return -EBUSY;
 }
@@ -114,19 +130,6 @@ int make_init(int driver_no) {
     return 1;
 
 }
-static int ports[8] = {0x100, 0x108, 0x110, 0x112, 0x114, 0x128, 0x130, 0x138};
-
-void WatchPort(void) {
-    unsigned char temp;
-    int i;
-    for (i = 0; i < 8; i++) {
-        temp = ReadPort(ports[i]);
-        if (temp != SP.Port[i]) {
-            printk("Izmenenie port %x Sost = %hhx, Temp = %hhx\n",ports[i], SP.Port[i], temp);
-            SP.Port[i] = temp;
-        }
-    }
-}
 
 static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
@@ -134,15 +137,18 @@ static ssize_t dev_read(struct file * file, char * buf,
     table_drv *tdi;
     WatchPort();
     //    printports();
-    WritePort(0x110, 0); //WD-D
-    WritePort(0x130, 1); // типа мы работаем!
     if (count == 0) { // Запрос не мастер ли  мы?
-        if ((ReadPort(0x112)&0x2) == 0) return 1; // нет не мастер
+        if ((ReadPort(0x100)&0x80) == 0) return 1; // нет не мастер
         return EOK;
     }
+    //    WritePort(0x110, 0); //WD-D
+    //    WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
+    if ((ReadPort(0x100)&0x80) == 0) return 1; //Slave
+//    if ((ReadPort(0x100)&0x20) == 0) return 1;
+
     WritePort(0x110, 0); //WD-D
-    WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
-    if ((ReadPort(0x112)&0x2) == 0) return 1; //Slave
+    WritePort(0x130, 1); // типа мы работаем!
+
     if (count == 2) { //Запрос кодов завершения
         short ret_error[256];
         for (i = 0; i < drv_count; i++) {
@@ -272,7 +278,8 @@ static struct class *devclass;
 static int __init dev_init(void) {
     int ret, i;
     dev_t dev;
-
+    for (i = 0; i < 40; i++)
+        SP.Port[i] = 0;
     //    printk("file property = %s {%d}\n", name_file, strlen(name_file));
 
     if (major != 0) {

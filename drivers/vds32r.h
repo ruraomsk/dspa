@@ -52,7 +52,7 @@ typedef struct __attribute__((packed))
 #define VDS32R_SIZE sizeof(vds32r_data)
 
 void vds32r_ini(table_drv* drv);
-void vds32r_dw(table_drv* drv);
+void vds32r_rd(table_drv* drv);
 
 #endif /* VDS32R_H */
 
