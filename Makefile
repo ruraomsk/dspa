@@ -11,7 +11,7 @@ TARGET = dsp
 obj-m := $(TARGET).o
 $(TARGET)-objs := $(OBJS)
 
-all: clean default insmod
+all: clean default copy
 
 default:
 	$(MAKE) -C/usr/src/linux SUBDIRS=$(PWD) modules
@@ -20,6 +20,16 @@ $(TARGET).o: $(OBJS)
 	
 insmod:
 	@insmod dsp.ko
+
+copy:
+	@-mkdir /lib/modules/4.9.76-gentoo-r1/kernel/dsp
+	@cp dsp.ko /lib/modules/4.9.76-gentoo-r1/kernel/dsp
+	@modprobe dsp
+	
+setup:
+	@depmod
+	@echo "modules=\"dsp\"" >> /etc/conf.d/modules  
+	
 
 clean:
 	@rm -f *.o *.mod.o *.mod.c

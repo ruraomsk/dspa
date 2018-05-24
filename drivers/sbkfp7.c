@@ -18,7 +18,7 @@
 #define inipar ((sbk_inipar *)(drv->inimod))
 #define sbkDate ((sbk_data *)(drv->data))
 #define LastIn ((char *)(&drv->time))
- 
+
 static int UpRead = 0;
 
 //===========================================================
@@ -27,7 +27,7 @@ static int UpRead = 0;
 
 void sbkfp7_ini(table_drv *drv)
 {
-//    log_init(drv);
+  //    log_init(drv);
   sbkDate->SbkPower1.b = 0;
   sbkDate->SbkPower1.error = 0;
   sbkDate->SbkPower2.b = 0;
@@ -81,15 +81,17 @@ void sbkfp7_dw(table_drv *drv)
 {
   ssbool SBKTemp;
   // Port 110h
-//    log_step(drv);
+  //    log_step(drv);
   drv->error = 0;
-  if (UpRead == 0){ // РџР•Р Р’Р«Р™ Р’РҐРћР”               РџРћР Рў 110 - 1
+  if (UpRead == 0)
+  { // РџР•Р Р’Р«Р™ Р’РҐРћР”               РџРћР Рў 110 - 1
     SBKTemp.b = ReadPort(0x108);
     SBKTemp.b &= 0xfd;
     WritePort(0x108, SBKTemp.b);
   }
 
-  if (UpRead == 1){ // Р’РўРћР РћР™ Р’РҐРћР”
+  if (UpRead == 1)
+  { // Р’РўРћР РћР™ Р’РҐРћР”
     SBKTemp.b = ReadPort(0x110);
     sbkDate->SbkPower1.b = (SBKTemp.b >> 0) & 1;
     sbkDate->SbkPower2.b = (SBKTemp.b >> 1) & 1;
@@ -118,13 +120,15 @@ void sbkfp7_dw(table_drv *drv)
       sbkDate->SbkT53.error = 0x0;
   }
 
-  if (UpRead == 2){ // РўР Р•РўРР™ Р’РҐРћР”      РџРћР Рў 110 - 2
+  if (UpRead == 2)
+  { // РўР Р•РўРР™ Р’РҐРћР”      РџРћР Рў 110 - 2
     SBKTemp.b = ReadPort(0x108);
     SBKTemp.b &= 0xfb;
     WritePort(0x108, SBKTemp.b);
   }
 
-  if (UpRead == 3){// Р§Р•РўР’Р•Р РўР«Р™ Р’РҐРћР”
+  if (UpRead == 3)
+  { // Р§Р•РўР’Р•Р РўР«Р™ Р’РҐРћР”
     SBKTemp.b = ReadPort(0x110);
     sbkDate->SbkPB124.b = (SBKTemp.b >> 0) & 1;
     sbkDate->SbkPB15.b = (SBKTemp.b >> 1) & 1;
@@ -146,12 +150,12 @@ void sbkfp7_dw(table_drv *drv)
       sbkDate->SbkPB25.error = 0x8;
     else
       sbkDate->SbkPB25.error = 0x0;
-    }
+  }
 
-  if(UpRead!=3)
-  UpRead++;  
+  if (UpRead != 3)
+    UpRead++;
   else
-  UpRead=0;
+    UpRead = 0;
 
   // Port 114h - С‡РёС‚Р°РµС‚ РєР°Р¶РґС‹Р№ СЂР°Р·
 

@@ -98,7 +98,10 @@ static int dev_open(struct inode *n, struct file *f) {
     //    if(in&0x80) WritePort(0x108, 0xc8);
     //    WritePort(0x108, 0x48);
     //    WritePort(0x108, 0x12);
-    WritePort(0x108, 0x5a);
+//    WritePort(0x108, 0x5a);
+        //-------------------  // гасим красную лампочку
+//    WritePort(0x108,in & 0xf8);
+    //-------------------
     WritePort(0x100, 0x06);
     WritePort(0x128, 0x00);
     WritePort(0x110, 0); //WD-D
@@ -135,16 +138,17 @@ static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
     int i;
     table_drv *tdi;
+    unsigned char ti;
     WatchPort();
-    //    printports();
+    //-------------------  // гасим красную лампочку
+    ti=ReadPort(0x108);
+    WritePort(0x108,ti & 0xf8);
+    //-------------------
     if (count == 0) { // Запрос не мастер ли  мы?
         if ((ReadPort(0x100)&0x80) == 0) return 1; // нет не мастер
         return EOK;
     }
-    //    WritePort(0x110, 0); //WD-D
-    //    WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
     if ((ReadPort(0x100)&0x80) == 0) return 1; //Slave
-//    if ((ReadPort(0x100)&0x20) == 0) return 1;
 
     WritePort(0x110, 0); //WD-D
     WritePort(0x130, 1); // типа мы работаем!
@@ -202,7 +206,7 @@ static ssize_t dev_read(struct file * file, char * buf,
 static ssize_t dev_write(struct file * file, const char * buf, size_t count, loff_t *ppos) {
     unsigned char *in_buf_ptr;
     unsigned char *init_buf_ptr;
-    if ((ReadPort(0x112)&0x2) == 0) return EOK; //Slave
+    if ((ReadPort(0x100)&0x80) == 0) return EOK; //Slave
     loff.ppos = *ppos;
     table_drv *td = (table_drv *) buf;
     if (*ppos == 0) {
