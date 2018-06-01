@@ -117,6 +117,18 @@ void vas84r_ini(table_drv* tdrv) {
         tdrv->error = 0x80;
         return;
     }
+
+    RQ = CatchBox();
+        if (RQ) {
+            tdrv->error = RQ;
+            return;
+        } 
+    RQ = FreeBox(); // освободить ПЯ
+    if (RQ) {
+        tdrv->error = RQ; // ошибка миспа
+        return;
+    }
+    
 }
 
 void vas84r_rd(table_drv* tdrv) {
@@ -184,7 +196,6 @@ void vas84r_rd(table_drv* tdrv) {
 
     RH = FreeBox(); // освободить ПЯ
     if (RH) {
-
         tdrv->error = RH; // ошибка миспа
     }
 }
