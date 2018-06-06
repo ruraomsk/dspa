@@ -16,39 +16,36 @@
 
 typedef struct __attribute__((packed))
 {
-  unsigned char type;       // default = 0xC2;  С‚РёРї РјРѕРґСѓР»СЏ 
-  unsigned int  BoxLen;     // default = 0xFF;  РґР»РёРЅР° РџРЇ, СѓРјРµРЅСЊС€РµРЅРЅР°СЏ РЅР° 1 
-  unsigned char vip;        // default = 0;     С„Р»Р°Рі РєСЂРёС‚РёС‡РµСЃРєРё РІР°Р¶РЅРѕРіРѕ РґР»СЏ СЃРёСЃС‚РµРјС‹ РјРѕРґСѓР»СЏ 
-  unsigned char NumCh;      // default = 8;     РєРѕР»РёС‡РµСЃС‚РІРѕ РєР°РЅР°Р»РѕРІ 
+  unsigned char type;  // default = 0xC2;  
+  unsigned int BoxLen; // default = 0xFF;  
+  unsigned char vip;   // default = 0;     
+  unsigned char NumCh; // default = 8;     
 } sbk_inipar;
 
 typedef struct __attribute__((packed))
 {
- /* РџРѕСЂС‚ СѓРїСЂР°РІР»РµРЅРёСЏ 110h */
+  ssbool SbkSIGN[13];
 
- ssbool  SbkPower1;  /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё СЃРµС‚Рё 1 */
- ssbool  SbkPower2;  /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё СЃРµС‚Рё 2 */
- ssbool  SbkDoor;    /* С„Р»Р°Рі РѕС‚РєСЂС‹С‚РёСЏ РґРІРµСЂРё */
- ssbool  SbkT43;     /* С„Р»Р°Рі РїРѕРІС‹С€РµРЅРёСЏ С‚РµРјРїРµСЂР°С‚СѓСЂС‹ РІС‹С€Рµ 43 */
- ssbool  SbkT53;     /* С„Р»Р°Рі РїРѕРІС‹С€РµРЅРёСЏ С‚РµРјРїРµСЂР°С‚СѓСЂС‹ РІС‹С€Рµ 53 */
- ssbool  SbkPB124;   /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 1 - 24 */
- ssbool  SbkPB15;   /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 1 - 5 */
- ssbool  SbkPB224;   /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 2 - 24 */
- ssbool  SbkPB25;   /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 2 - 5 */
+  // ssbool SbkPower1; 
+  // ssbool SbkPower2; 
+  // ssbool SbkDoor;   
+  // ssbool SbkT43;    
+  // ssbool SbkT53;    
+  // ssbool SbkPB124;  
+  // ssbool SbkPB15;   
+  // ssbool SbkPB224;  
+  // ssbool SbkPB25;   
 
- /* РџРѕСЂС‚ СѓРїСЂР°РІР»РµРЅРёСЏ 114h */
-
- ssbool  SbkMpPB124;  /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 1 - 24 */
- ssbool  SbkMpPB15;   /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 1 - 5 */
- ssbool  SbkMpPB224;  /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 2 - 24 */
- ssbool  SbkMpPB25;   /* С„Р»Р°Рі РЅРµРёСЃРїСЂР°РІРЅРѕСЃС‚Рё Р‘Рџ 2 - 5 */
+  // ssbool SbkMpPB124;
+  // ssbool SbkMpPB15; 
+  // ssbool SbkMpPB224;
+  // ssbool SbkMpPB25; 
 } sbk_data;
-
 
 #define SBK 0x01
 #define SBK_SIZE sizeof(sbk_data)
 
-void sbkfp7_ini(table_drv* drv);
-void sbkfp7_dw(table_drv* drv);
+void sbkfp7_ini(table_drv *drv);
+void sbkfp7_dw(table_drv *drv);
 
 #endif /* SBKFP7_H */

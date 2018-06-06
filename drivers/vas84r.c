@@ -160,9 +160,6 @@ void vas84r_rd(table_drv* tdrv) {
             break;
         } // не могу захватить ПЯ
 
-        for (i = 0; i < 40; i++) {
-            ReadBx3w(i, &RQ);
-        }
 
         RH |= ReadBx3w(AdrSOST, &VasData->widesos.c);
         RH |= ReadBx3w(AdrSTAT, &RQ);
