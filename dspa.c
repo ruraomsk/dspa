@@ -42,7 +42,7 @@ static irqreturn_t no_port_irq(int irq, void *dev_id) {
     in = ReadPort(0x120);
     if (in & 1) {
         irq_count++;
-        printk(KERN_INFO "Ettor read module %x=%d\n", inb(0x118), irq_count);
+        printk(KERN_INFO "Error read module %x=%d\n", inb(0x118), irq_count);
         WritePort(0x130, 1);
         WritePort(0x120, in & 0xfe);
         return IRQ_HANDLED;
@@ -174,7 +174,6 @@ static ssize_t dev_read(struct file * file, char * buf,
         if (*ppos == 2) ptr = drv_len_data[i].step2;
         if (*ppos == 3) {
             if ((tdi->error == 0x80) || (tdi->error == 0x90) || tdi->error == 0xc0) {
-                printk("Vizov init %d", tdi->address);
                 ptr = drv_len_data[i].init;
             }
         }

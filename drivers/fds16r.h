@@ -41,7 +41,8 @@ typedef struct __attribute__((packed))
 
 typedef struct __attribute__((packed))
 {
-  sschar SIGN[16]; // Результат счета каналов 1-8   
+  sschar SIGN[16]; // Результат счета каналов 1-8  
+  ssint ISP[2]; 
 } fds16r_data;
 
 #define FDS16R 0x04

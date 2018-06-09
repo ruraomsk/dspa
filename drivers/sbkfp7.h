@@ -25,21 +25,6 @@ typedef struct __attribute__((packed))
 typedef struct __attribute__((packed))
 {
   ssbool SbkSIGN[13];
-
-  // ssbool SbkPower1; 
-  // ssbool SbkPower2; 
-  // ssbool SbkDoor;   
-  // ssbool SbkT43;    
-  // ssbool SbkT53;    
-  // ssbool SbkPB124;  
-  // ssbool SbkPB15;   
-  // ssbool SbkPB224;  
-  // ssbool SbkPB25;   
-
-  // ssbool SbkMpPB124;
-  // ssbool SbkMpPB15; 
-  // ssbool SbkMpPB224;
-  // ssbool SbkMpPB25; 
 } sbk_data;
 
 #define SBK 0x01

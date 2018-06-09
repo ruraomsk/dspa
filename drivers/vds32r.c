@@ -172,9 +172,11 @@ void vds32r_rd(table_drv *tdrv) {
             vdsDate->SIGN[k].error = SErr;
 
             if (vdsValue.sost[i] & j)
-                vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 1;
+                vdsDate->SIGN[k].b = 1;
+                // vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 1;
             else
-                vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 0;
+                vdsDate->SIGN[k].b = 0;
+                // vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 0;
             j <<= 1;
             k++;
         }

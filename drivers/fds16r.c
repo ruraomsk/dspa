@@ -114,6 +114,10 @@ void fds16r_dw(table_drv* tdrv) {
         WriteBox(i + 1, temp);
     }
 
+    ReadBx3w(0x03,&temp);
+    fdsDate->ISP[0].i = temp;
+    ReadBx3w(0x0f,&temp);
+    fdsDate->ISP[1].i = temp;
 
 };
 
