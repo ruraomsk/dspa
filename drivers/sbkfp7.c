@@ -14,6 +14,7 @@
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "sbkfp7.h"
+#include "linux/printk.h"
 
 #define inipar ((sbk_inipar *)(drv->inimod))
 #define sbkDate ((sbk_data *)(drv->data))
@@ -31,39 +32,43 @@ void sbkfp7_ini(table_drv *drv) {
 
 void sbkfp7_dw(table_drv *drv) {
     int i, j;
-    unsigned char temp;
-
+    ssbool temp;
+    unsigned char ti;
     // состояния шкафа
     if (UpRead == 0) {
-        temp = ReadPort(0x108);
-        temp &= 0xfd;
-        WritePort(0x108, temp);
+        ti = ReadPort(0x108);
+        ti &= 0xf9;
+        ti |= 0xfd;
+        WritePort(0x108, ti);
+        //      WritePort(0x108, 0xfd);
         for (i = 0; i < 13; i++)
             sbkDate->SbkSIGN[i].error = 0xff;
     }
-    
+
     if (UpRead == 1) {
-        temp = ReadPort(0x110);
-        sbkDate->SbkSIGN[0].b = (temp >> 0) & 1;
-        sbkDate->SbkSIGN[1].b = (temp >> 1) & 1;
-        sbkDate->SbkSIGN[2].b = (temp >> 3) & 1;
-        sbkDate->SbkSIGN[3].b = (temp >> 4) & 1;
-        sbkDate->SbkSIGN[4].b = (temp >> 5) & 1;
+        temp.b = ReadPort(0x110);
+        sbkDate->SbkSIGN[0].b = (temp.b >> 0) & 1;
+        sbkDate->SbkSIGN[1].b = (temp.b >> 1) & 1;
+        sbkDate->SbkSIGN[2].b = (temp.b >> 3) & 1;
+        sbkDate->SbkSIGN[3].b = (temp.b >> 4) & 1;
+        sbkDate->SbkSIGN[4].b = (temp.b >> 5) & 1;
         for (i = 0; i < 5; i++) {
             sbkDate->SbkSIGN[i].error = 0;
         }
     }
     // состояния БП
     if (UpRead == 2) {
-        temp = ReadPort(0x108);
-        temp &= 0xfb;
-        WritePort(0x108, temp);
+        ti = ReadPort(0x108);
+        ti &= 0xf9;
+        ti |= 0xfb;
+        WritePort(0x108, ti);
+        //        WritePort(0x108, 0xfb);
     }
 
     if (UpRead == 3) {
-        temp = ReadPort(0x110);
+        temp.b = ReadPort(0x110);
         for (i = 5, j = 0x1; i < 8; i++) {
-            if (temp & j)
+            if (temp.b & j)
                 sbkDate->SbkSIGN[i].b = 1;
             else
                 sbkDate->SbkSIGN[i].b = 0;
@@ -72,11 +77,11 @@ void sbkfp7_dw(table_drv *drv) {
         }
     }
 
-    temp = ReadPort(0x114);
-    sbkDate->SbkSIGN[9].b = (temp >> 0) & 1;
-    sbkDate->SbkSIGN[10].b = (temp >> 1) & 1;
-    sbkDate->SbkSIGN[11].b = (temp >> 6) & 1;
-    sbkDate->SbkSIGN[12].b = (temp >> 7) & 1;
+    temp.b = ReadPort(0x114);
+    sbkDate->SbkSIGN[9].b = (temp.b >> 0) & 1;
+    sbkDate->SbkSIGN[10].b = (temp.b >> 1) & 1;
+    sbkDate->SbkSIGN[11].b = (temp.b >> 6) & 1;
+    sbkDate->SbkSIGN[12].b = (temp.b >> 7) & 1;
     for (i = 9; i < 12; i++) {
         sbkDate->SbkSIGN[i].error = 0;
     }

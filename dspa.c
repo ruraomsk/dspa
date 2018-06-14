@@ -70,12 +70,12 @@ void clearMemory(void) {
     drv_count = 0;
 }
 
-static int ports[8] = {0x100, 0x108, 0x110, 0x112, 0x114, 0x128, 0x130, 0x138};
+static int ports[6] = {0x100, 0x112, 0x114, 0x128, 0x130, 0x138};  // 0x108 0x110
 
 void WatchPort(void) {
     unsigned char temp;
     int i;
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 6; i++) {
         temp = ReadPort(ports[i]);
         if (temp != SP.Port[i]) {
             printk("Izmenenie port %x Sost = %hhx, Temp = %hhx\n", ports[i], SP.Port[i], temp);
@@ -86,7 +86,7 @@ void WatchPort(void) {
 
 static int dev_open(struct inode *n, struct file *f) {
     //    if (device_open) return -EBUSY;
-    unsigned char in;
+//    unsigned char in;
     int i;
     clearMemory();
     device_open = 1;
@@ -94,7 +94,7 @@ static int dev_open(struct inode *n, struct file *f) {
 //    if ((ReadPort(0x100)&0x20) == 0)
 //        return -EBUSY;
     WritePort(0x128, 0xff);
-    in = ReadPort(0x108);
+//    in = ReadPort(0x108);
     //    if(in&0x80) WritePort(0x108, 0xc8);
     //    WritePort(0x108, 0x48);
     //    WritePort(0x108, 0x12);
@@ -141,8 +141,8 @@ static ssize_t dev_read(struct file * file, char * buf,
     unsigned char ti;
     WatchPort();
     //-------------------  // гасим красную лампочку
-    ti=ReadPort(0x108);
-    WritePort(0x108,ti & 0xf8);
+//    ti=ReadPort(0x108);
+//    WritePort(0x108,ti & 0xf8);
     //-------------------
     if (count == 0) { // Запрос не мастер ли  мы?
         if ((ReadPort(0x100)&0x80) == 0) return 1; // нет не мастер
