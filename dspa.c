@@ -86,11 +86,15 @@ void WatchPort(void) {
 
 static int dev_open(struct inode *n, struct file *f) {
     //    if (device_open) return -EBUSY;
-//    unsigned char in;
+    unsigned char ti;
     int i;
     clearMemory();
     device_open = 1;
     WatchPort();
+    //-------------------  // гасим красную лампочку
+    ti=ReadPort(0x108);
+    WritePort(0x108,ti & 0xf8);
+    //-------------------
 //    if ((ReadPort(0x100)&0x20) == 0)
 //        return -EBUSY;
     WritePort(0x128, 0xff);
@@ -140,10 +144,7 @@ static ssize_t dev_read(struct file * file, char * buf,
     table_drv *tdi;
     unsigned char ti;
     WatchPort();
-    //-------------------  // гасим красную лампочку
-//    ti=ReadPort(0x108);
-//    WritePort(0x108,ti & 0xf8);
-    //-------------------
+
     if (count == 0) { // Запрос не мастер ли  мы?
         if ((ReadPort(0x100)&0x80) == 0) return 1; // нет не мастер
         return EOK;
