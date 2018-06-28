@@ -91,26 +91,17 @@ static int dev_open(struct inode *n, struct file *f) {
     clearMemory();
     device_open = 1;
     WatchPort();
-    //-------------------  // гасим красную лампочку
-    ti=ReadPort(0x108);
-    WritePort(0x108,ti & 0xf8);
-    //-------------------
-//    if ((ReadPort(0x100)&0x20) == 0)
-//        return -EBUSY;
+
     WritePort(0x128, 0xff);
-//    in = ReadPort(0x108);
-    //    if(in&0x80) WritePort(0x108, 0xc8);
-    //    WritePort(0x108, 0x48);
-    //    WritePort(0x108, 0x12);
-//    WritePort(0x108, 0x5a);
-        //-------------------  // гасим красную лампочку
-//    WritePort(0x108,in & 0xf8);
-    //-------------------
     WritePort(0x100, 0x06);
     WritePort(0x128, 0x00);
     WritePort(0x110, 0); //WD-D
     WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
-
+    
+    //-------------------  // гасим красную лампочку
+    ti=ReadPort(0x108);
+    WritePort(0x108,ti & 0xf8);
+    //-------------------
     if (ReadPort(0x112)&0x2) return EOK;
     return -EBUSY;
 }
@@ -142,7 +133,6 @@ static ssize_t dev_read(struct file * file, char * buf,
         size_t count, loff_t *ppos) {
     int i;
     table_drv *tdi;
-    unsigned char ti;
     WatchPort();
 
     if (count == 0) { // Запрос не мастер ли  мы?

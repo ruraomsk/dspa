@@ -18,7 +18,6 @@ typedef struct __attribute__((packed))
 {
   unsigned char type;       // default = 0xC2;  тип модуля 
   unsigned int  BoxLen;     // default = 0xFF;  длина ПЯ, уменьшенная на 1 
-//  unsigned char vip;        // default = 0;     флаг критически важного для системы модуля 
   unsigned char inv;        // флаг инверсии 0 - прямой 1 - инверстный 
   unsigned char NumCh;      // default = 8;     количество каналов 
   unsigned char tadr116;    // default = 0xFF;  Время антидребезга каналов 1-16  

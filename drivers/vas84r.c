@@ -8,35 +8,7 @@
 #include "vas84r.h"
 #include "linux/printk.h"
 
-int abs(int a) {
-    if (a < 0) return -a;
-    return a;
-};
-extern unsigned int irq_count;
-/*
-typedef struct
-{
-  unsigned char type;    // default = 0xC6; // тип модуля 
-  unsigned int  BoxLen;  // default = 0xFF; // длина ПЯ, уменьшенная на 1 
-  unsigned char vip;     // default = 0;    // флаг критически важного для системы модуля 
-  unsigned char NumCh;   // default = 8;    // количество каналов 
-  unsigned char UsMask;  // default = 0xFF; // маска использования каналов
-  unsigned char ChMask;  // default = 0x0;  // флаги изменения каналов 
-  unsigned char Aprt;    // default = 0x17;  // апертура 
-} vas84r_inipar;
-
-typedef struct
-{
-  psint SIGN[8];   // Результат счета каналов 1-8   
-  pschar widesos;  // расширенный байт состояния
-} vas84r_data;
-
- */
-
 #define inipar  ((vas84r_inipar*)(tdrv->inimod)) 
-
-//#define CT_GLOB   tdrv->tdrv.typedev[0]    // последний счетчик переворотов ПЯ
-#define CounGL    tdrv->tdrv.typedev[1]    // счетчик непереворотов ПЯ
 
 #define VasData ((vas84r_data*)(tdrv->data))
 
@@ -91,20 +63,8 @@ typedef struct
 
 
 ==========================================================
-typedef struct
-{
-  unsigned char type;    // тип модуля 
-  unsigned int  BoxLen;  // длина ПЯ, уменьшенная на 1 
-  unsigned char vip;     // флаг критически важного для системы модуля 
-} proc_inipar;
 
  */
-//===========================================================
-//	Инициализация процессорного модуля
-//===========================================================
-//
-// процедура осуществляет проверку исправности процессорного модуля
-//
 
 void vas84r_ini(table_drv* tdrv) {
     int ADR_MISPA = 0x118;

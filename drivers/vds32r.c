@@ -132,8 +132,19 @@ void vds32r_rd(table_drv *tdrv) {
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
 
-    RH |= ReadBx3w(AdrStatus0, &vdsValue.stat[0]);
-    RH |= ReadBx3w(AdrStatus1, &vdsValue.stat[1]);
+    // проверка инверсии в статусе
+    RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
+    RH |= ReadBox(AdrStatus1, &vdsValue.stat[1]);
+    if (RH == 0x80) { // нет устройства
+        tdrv->error = 0x80;
+        return;
+    }
+    else if (RH == 0xC0) { // NEGC_BOX
+        tdrv->error = 0xC0;
+        return;
+    }
+    RH = 0;
+
     RH |= ReadBx3w(AdrSostContact0, &vdsValue.sost[0]);
     RH |= ReadBx3w(AdrSostContact1, &vdsValue.sost[1]);
     RH |= ReadBx3w(AdrSostContact2, &vdsValue.sost[2]);
@@ -173,10 +184,8 @@ void vds32r_rd(table_drv *tdrv) {
 
             if (vdsValue.sost[i] & j)
                 vdsDate->SIGN[k].b = 1;
-                // vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 1;
             else
                 vdsDate->SIGN[k].b = 0;
-                // vdsDate->SIGN[(8 * (i + 1))+(8 * i) - 1 - (z + (i * 8))].b = 0;
             j <<= 1;
             k++;
         }

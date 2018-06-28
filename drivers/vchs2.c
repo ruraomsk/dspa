@@ -1,231 +1,44 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   vchs2.c
- * Author: rusin
- * 
- * Created on 22 марта 2018 г., 9:59
- */
-
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "vchs2.h"
-float fabsf(float f){
-    if(f<0) f=0-f;
-    return f;
-}
-/*
-typedef struct
-{
-  unsigned char type;    // default = 0xC6;    тип модуля 
-  unsigned int  BoxLen;  // default = 0xFF;    длина ПЯ, уменьшенная на 1 
-  unsigned char vip;     // default = 0;       флаг критически важного для системы модуля 
-  unsigned char NumCh;   // default = 32;      количество каналов 
-  unsigned char UsMask;  // default = 0xFF;    маска использования каналов 1-первый 2-второй  
-  unsigned char ChMask;  // default = 0x0;     флаги изменения каналов 1-2   
-  unsigned char chn1d;   // default = 0x1;     диапазон канала1:  1 - 1-1000 с;  2 - 10мс-10с; 4 - 10мкс - 10мс; 8 - 1мкс - 1мс
-  unsigned char chn2d;   // default = 0x1;     диапазон канала1:  1 - 1-1000 с;  2 - 10мс-10с; 4 - 10мкс - 10мс; 8 - 1мкс - 1мс
-  unsigned char Cykl;    // default = 150;     увеличение длины цикла контроллера   
-  float         Gmin1;   // default = 0;       нижняя граница измерения частоты 
-  float         Gmin2;   // default = 0;       нижняя граница измерения частоты 
-  float         Gmax1;   // default = 1000000; верхняя граница измерения частоты 
-  float         Gmax2;   // default = 1000000; верхняя граница измерения частоты 
-} vchs_inipar;
 
-typedef struct
-{
-  ssfloat K01VCHS;          // частота 1 канал 
-  ssfloat K02VCHS;          // частота 2 канал 
-  sschar  Cyklen;          // увеличение длины цикла контроллера   
-  int     iMFast1[10];      // массив значений импульсов за цикл от счетного канала1
-  float   fMFtim1[10];      // массив времен цикла измерения счетного канала 1 
-  unsigned long lMSlow1[20];// массив накопленных значений импульсов от счетного канала 1 
-  float   fMStim1[20];      // массив накопленных значений времени циклов измерения счетного канала 1
-  char    pMFast1;          // указатель текущей позиции массива импульсов за цикл от счетного канала 1
-  char    pMSlow1;          // указатель текущей позиции массива накопленных импульсов от счетного канала 1
-  float   fTimF1;           // суммарное время измерения импульсов за цикл от счетного канала 1
-  unsigned long lSmF1;      // суммарное количество импульсов за цикл от счётного канала 1
-  float   fTimS1;           // суммарное время измерения накопленных импульсов от счетного канала 1
-  unsigned long lSmS1;      // суммарное накопленное количество импульсов от счётного канала 1
-  int     iMFast2[10];      // массив значений импульсов за цикл от счетного канала 2
-  float   fMFtim2[10];      // массив времен цикла измерения счетного канала 2 
-  unsigned long lMSlow2[20];// массив накопленных значений импульсов от счетного канала 2 
-  float   fMStim2[20];      // массив накопленных значений времени циклов измерения счетного канала 2
-  char    pMFast2;          // указатель текущей позиции массива импульсов за цикл от счетного канала 2
-  char    pMSlow2;          // указатель текущей позиции массива накопленных импульсов от счетного канала 2
-  float   fTimF2;           // суммарное время измерения импульсов за цикл от счетного канала 2
-  unsigned long lSmF2;      // суммарное количество импульсов за цикл от счётного канала 2
-  float   fTimS2;           // суммарное время измерения накопленных импульсов от счетного канала 2
-  unsigned long lSmS2;      // суммарное накопленное количество импульсов от счётного канала 2
-} vchs_data;
+#include <sys/time.h>
+#include "linux/printk.h"
 
- */
+#define inipar ((vchs_inipar *)(tdrv->inimod))
+#define VchDate ((vchs_data *)(tdrv->data))
 
 
-#define inipar ((vchs_inipar*)(tdrv->inimod))
-#define VchDate ((vchs_data*)(tdrv->data))
 
-
-#define AdrType          0x4   // тип модуля   0xC6
-
-// Регистр запроса обслуживания модуля RQ
-
-#define AdrRQ            0x5    // inv 0xFA регистр запроса обслуживания  
-
-// Номер бита   D7   D6    D5    D4     D3   D2    D1    D0
-// Назначение FLCT2 ERR2  END2  STRT2 FLCT1 ERR1  END1  STRT1
-
-// П р и м е ч а н и е – Расшифровка разрядов:
-// STRT1 – начало отчета интервального счетчика канала 1 (начало заполнения
-//         импульсами периода от предусилителя, выбранного диапазона)
-// END1  - конец отчета интервального счетчика канала 1 (закончено заполнение
-//         импульсами периода от предусилителя , выбранного диапазона)
-// ERR1  – взведение одного из битов в регистре состояния канала 1
-// FLCT1 – наличие значения в регистре счетчика импульсов канала 1
-// STRT2 – начало отчета интервального счетчика канала 2 (начало заполнения
-//         импульсами периода от предусилителя, выбранного диапазона)
-// END2  - конец отчета интервального счетчика канала 2 (закончено заполнение
-//         импульсами периода от предусилителя , выбранного диапазона)
-// ERR2  – взведение одного из битов в регистре состояния канала 2
-// FLCT2 – наличие значения в регистре счетчика импульсов канала 2
-
-
-// Регистр захвата ПЯ SV (Adr = 06 инверсного адреса нет).
-#define AdrSV  0x6   
-// Номер бита D7  D6  D5  D4  D3  D2  D1  D0
-// Назначение 0   0   0   0   0   0   0   SV0
-// Регистр предназначен захвата ПЯ.
-
-//  3.3.3 Регистр SVE предназначен для проверки захвата ПЯ
-
-#define AdrSVE  0x7 
-// Номер бита D7  D6  D5  D4  D3  D2  D1  D0
-// Назначение 0    0  0    0  0    0  0   SVE0
-// Регистр предназначен для чтения подтверждения захвата ПЯ.
-// при установленном бите SVE0 не производится
-//  запись нового значения в регистр результата счета.
-
-// Регистр состояния модуля STAT
-
-#define AdrSTAT  0xF // inv 0xF0 – состояние модуля
-//  Номер бита   D7 D6  D5  D4  D3  D2  D1  D0
-//  Назначение  ST7 ST6 ST5 ST4 ST3 ST2 ST1 ST0
-//  П р и м е ч а н и е – Расшифровка разрядов:
-//  ST0 –несоответствие кода диапазона частоты канала 1 (выбрано больше одного диапазона или ни одного)
-//  ST1 – не инверсия в регистре диапазона канала 1
-//  ST2 – не инверсия в регистре кода коммутатора канала 1
-//  ST3 – не инверсия в регистре значения генератора канала 1
-//  ST4 – несоответствие кода диапазона частоты канала 2 (выбрано больше одного диапазона или ни одного)
-//  ST5 – не инверсия в регистре диапазона канала 2
-//  ST6 – не инверсия в регистре кода коммутатора канала 2
-//  ST7 – не инверсия в регистре значения генератора канала 2
-
-
-// Регистры результата счета (1,2 – каналов)
-// Значение в регистре результата счета формируется по окончанию счетного периода интервального счетчика.
-
-#define IntrvCh1Low   0x10   //  младший байт 1 канала
-#define IntrvCh1High  0x11   //  старший байт 1 канала
-#define IntrvCh2Low   0x30   //  младший байт 2 канала
-#define IntrvCh2High  0x31   //  старший байт 2 канала
-
-//  Регистр контроля диапазона (1/2 – канала)
-//  Регистр предназначен для контроля текущего установленного диапазона измерения интервального счетчика
-#define RzCh1    0x12   //  1 канал
-#define RzCh2    0x32   //  2 канал
-//  Номер бита  D7  D6  D5  D4  D3  D2  D1  D0
-//  Назначение  0   0   0   0   Dp4 Dp3 Dp2 Dp1
-//  П р и м е ч а н и е – Расшифровка разрядов:
-//  Dp1 – установлен диапазон 1 (1 единица = 20 нс)
-//  Dp2 – установлен диапазон 2 (1 единица = 2 мкс)
-//  Dp3 – установлен диапазон 3 (1 единица = 200 мкс)
-//  Dp4 – установлен диапазон 4 (1 единица = 20 мс)
-//
-//  Регистр состояния канала (1/2 – канала)
-#define RgSost1   0x13  //  1- канал
-#define RgSost2   0x33  //  2- канал
-// Номер бита D7     D6  D5   D4  D3  D2  D1     D0
-// Назначение Ddown Dup Fпер  МАХ MIN F0  Alw1T Alw1R
-// П р и м е ч а н и е – Расшифровка разрядов:
-// Alw1R - входной сигнал рабочего ввода всегда в 1
-// Alw1Т - входной сигнал тестового ввода всегда в 1
-// F0 – признак отсутствия счета – меньше 2 единиц
-// MIN – значение регистра интервального счетчика меньше 50 единиц
-// МАХ – значение регистра интервального счетчика больше 50000 единиц
-// Fper  - флаг переполнения
-// Dup – запрос увеличения частоты диапазона измерения (окончание счета при значении меньше 50 единиц)
-// Ddown - запрос уменьшения частоты диапазона измерения (окончание счета при значении больше 50000 единиц)
-
-//  Регистр текущего значения счета
-
-#define CurCh1Low   0x15   //  младший байт 1 канала
-#define CurCh1High  0x16   //  старший байт 1 канала
-#define CurCh2Low   0x35   //  младший байт 2 канала
-#define CurCh2High  0x36   //  старший байт 2 канала
-// Регистр позволяет считывать текущее значение интервального счетчика
-// до окончания периода между входными импульсами.
-
-// Регистр управления диапазоном  (1/2 – канала)
-#define  DiCont1    0x1C   //  1- канал
-#define  DiCont2    0x3C   //  2- канал
-//Номер бита  D7  D6  D5  D4  D3  D2  D1  D0
-// Назначение ЕN1 EN0 хх  хх  Dp4 Dp3 Dp2 Dp1
-// П р и м е ч а н и е – Расшифровка разрядов:
-// Dp1 – установить диапазон 1 (1 единица = 20 нс)
-// Dp2 – установить диапазон 2 (1 единица = 2 мкс)
-// Dp3 – установить диапазон 3 (1 единица = 200 мкс)
-// Dp4 – установить диапазон 4 (1 единица = 20 мс)
-// EN0 – включение входного оптрона рабочего канала
-// EN1 – включение входного оптрона тестового канала
-// Регистр доступен для записи и чтения.
-// Запись должна быть произведена в прямом и инверсном коде.
-// При записи 0х0 будет выбран диапазон Dp1.
-//
-
-// Регистр управления коммутатором каналов (1/2 – канала)
-//   (подключение рабочего входа, внешнего тестового входа, внутреннего генератора)
-#define  CommCh1    0x1D   //  1- канал
-#define  CommCh2    0x3D   //  2- канал
-// Номер бита D7  D6  D5  D4  D3  D2  D1  D0
-// Назначение xx  xx  xx  G   xx  K3  K2  K1
-// П р и м е ч а н и е – Расшифровка разрядов:
-// K1 – бит подключения рабочего сигнала (от предусилителя)
-// K2 – бит подключения внешнего тестового сигнала (проверка правильности работы АКНП)
-// K3 – бит подключения внутреннего генератора (проверка работы модуля)
-// G – включение внутреннего генератора
-// Регистр доступен для записи и чтения. Запись должна быть произведена в прямом и инверсном коде
-// При записи значения 0х00 будет выбран К1.
-//
-
-
-//  Регистр кода генератора  (1/2 – канала)
-#define KodCh1Low   0x1E   //  младший байт 1 канала
-#define KodCh1High  0x1F   //  старший байт 1 канала
-#define KodCh2Low   0x3E   //  младший байт 2 канала
-#define KodCh2High  0x3F   //  старший байт 2 канала
-// П р и м е ч а н и е – Data 0…15 – шестнадцатиразрядное слово – значение кода генератора.
-// При включении генератора он однократно формирует импульс,
-// длительность которого равна T = DATA[0..15] * 20 нс.
-
-// Регистр значения счетчика импульсов  (1/2 – канала)
-#define CountCh1Low   0x19   //  младший байт 1 канала
-#define CountCh1High  0x1A   //  старший байт 1 канала
-#define CountCh2Low   0x39   //  младший байт 2 канала
-#define CountCh2High  0x3A   //  старший байт 2 канала
-
-// Чтение регистра значения счетчика импульсов должно производиться при установленном бите SV.
-//  П р и м е ч а н и е – Data 0…15 – шестнадцатиразрядное слово –
-//  значение количества входных импульсов за выбранный промежуток времени.
-
-
-/*
-extern unsigned char flag_ini;
- */
-
+#define AdrType 0x4 // тип модуля   0xC6
+#define AdrRQ 0x5   // inv 0xFA регистр запроса обслуживания
+#define AdrSV 0x6
+#define AdrSVE 0x7
+#define AdrSTAT 0xF       // inv 0xF0 – состояние модуля
+#define IntrvCh1Low 0x10  // Регистр результата счета младший байт 1 канала
+#define IntrvCh1High 0x11 // Регистр результата счета старший байт 1 канала
+#define IntrvCh2Low 0x30  // Регистр результата счета младший байт 2 канала
+#define IntrvCh2High 0x31 // Регистр результата счета старший байт 2 канала
+#define RzCh1 0x12        // Регистр контроля диапазона 1 канал
+#define RzCh2 0x32        // Регистр контроля диапазона 2 канал
+#define RgSost1 0x13      // Регистр состояния канала 1 канал
+#define RgSost2 0x33      // Регистр состояния канала 2 канал
+#define CurCh1Low 0x15    // Регистр текущего значения младший байт 1 канала
+#define CurCh1High 0x16   // Регистр текущего значения старший байт 1 канала
+#define CurCh2Low 0x35    // Регистр текущего значения младший байт 2 канала
+#define CurCh2High 0x36   // Регистр текущего значения старший байт 2 канала
+#define DiCont1 0x1C      // Регистр управления диапазоном 1 канал
+#define DiCont2 0x3C      // Регистр управления диапазоном 2 канал
+#define CommCh1 0x1D      // Регистр управления коммутатором каналов 1 канал
+#define CommCh2 0x3D      // Регистр управления коммутатором каналов 2 канал
+#define KodCh1Low 0x1E    // Регистр кода генератора младший байт 1 канала
+#define KodCh1High 0x1F   // Регистр кода генератора старший байт 1 канала
+#define KodCh2Low 0x3E    // Регистр кода генератора младший байт 2 канала
+#define KodCh2High 0x3F   // Регистр кода генератора старший байт 2 канала
+#define CountCh1Low 0x19  // Регистр счетчика импульсов младший байт 1 канала
+#define CountCh1High 0x1A // Регистр счетчика импульсов старший байт 1 канала
+#define CountCh2Low 0x39  // Регистр счетчика импульсов младший байт 2 канала
+#define CountCh2High 0x3A // Регистр счетчика импульсов старший байт 2 канала
 
 /*
 ===========================================================
@@ -250,37 +63,16 @@ extern unsigned char flag_ini;
 //  Инициализация модуля ВЧС
 //===========================================================
 
-void vchs_ini(table_drv* tdrv) {
-    unsigned char SVS;
-    unsigned char STAT;
-    unsigned char RQ, RH, RL, S01VCHS, S02VCHS;
-    int ADR_MISPA = 0x118, i;
-//    log_init(tdrv);
+void vchs_ini(table_drv *tdrv) {
+    unsigned char RQ, RH = 0;
+    int ADR_MISPA = 0x118;
 
-    VchDate->K01VCHS.f = VchDate->K02VCHS.f = 0.0;
-    VchDate->K01VCHS.error = VchDate->K02VCHS.error = 0;
-    S01VCHS = S02VCHS = 0;
-    VchDate->Cyklen.c = 10;
-    VchDate->pMFast1 = VchDate->pMFast2 = 3; // указатель текущей позиции массива импульсов за цикл от счетного канала      
-    VchDate->pMSlow1 = VchDate->pMSlow2 = 19; // указатель текущей позиции массива накопленных импульсов от счетного канала  
-
-    VchDate->fTimF1 = VchDate->fTimF2 = 0.0; // суммарное время измерения импульсов за цикл от счетного канала              
-    VchDate->fTimS1 = VchDate->fTimS2 = 0.0; // суммарное время измерения накопленных импульсов от счетного канала          
-
-    VchDate->lSmF1 = VchDate->lSmS1 =
-            VchDate->lSmF2 = VchDate->lSmS2 = 0; // суммарное количество импульсов                   
-
-    for (i = 0; i < 4; i++) {
-        VchDate->iMFast1[i] = VchDate->iMFast2[i] = 0; // массив значений импульсов за цикл от счетного канала                         
-        VchDate->fMFtim1[i] = VchDate->fMFtim2[i] = 0.0; // массив времен цикла измерения счетного канала                               
-    }
-
-    for (i = 0; i < 20; i++) {
-        VchDate->lMSlow1[i] = VchDate->lMSlow2[i] = 0; // массив накопленных значений импульсов от счетного канала                    
-        VchDate->fMStim1[i] = VchDate->fMStim2[i] = 0.0; // массив накопленных значений времени циклов измерения счетного канала         
-    }
+    //  VchDate->Cyklen.c = 10;
+     inipar->stDate.pMFast1 =  inipar->stDate.pMFast2 = 3; // указатель текущей позиции массива импульсов за цикл от счетного канала
+     inipar->stDate.pMSlow1 =  inipar->stDate.pMSlow2 = 19; // указатель текущей позиции массива накопленных импульсов от счетного канала
 
     SetBoxLen(inipar->BoxLen);
+
     RQ = (unsigned char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
@@ -290,391 +82,42 @@ void vchs_ini(table_drv* tdrv) {
     }
     tdrv->error = 0;
 
-    // проверка типа модуля
-
-    inipar->ChMask = 0;
-
-    RH = ReadBox3(AdrType, &RL);
-    RQ = inipar->type;
-    if (RH)
-        if (RH == 0x80) {
-            tdrv->error = RH;
-            return;
-        } else {
-            tdrv->error = 0xC0;
-            return;
-        }
-
-    if (RL != RQ) {
-        tdrv->error = 0xC0;
-        return;
-    } //ошибка типа модуля
-
-    // захват ПЯ устройства
-
-    CatchBox();
-
+    RH = CatchBox();
     if (RH) {
-        tdrv->error = RH; // ошибка миспа
+        tdrv->error = RH;
         return;
     }
 
-    RH =ReadBox3(AdrSVE,&SVS);
-    if (RH)
-        if (RH == 0x80) {
-            tdrv->error = RH;
-            return;
-        } else {
-            RH =ReadBox3(AdrSVE,&SVS);
-            if (RH)
-                if (RH == 0x80) {
-                    tdrv->error = RH;
-                    return;
-                } else {
-                    tdrv->error = 0xC0;
-                    return;
-                }
-            if (!SVS) { //ПЯ не захвачен! ошибка статуса 
-                {
-                    tdrv->error = 0x90;
-                    return;
-                }
-            }
-        }
+    // Натсройка диапазонов
+    RQ = 0x40 | inipar->chn1d;
+    RH |= WriteBox(DiCont1, RQ);
+    RQ = 0x40 | inipar->chn2d;
+    RH |= WriteBox(DiCont2, RQ);
 
+    // Управление коммутатором каналов
+    RH |= WriteBox(CommCh1, 0x1);
+    RH |= WriteBox(CommCh2, 0x1);
 
-    if (!SVS) { //ПЯ не захвачен!  повторить 
-        CatchBox();
-        RH = ReadBox3(AdrSVE,&SVS);
-        if (RH)
-            if (RH == 0x80) {
-                tdrv->error = RH;
-                return;
-            } else {
-                tdrv->error = 0xC0;
-                return;
-            }
-        if (!SVS) { //ПЯ не захвачен! ошибка статуса 
-            {
-                tdrv->error = 0x90;
-                return;
-            }
-        }
-    }
-    // настроить диапазон и перевести в рабочий режим канал 1
+    // очистка регистров состояния канала
+    RH |= WriteBox(RgSost1, 0xff);
+    RH |= WriteBox(RgSost2, 0xff);
 
-    // Регистр управления диапазоном  (1/2 – канала)
-    //   #define  DiCont1    0x1C   //  1- канал
-    //   #define  DiCont2    0x3C   //  2- канал
-    //Номер бита  D7  D6  D5  D4  D3  D2  D1  D0
-    // Назначение ЕN1 EN0 хх  хх  Dp4 Dp3 Dp2 Dp1
-    // П р и м е ч а н и е – Расшифровка разрядов:
-    // Dp1 – установить диапазон 1 (1 единица = 20 нс)
-    // Dp2 – установить диапазон 2 (1 единица = 2 мкс)
-    // Dp3 – установить диапазон 3 (1 единица = 200 мкс)
-    // Dp4 – установить диапазон 4 (1 единица = 20 мс)
-    // EN0 – включение входного оптрона рабочего канала
-    // EN1 – включение входного оптрона тестового канала
-    // Регистр доступен для записи и чтения.
-    // Запись должна быть произведена в прямом и инверсном коде.
-    // При записи 0х0 будет выбран диапазон Dp1.
-
-    RH = inipar->chn1d;
-
-    if (RH != 1 && RH != 2 && RH != 4 && RH != 8) {
-        tdrv->error = 0xA0;
-        return;
-    } //ошибка конфигурирования
-
-    RH =WriteBox(DiCont1,RH | 0x40);
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
-
-    RH = inipar->chn2d;
-
-    if (RH != 1 && RH != 2 && RH != 4 && RH != 8) {
-        tdrv->error = 0xA0;
-        return;
-    } //ошибка конфигурирования
-
-    RH = WriteBox(DiCont2,RH | 0x40);
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
-
-    //  Регистр контроля диапазона (1/2 – канала)
-    //  Регистр предназначен для контроля текущего установленного диапазона измерения интервального счетчика
-    //   #define RzCh1    0x12   //  1 канал
-    //   #define RzCh2    0x32   //  2 канал
-    //  Номер бита  D7  D6  D5  D4  D3  D2  D1  D0
-    //  Назначение  0   0   0   0   Dp4 Dp3 Dp2 Dp1
-    //  П р и м е ч а н и е – Расшифровка разрядов:
-    //  Dp1 – установлен диапазон 1 (1 единица = 20 нс)
-    //  Dp2 – установлен диапазон 2 (1 единица = 2 мкс)
-    //  Dp3 – установлен диапазон 3 (1 единица = 200 мкс)
-    //  Dp4 – установлен диапазон 4 (1 единица = 20 мс)
-    //
-
-    // проверить настройку диапазона канала 1
-
-    RH=ReadSinglBox(RzCh1,&RL);
-
-    if (RH)
-        if (RH == 0x80) {
-            tdrv->error = RH;
-            return;
-        } else {
-            tdrv->error = 0xC0;
-            return;
-        }
-
-    if ((RL & 0xf) != inipar->chn1d) {
-        tdrv->error = 0xA0;
-        return;
-    } //ошибка конфигурирования
-
-    // проверить настройку диапазона канала 2
-
-    RH = ReadSinglBox(RzCh2,&RL);
-
-    if (RH)
-        if (RH == 0x80) {
-            tdrv->error = RH;
-            return;
-        } else {
-            tdrv->error = 0xC0;
-            return;
-        }
-
-    if ((RL & 0xf) != inipar->chn2d) {
-        tdrv->error = 0xA0;
-        return;
-    } //ошибка конфигурирования
-
-    // Регистр управления коммутатором каналов (1/2 – канала)
-    //   (подключение рабочего входа, внешнего тестового входа, внутреннего генератора)
-    //   #define  CommCh1    0x1B   //  1- канал
-    //   #define  CommCh2    0x3B   //  2- канал
-    // Номер бита D7  D6  D5  D4  D3  D2  D1  D0
-    // Назначение xx  xx  xx  G   xx  K3  K2  K1
-    // П р и м е ч а н и е – Расшифровка разрядов:
-    // K1 – бит подключения рабочего сигнала (от предусилителя)
-    // K2 – бит подключения внешнего тестового сигнала (проверка правильности работы АКНП)
-    // K3 – бит подключения внутреннего генератора (проверка работы модуля)
-    // G – включение внутреннего генератора
-    // Регистр доступен для записи и чтения. Запись должна быть произведена в прямом и инверсном коде
-    // При записи значения 0х00 будет выбран К1.
-
-    RH = WriteBox(CommCh1,0x1);
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
-
-    //подключение рабочего сигнала от предусилителя
-    RH = WriteBox(CommCh2,0x1);
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
-
-
-    // Регистр значения счетчика импульсов  (1/2 – канала)
-    //   #define CountCh1Low   0x19   //  младший байт 1 канала
-    //   #define CountCh1High  0x1A   //  старший байт 1 канала
-    //   #define CountCh2Low   0x39   //  младший байт 2 канала
-    //   #define CountCh2High  0x3A   //  старший байт 2 канала
-    //
-    // Чтение регистра значения счетчика импульсов должно производиться при установленном бите SV.
-    //  П р и м е ч а н и е – Data 0…15 – шестнадцатиразрядное слово –
-    //  значение количества входных импульсов за выбранный промежуток времени.
-
-    // очистим счётный регистр 
-
-    RH = ReadSinglBox(CountCh1Low,&RL);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
-        return;
-    } // ошибка миспа
-
-    RH = ReadSinglBox(CountCh2Low,&RL);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
-        return;
-    } // ошибка миспа
-
-    // Регистры результата счета (1,2 – каналов)
-    // Значение в регистре результата счета формируется по окончанию счетного периода интервального счетчика.
-    //
-    //   #define IntrvCh1Low   0x10   //  младший байт 1 канала
-    //   #define IntrvCh1High  0x11   //  старший байт 1 канала
-    //   #define IntrvCh2Low   0x30   //  младший байт 2 канала
-    //   #define IntrvCh2High  0x31   //  старший байт 2 канала
-
-    // взбодрим интервальный регистр 
-
-    RH = ReadSinglBox(IntrvCh1Low,&RL);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
-        return;
-    } // ошибка миспа
-
-    RH = ReadSinglBox(IntrvCh2Low,&RL);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
-        return;
-    } // ошибка миспа
-
-
-    //  Регистр состояния канала (1/2 – канала)
-    //   #define RgSost1   0x13  //  1- канал
-    //   #define RgSost2   0x33  //  2- канал
-    // Номер бита D7     D6  D5   D4  D3  D2  D1     D0
-    // Назначение Ddown Dup Fпер  МАХ MIN F0  Alw1T Alw1R
-    // П р и м е ч а н и е – Расшифровка разрядов:
-    // Alw1R - входной сигнал рабочего ввода всегда в 1
-    // Alw1Т - входной сигнал тестового ввода всегда в 1
-    // F0 – признак отсутствия счета – меньше 2 единиц
-    // MIN – значение регистра интервального счетчика меньше 50 единиц
-    // МАХ – значение регистра интервального счетчика больше 50000 единиц
-    // Fper  - флаг переполнения
-    // Dup – запрос увеличения частоты диапазона измерения (окончание счета при значении меньше 50 единиц)
-    // Ddown - запрос уменьшения частоты диапазона измерения (окончание счета при значении больше 50000 единиц)
-
-    // очистим регистр состояния канала
-
-    RH = WriteBox(RgSost1,0xFF);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
-        return;
-    } // ошибка миспа
-
-    RH = WriteBox(RgSost2,0xFF);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
-        return;
-    } // ошибка миспа
-
-    //  Регистр кода генератора  (1/2 – канала)
-    //   #define KodCh1Low   0x1E   //  младший байт 1 канала
-    //   #define KodCh1High  0x1F   //  старший байт 1 канала
-    //   #define KodCh2Low   0x3E   //  младший байт 2 канала
-    //   #define KodCh2High  0x3F   //  старший байт 2 канала
-    // П р и м е ч а н и е – Data 0…15 – шестнадцатиразрядное слово – значение кода генератора.
-    // При включении генератора он однократно формирует импульс,
-    // длительность которого равна T = DATA[0..15] * 20 нс.
-
-    // записать в прямой и инверсный регистры кода генератора каналов 1,2
     // прямое и инверсное значение 0x1F4, что  соответствует 10 мкс
+    RH |= WriteBox(KodCh1Low, 0xf4);
+    RH |= WriteBox(KodCh1High, 0x1);
+    RH |= WriteBox(KodCh2Low, 0xf4);
+    RH |= WriteBox(KodCh2High, 0x1);
 
+    // очистка регистр RQ
+    RH |= WriteBox(AdrRQ, 0xff);
 
-    RH = WriteBox(KodCh1Low,0xF4);
+    // освободить ПЯ
 
+    RH |= FreeBox();
     if (RH) {
         tdrv->error = RH; // ошибка миспа
         return;
     }
-
-    RH = WriteBox(KodCh1High,0x1);
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
-
-    RH = WriteBox(KodCh2Low,0xF4);
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
-
-// 10 мкс
-    RH = WriteBox(KodCh2High,0x1);
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
-
-    // Регистр RQ
-
-    //  #define AdrRQ            0x5    // inv 0xFA регистр запроса обслуживания
-
-    // Номер бита   D7   D6    D5    D4     D3   D2    D1    D0
-    // Назначение FLCT2 ERR2  END2  STRT2 FLCT1 ERR1  END1  STRT1
-
-    // П р и м е ч а н и е – Расшифровка разрядов:
-
-    // STRT1 – начало отчета интервального счетчика канала 1 (начало заполнения
-    //         импульсами периода от предусилителя, выбранного диапазона)
-    // END1  - конец отчета интервального счетчика канала 1 (закончено заполнение
-    //         импульсами периода от предусилителя , выбранного диапазона)
-    // ERR1  – взведение одного из битов в регистре состояния канала 1
-    // FLCT1 – наличие значения в регистре счетчика импульсов канала 1
-    // STRT2 – начало отчета интервального счетчика канала 2 (начало заполнения
-    //         импульсами периода от предусилителя, выбранного диапазона)
-    // END2  - конец отчета интервального счетчика канала 2 (закончено заполнение
-    //         импульсами периода от предусилителя , выбранного диапазона)
-    // ERR2  – взведение одного из битов в регистре состояния канала 2
-    // FLCT2 – наличие значения в регистре счетчика импульсов канала 2
-
-    // очистим регистр RQ
-
-    RH = WriteBox(AdrRQ,0xFF);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
-        return;
-    } // ошибка миспа
-
-    // Регистр состояния модуля STAT
-
-    //   #define AdrSTAT  0x0F // inv 0xF0 – состояние модуля
-    //  Номер бита   D7 D6  D5  D4  D3  D2  D1  D0
-    //  Назначение  ST7 ST6 ST5 ST4 ST3 ST2 ST1 ST0
-    //  П р и м е ч а н и е – Расшифровка разрядов:
-    //  ST0 –несоответствие кода диапазона частоты канала 1 (выбрано больше одного диапазона или ни одного)
-    //  ST1 – не инверсия в регистре диапазона канала 1
-    //  ST2 – не инверсия в регистре кода коммутатора канала 1
-    //  ST3 – не инверсия в регистре значения генератора канала 1
-    //  ST4 – несоответствие кода диапазона частоты канала 2 (выбрано больше одного диапазона или ни одного)
-    //  ST5 – не инверсия в регистре диапазона канала 2
-    //  ST6 – не инверсия в регистре кода коммутатора канала 2
-    //  ST7 – не инверсия в регистре значения генератора канала 2
-    //   asm INT 3;
-
-
-    RH = ReadBox3(AdrSTAT,&STAT);
-    if (RH)
-        if (RH == 0x80) {
-            tdrv->error = RH;
-            return;
-        }//ошибка миспа
-        else {
-            tdrv->error = 0x90;
-            return;
-        } //ошибка статуса
-
-    if (STAT != 0) {
-        tdrv->error = 0x90;
-        return;
-    } // ошибка состояния модуля
-
-    // убрать "защёлку"
-
-    RH = FreeBox();
-
-    if (RH) {
-        tdrv->error = RH; // ошибка миспа
-    }
-
 }
 
 //===========================================================/
@@ -722,604 +165,155 @@ void vchs_ini(table_drv* tdrv) {
 ===========================================================
 
  */
-void vchs_dw(table_drv* tdrv) {
-    unsigned char schn1 = 0, schn2 = 0, S01VCHS, S02VCHS;
-    unsigned chn1er = 0, chn2er = 0;
-    unsigned char Coun1, Coun2, Intrv1, Intrv2;
-    float fslow, ffast;
-    unsigned char SVS;
-    unsigned char RH, RL, RQ;
-    int ADR_MISPA;
-    unsigned long int il;
-    sschar rc;
-    ssfloat rf;
-//    log_step(tdrv);
+void vchs_dr(table_drv *tdrv) {
+    float fslow = 0, ffast = 0;
+    unsigned char RH = 0, RQ = 0, RQt = 0;
+    int ADR_MISPA = 0x118;
+    takt = 0.005;
+    unsigned long tempI;
 
-    SetBoxLen(0xFF);
+    SetBoxLen(inipar->BoxLen);
+    if (tdrv->error == 0x80)
+        return;
 
-    ADR_MISPA = 0x118;
-    RQ = (unsigned char)(tdrv->address&0xff);
+    RQ = (char) (tdrv->address & 0xff);
+    СLEAR_MEM
     WritePort(ADR_MISPA, RQ);
-
-    tdrv->error = 0;
-
-    RH =ReadBox3(AdrRQ,&RQ);
-    if (RH)
-        if (RH == 0x80) {
-            VchDate->K01VCHS.error = VchDate->K02VCHS.error = tdrv->error = RH;
-            S01VCHS = S02VCHS = 0;
-            return;
-        } else {
-            tdrv->error = 0xA0;
-            return; // неинверсия на RQ - посчитать бы сколько раз
-        }
-
-    // читаем статус модуля
-
-    RH = ReadBox3(AdrSTAT,&RL);
-    if (RH == 0x80) {
+    if (ERR_MEM) {
         tdrv->error = 0x80;
         return;
-    }// ошибка миспа
-    else
-        if (RH) {
-        tdrv->error = 0x90;
+    }
+
+    // читаем статус модуля
+    RH |= ReadBx3w(AdrSTAT, &RQ);
+
+    if (RH) {
+        tdrv->error = RH;
         return;
-    } // неинверсия статуса модуля
+    }
 
-    tdrv->error &= 0xf0;
-    chn1er = (RL & 0xf) << 3;
-
-    if (chn1er) {
+    RQt = (RQ >> 1) & 1;
+    if (RQt) {
         tdrv->error |= 0x83;
-        chn1er |= 0x80;
-    } // ошибки канала 1
-
-    chn2er = (RL & 0xf0) >> 1;
-    if (chn2er) {
-        tdrv->error |= 0x8C;
-        chn2er |= 0x80;
-    } // ошибки канала 2
-
-    if (chn1er) {
-        VchDate->K01VCHS.error = chn1er;
-        S01VCHS = 0;
+        VchDate->K01VCHS.error = 0x80;
     }
-
-    if (chn2er) {
-        VchDate->K02VCHS.error = chn2er;
-        S02VCHS = 0;
+    RQt = (RQ >> 5) & 1;
+    if (RQt) {
+        tdrv->error |= 0x83;
+        VchDate->K02VCHS.error = 0x80;
     }
 
 
-
-    if (!chn1er || !chn2er) {
-        //есть что читать - ставим защёлку
-        CatchBox();
-        if (RH) {
-            tdrv->error = RH; // ошибка миспа
-            return;
-        }
-
-        SVS = ReadSinglBox(AdrSVE,&RL);
-
+    if (!VchDate->K01VCHS.error || !VchDate->K02VCHS.error) {
+        RH = CatchBox();
         if (RH) {
             tdrv->error = RH;
             return;
-        } // ошибка миспа
-
-        if (!SVS) { //ПЯ не захвачен!  повторить
-
-            CatchBox();
-            SVS = ReadSinglBox(AdrSVE,&RL);
+        }
+        ReadBx3w(AdrSVE, &RQ);
+        if (!RQ) {
+            RH = CatchBox();
             if (RH) {
                 tdrv->error = RH;
                 return;
-            } // ошибка миспа
-            if (!SVS) { //ПЯ не захвачен! ошибка статуса
-                {
-                    tdrv->error = 0x90;
-                    return;
-                }
             }
         }
 
-        if ((inipar->UsMask & 1) && !chn1er) { // используeтся канал 1
-            // читаем регистр состояния канала 1
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! takt = gettimeofdate!!! посмотреть
+        // первый канал
+        if ((inipar->UsMask & 1) && !VchDate->K01VCHS.error) {
+            ReadBx3w(RgSost1, &RQ);
+            RQ &= 0x2b;
 
-            schn1 = 0xff;
-            ReadBox3(RgSost1,&RL);
-            if (RH == 0x80) {
-                tdrv->error = 0x80;
-                return;
-            }// ошибка миспа
-            else
-                if (RH) {
-                tdrv->error = 0x93;
-                return;
-            } // неинверсия статуса канала
-
-            schn1 = RL & 0x2B; // подавить Ddown, Dup, F0;
-
-            if (schn1 & 0x20) {
-                chn1er |= 1; //переполнение счётного канала
+            if (RQ & 0x20) {
                 VchDate->K01VCHS.error = 1;
-                S01VCHS = 0;
-                ReadSinglBox(CountCh1Low,&RL);
-                VchDate->Cyklen.c = 10;
-                // очистим регистр состояния канала
-                WriteBox(RgSost1,0xFF);
-            } else { // читаем счётный канал
-
-                RH = ReadBox(CountCh1Low,&RL);
-
-                if (RH == 0x80) {
-                    tdrv->error = 0x80;
-                    return;
-                }// ошибка миспа
-                else
-                    if (RH) {
-                    chn1er |= 1;
-                } // неинверсия старшего байта
-
-                RH=ReadBox(CountCh1High,&Coun1);
-                if (RH == 0x80) {
-                    tdrv->error = 0x80;
-                    return;
-                }// ошибка миспа
-                else
-                    if (RH) {
-                    chn1er |= 1;
-                } // неинверсия младшего байта
-
+                ReadBx3w(CountCh1Low, &RQ); // ЗАЧЕМ?? (сброс при чтении?)
+                WriteBox(RgSost1, 0xff);
+            } else {
+                ReadBx3w(CountCh1Low, & inipar->stDate.CountChLow[0]);
+                ReadBx3w(CountCh1High, & inipar->stDate.CountChHigh[0]);
             }
 
-            if (!chn1er) {
-                il = Coun1;
-                il = il * 256 + RL;
+            if (!VchDate->K01VCHS.error) {
+                tempI =  inipar->stDate.CountChHigh[0];
+                tempI = tempI * 256 +  inipar->stDate.CountChLow[0];
 
-                S01VCHS = 1;
-
-                if (il > 64000l) {
+                if (tempI > 64000) {
                     VchDate->K01VCHS.error = 1;
-                    S01VCHS = 0;
                     tdrv->error |= 1;
                 } else {
-                    rf.error = 0;
-
-                    if (VchDate->pMFast1 >= 3) {
-                        VchDate->pMFast1 = 0;
-                        //
-                        // TAKT! Михаил Иванович что это?
-                        //
-                        float takt=123;
-                        rf.f = takt * 1000.0;
-                        //              WDEBUG_PRINT_FLOAT(1,"takt=",&rf,3);
-                        //              WDEBUG_PRINT_FLOAT(4,"K01VCHS=",&VchDate->K01VCHS,3);
-
-                        if (VchDate->pMSlow1 >= 19)
-                            VchDate->pMSlow1 = 0;
+                    if ( inipar->stDate.pMFast1 >= 3) {
+                         inipar->stDate.pMFast1 = 0;
+                        if ( inipar->stDate.pMSlow1 >= 19)
+                             inipar->stDate.pMSlow1 = 0;
                         else
-                            ++VchDate->pMSlow1;
+                             inipar->stDate.pMSlow1++;
 
-                        VchDate->lSmS1 = VchDate->lSmS1 - VchDate->lMSlow1[VchDate->pMSlow1] + VchDate->lSmF1;
-                        VchDate->fTimS1 = VchDate->fTimS1 - VchDate->fMStim1[VchDate->pMSlow1] + VchDate->fTimF1;
-                        VchDate->fMStim1[VchDate->pMSlow1] = VchDate->fTimF1;
-                        VchDate->lMSlow1[VchDate->pMSlow1] = VchDate->lSmF1;
-
+                         inipar->stDate.lSmS1 =  inipar->stDate.lSmS1 -  inipar->stDate.lMSlow1[ inipar->stDate.pMSlow1] +  inipar->stDate.lSmF1;
+                         inipar->stDate.fTimS1 =  inipar->stDate.fTimS1 -  inipar->stDate.fMStim1[ inipar->stDate.pMSlow1] +  inipar->stDate.fTimF1;
+                         inipar->stDate.fMStim1[ inipar->stDate.pMSlow1] =  inipar->stDate.fTimF1;
+                         inipar->stDate.lMSlow1[ inipar->stDate.pMSlow1] =  inipar->stDate.lSmF1;
                     } else
-                        ++VchDate->pMFast1;
+                         inipar->stDate.pMFast1++;
 
+                     inipar->stDate.lSmF1 =  inipar->stDate.lSmF1 -  inipar->stDate.iMFast1[ inipar->stDate.pMFast1] + tempI;
+                     inipar->stDate.fTimF1 =  inipar->stDate.fTimF1 -  inipar->stDate.fMFtim1[ inipar->stDate.pMFast1] + takt;
+                     inipar->stDate.iMFast1[ inipar->stDate.pMFast1] = tempI;
+                     inipar->stDate.fMFtim1[ inipar->stDate.pMFast1] = takt;
 
-                    VchDate->lSmF1 = VchDate->lSmF1 - VchDate->iMFast1[VchDate->pMFast1] + il;
-                        //
-                        // TAKT! Михаил Иванович что это?
-                        //
-                        float takt=123;
-
-                    VchDate->fTimF1 = VchDate->fTimF1 - VchDate->fMFtim1[VchDate->pMFast1] + takt;
-
-                    VchDate->iMFast1[VchDate->pMFast1] = il;
-                    VchDate->fMFtim1[VchDate->pMFast1] = takt;
-                    //   сигнал изменился?
                     fslow = VchDate->K01VCHS.f;
-                    VchDate->K01VCHS.f = il;
-                    if (fabsf(fslow - VchDate->K01VCHS.f) > 0.002) {
-                        inipar->ChMask = ((inipar->ChMask & 2) + 1);
-                    }
+                    VchDate->K01VCHS.f = tempI;
 
-                    //  посчитать частоту  по быстрому усреднению
+                    // незнаю зачем?
+                    // if (fabs(fslow - VchDate->K01VCHS.f) > 0.002)
+                    // {
+                    //   inipar->ChMask = ((inipar->ChMask & 2) + 1);
+                    // }
+                    ffast =  inipar->stDate.lSmF1;
 
-                    rf.error = VchDate->K01VCHS.error |= chn1er;
-                    ffast = VchDate->lSmF1;
-                    if (VchDate->fTimF1 < 0.000001)
-                        ffast = 0.0;
+                    if ( inipar->stDate.fTimF1 < 0.000001)
+                        ffast = 0;
                     else
-                        ffast = ffast / VchDate->fTimF1;
+                        ffast = ffast /  inipar->stDate.fTimF1;
 
-
-                    if (ffast < 20.0) { //  посчитать частоту  по медленному усреднению
+                    if (ffast < 20) { //  посчитать частоту  по медленному усреднению
                         fslow = ffast;
-                        ffast = VchDate->lSmS1;
-                        if (VchDate->fTimS1 < 0.00001)
-                            ffast = 0.0;
+                        ffast =  inipar->stDate.lSmS1;
+                        if ( inipar->stDate.fTimS1 < 0.00001)
+                            ffast = 0;
                         else
-                            ffast = ffast / VchDate->fTimS1;
-                        if (ffast > 5.0)
-                            ffast = (fslow + ffast) / 2.0;
-                    } else
-                        if (ffast > 1000.0) { //  посчитать частоту  по мгновенному значению
-                        ffast = VchDate->iMFast1[VchDate->pMFast1];
+                            ffast = ffast /  inipar->stDate.fTimS1;
+                        if (ffast > 5)
+                            ffast = (fslow + ffast) / 2;
+                    } else if (ffast > 1000) { //  посчитать частоту  по мгновенному значению
+                        ffast =  inipar->stDate.iMFast1[ inipar->stDate.pMFast1];
                         ffast = ffast / takt;
                     }
 
                     if (inipar->Gmin1 > 0.1 && ffast < inipar->Gmin1 || ffast > inipar->Gmax1) { //  частота  выходит за допустимый дианазон
                         VchDate->K01VCHS.error = 2;
-                        S01VCHS = 0;
                     }
 
                     VchDate->K01VCHS.f = ffast;
                 }
-
             }
 
-
-            if (S01VCHS == 0) { // скорее всего - переполнение: установим минимальный цикл 
-
-                VchDate->Cyklen.c = 10;
-
-            } else { // определим длину цикла
-                if (ffast < 1.0)
-                    VchDate->Cyklen.c = 250; // -  inipar->Cykl;
-                else
-                    if (ffast < 20.0)
-                    VchDate->Cyklen.c = 200; //- inipar->Cykl;
-                else
-                    if (ffast < 300000.0)
-                    VchDate->Cyklen.c = 150; //- inipar->Cykl;
-                else {
-                    fslow = 45000000 / ffast;
-                    if (fslow > 10)
-                        VchDate->Cyklen.c = fslow;
-                    else
-                        VchDate->Cyklen.c = 10;
-                }
-            }
-
-
-
-            /*       if(RQ & 2) // нет неинверсии и закончено заполнение интервала 
-                  //  if( schn1 & 0x1C )
-                  //      chn1er = 2;  //ошибки интервального канала
-                  //  else
-                    { // читаем интервальный канал
-
-                      _AL = IntrvCh1Low;
-                      ReadBox3();
-                      RL = _AL;
-                      rc.error = RH = _AH;
-                      rc.c = RL;
-                //      WDEBUG_PRINT_HEX(13,"IntCh1Low=",&rc);
-
-                      if( RH == 0x80)
-                      { tdrv->error = 0x80; return;}   // ошибка миспа
-                      else
-                          if(RH)
-                          { chn1er = 2;} // неинверсия старшего байта
-
-                      _AL = IntrvCh1High;
-                      ReadBox3();
-                      Intrv1 = _AL;
-                      rc.error = RH = _AH;
-                      rc.c = Intrv1;
-               //       WDEBUG_PRINT_HEX(14,"IntCh1Hi=",&rc);
-
-                      if( RH == 0x80)
-                      { tdrv->error = 0x80; return;}   // ошибка миспа
-                      else
-                        if(RH)
-                        { chn1er = 2;} // неинверсия младшего байта
-                      i=0;
-                      if(!chn1er)
-                      {
-                        ii = VchDate->I01VCHS->i;
-                        i = VchDate->I01VCHS->i = Intrv1 * 256 + RL;
-                        if(VchDate->I01VCHS->i != ii)
-                        {
-                          inipar->ChMask = (inipar->ChMask & 2) + 1;
-                        }
-
-                      }
-                      rr.error = chn1er;
-                      rr.i =i;
-                //      WDEBUG_PRINT_INT(15,"FulIn1=",&rr);
-
-                      VchDate->I01VCHS->error = chn1er;
-                    }
-
-                    RL = VchDate->S01VCHS->c;
-                    VchDate->S01VCHS->c = schn1;
-                    if(ii != schn1)
-                      inipar->ChMask = (inipar->ChMask & 2) + 1;  //?????????
-
-                    VchDate->S01VCHS->error = 0;
-
-                    // очистим регистр состояния канала
-
-                    _AL = RgSost1;
-                    _AH = 0xFF;      
-                     WriteBox();
-
-                    if( RH == 0x80)
-                      { tdrv->error = 0x80; return;}   // ошибка миспа
-
-             */
         } else {
             VchDate->K01VCHS.error = 0xff;
-            VchDate->K01VCHS.f = 0.0;
-            S01VCHS = 0;
+            VchDate->K01VCHS.f = 0;
         }
 
-        if ((inipar->UsMask & 2) && !chn2er) {
-            // используeтся канал 2
-            // читаем регистр состояния канала 2
-            schn2 = 0xff;
-            RH = ReadBox3(RgSost2,&RL);
-            if (RH == 0x80) {
-                tdrv->error = 0x80;
-                return;
-            }// ошибка миспа
-            else
-                if (RH) {
-                tdrv->error = 0x9C;
-                return;
-            } // неинверсия статуса канала
+        // тут второй
 
-            schn2 = RL & 0x2B; // подавить Ddown, Dup, F0;
-
-            if (schn2 & 0x20) {
-                chn2er |= 1; //ошибки счётного канала
-                VchDate->K02VCHS.error = 1;
-                S02VCHS = 0;
-                ReadSinglBox(CountCh1Low,&RL);
-                VchDate->Cyklen.c = 10;
-                WriteBox(RgSost2,0xFF);
-            } else { // читаем счётный канал
-
-                RH =ReadBox(CountCh2Low,&RL);
-                if (RH == 0x80) {
-                    tdrv->error = 0x80;
-                    return;
-                }// ошибка миспа
-                else
-                    if (RH) {
-                    chn2er |= 1;
-                } // неинверсия старшего байта
-
-                Coun2 =ReadBox(CountCh2High,&RL);
-
-                if (RH == 0x80) {
-                    tdrv->error = 0x80;
-                    return;
-                }// ошибка миспа
-                else
-                    if (RH) {
-                    chn2er |= 1;
-                } // неинверсия младшего байта
-
-            }
-
-
-            if (!chn2er) {
-                il = Coun2;
-                il = il * 256 + RL;
-
-                S01VCHS = 1;
-
-                if (il > 64000l) {
-                    VchDate->K02VCHS.error = 1;
-                    S02VCHS = 0;
-                    tdrv->error |= 4;
-                } else {
-                    rf.error = 0;
-
-                    if (VchDate->pMFast2 >= 3) {
-                        VchDate->pMFast2 = 0;
-
-                        if (VchDate->pMSlow2 >= 19)
-                            VchDate->pMSlow2 = 0;
-                        else
-                            ++VchDate->pMSlow2;
-
-                        VchDate->lSmS2 = VchDate->lSmS2 - VchDate->lMSlow2[VchDate->pMSlow2] + VchDate->lSmF2;
-                        VchDate->fTimS2 = VchDate->fTimS2 - VchDate->fMStim2[VchDate->pMSlow2] + VchDate->fTimF2;
-                        VchDate->fMStim2[VchDate->pMSlow2] = VchDate->fTimF2;
-                        VchDate->lMSlow2[VchDate->pMSlow2] = VchDate->lSmF2;
-
-                    } else
-                        ++VchDate->pMFast2;
-
-
-                    VchDate->lSmF2 = VchDate->lSmF2 - VchDate->iMFast2[VchDate->pMFast2] + il;
-                        //
-                        // TAKT! Михаил Иванович что это?
-                        //
-                        float takt=123;
-
-                    VchDate->fTimF2 = VchDate->fTimF2 - VchDate->fMFtim2[VchDate->pMFast2] + takt;
-
-                    VchDate->iMFast2[VchDate->pMFast2] = il;
-                    VchDate->fMFtim2[VchDate->pMFast2] = takt;
-                    //   сигнал изменился?
-                    fslow = VchDate->K02VCHS.f;
-                    VchDate->K02VCHS.f = il;
-                    if (fabsf(fslow - VchDate->K01VCHS.f) > 0.002) {
-                        inipar->ChMask = ((inipar->ChMask & 2) + 1);
-                    }
-
-                    //  посчитать частоту  по быстрому усреднению
-
-                    VchDate->K02VCHS.error |= chn2er;
-                    ffast = VchDate->lSmF2;
-                    if (VchDate->fTimF2 < 0.000001)
-                        ffast = 0.0;
-                    else
-                        ffast = ffast / VchDate->fTimF2;
-
-                    if (ffast < 20.0) { //  посчитать частоту  по медленному усреднению
-                        fslow = ffast;
-                        ffast = VchDate->lSmS2;
-                        if (VchDate->fTimS2 < 0.00001)
-                            ffast = 0.0;
-                        else
-                            ffast = ffast / VchDate->fTimS2;
-                        if (ffast > 5.0)
-                            ffast = (fslow + ffast) / 2.0;
-                    } else
-                        if (ffast > 1000.0) { //  посчитать частоту  по мгновенному значению
-                        ffast = VchDate->iMFast2[VchDate->pMFast2];
-                        ffast = ffast / takt;
-                    }
-
-                    if (inipar->Gmin2 > 0.1 && ffast < inipar->Gmin2 || ffast > inipar->Gmax2) { //  частота  выходит за допустимый дианазон
-                        VchDate->K02VCHS.error = 2;
-                        S02VCHS = 0;
-                    }
-
-                    VchDate->K01VCHS.f = ffast;
-                }
-
-            }
-
-
-            if (S02VCHS == 0) { // скорее всего - переполнение: установим минимальный цикл 
-
-                VchDate->Cyklen.c = 10;
-
-            } else { // определим длину цикла
-                if (ffast < 1.0)
-                    VchDate->Cyklen.c = 250; // -  inipar->Cykl;
-                else
-                    if (ffast < 20.0)
-                    VchDate->Cyklen.c = 200; //- inipar->Cykl;
-                else
-                    if (ffast < 300000.0)
-                    VchDate->Cyklen.c = 150; //- inipar->Cykl;
-                else {
-                    fslow = 45000000 / ffast;
-                    if (fslow > 10)
-                        VchDate->Cyklen.c = fslow;
-                    else
-                        VchDate->Cyklen.c = 10;
-                }
-            }
-
-
-            //      WDEBUG_PRINT_INT(17,"FulCh2=",&rr);
-
-            /*
-                   if(RQ & 0x20) // нет неинверсии и закончено заполнение интервала 
-                    if( schn2 & 0x1C )
-                        chn2er = 2;  //ошибки интервального канала
-                    else
-                    { // читаем интервальный канал
-
-                      _AL = IntrvCh2Low;
-                      ReadBox3();
-                      RL = _AL;
-                      rc.error = RH = _AH;
-                      rc.c = RL;
-               //       WDEBUG_PRINT_HEX(18,"IntCh2Low=",&rc);
-
-                      if( RH == 0x80)
-                      { tdrv->error = 0x80; return;}   // ошибка миспа
-                      else
-                          if(RH)
-                          { chn2er = 2;} // неинверсия старшего байта
-
-                      _AL = IntrvCh2High;
-                      ReadBox3();
-                      Intrv2 = _AL;
-                      rc.error = RH = _AH;
-                      rc.c = Intrv2;
-               //       WDEBUG_PRINT_HEX(19,"IntCh2Hi=",&rc);
-
-                      if( RH == 0x80)
-                      { tdrv->error = 0x80; return;}   // ошибка миспа
-                      else
-                        if(RH)
-                        { chn2er = 2;} // неинверсия младшего байта
-                      i=0;
-                      if(!chn2er)
-                      {
-                        ii = VchDate->I02VCHS->i;
-                        i = VchDate->I02VCHS->i = Intrv2 * 256 + RL;
-                        if(VchDate->I02VCHS->i != ii)
-                        {
-                          inipar->ChMask = (inipar->ChMask & 2) + 1;
-                        }
-
-                      }
-                      rr.error = chn2er;
-                      rr.i =i;
-             //         WDEBUG_PRINT_INT(20,"FulIn2=",&rr);
-
-                      VchDate->I02VCHS->error = chn2er;
-                    }
-
-                    RL = VchDate->S02VCHS->c;
-                    VchDate->S02VCHS->c = schn2;
-                    if(ii != schn2)
-                      inipar->ChMask = (inipar->ChMask & 1) + 2;  //?????????
-
-                    VchDate->S02VCHS->error = 0;
-                    // очистим регистр состояния канала
-
-                    _AL = RgSost2;
-                    _AH = 0xFF;      
-                    WriteBox();
-                    RH = _AH;
-
-                    if( RH == 0x80)
-                      { tdrv->error = 0x80; return;}   // ошибка миспа
-             */
-        } else {
-            VchDate->K02VCHS.error = 0xff;
-            VchDate->K02VCHS.f = 0.0;
-            S02VCHS = 0;
-        }
-
-
-        if (RH) {
-            tdrv->error = RH; // ошибка миспа
-            return;
-        }
-    } else {// читать-то неча из-за статуса
-        ReadSinglBox(CountCh1Low,&RL);
-        ReadSinglBox(CountCh2Low,&RL);
-        VchDate->Cyklen.c = 10;
-
-        VchDate->K01VCHS.error = chn1er;
-        VchDate->K02VCHS.error = chn2er;
-        S01VCHS = S02VCHS = 0;
+    }//
+    else { // читать-то неча из-за статуса
+        ReadBx3w(CountCh1Low, &RQ);
+        ReadBx3w(CountCh2Low, &RQ);
     }
-
-    FreeBox();
-    // очистим регистр RQ
-    RH = WriteBox(AdrRQ,0xFF);
-
-    if (RH == 0x80) {
-        tdrv->error = 0x80;
+    RH |= FreeBox();
+    RH |= WriteBox(AdrRQ, 0xff);
+    if (RH) {
+        tdrv->error = RH; // ошибка миспа
         return;
-    } // ошибка миспа
-
-    tdrv->error |= chn1er;
-
-    tdrv->error |= (chn2er * 2);
-    // в реальной системе отнять время реального цикла (без задержек!)
-    //      VchDate->Cyklen.c -= 8;
-
-}
-
-
-
+    }
+} // мой общий!

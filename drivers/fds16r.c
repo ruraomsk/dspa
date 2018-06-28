@@ -37,9 +37,10 @@
 #include "../misparw.h"
 #include "fds16r.h"
 #include "linux/printk.h"
+
 #define inipar  ((fds16r_inipar*)(tdrv->inimod)) 
 #define fdsDate ((fds16r_data*)(tdrv->data)) 
-#define LastIn  ((char*)(&tdrv->time))
+
 
 
 
@@ -55,7 +56,6 @@
 #define AdrSost1316      0x08 // регистр состояния каналов 13-16   
 
 
-extern unsigned int irq_count;
 
 void fds16r_ini(table_drv* tdrv) {
     int ADR_MISPA;

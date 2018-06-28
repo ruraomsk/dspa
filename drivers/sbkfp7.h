@@ -1,16 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   sbkfp7.h
- * Author: rusin
- *
- * Created on 22 РјР°СЂС‚Р° 2018 Рі., 10:00
- */
-
 #ifndef SBKFP7_H
 #define SBKFP7_H
 
