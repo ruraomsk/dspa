@@ -70,14 +70,16 @@ void vchs_ini(table_drv *tdrv) {
     int ADR_MISPA = 0x118;
 
     //  VchDate->Cyklen.c = 10;
-     inipar->stDate.pMFast1 =  3; //inipar->stDate.pMFast2 = 3; // указатель текущей позиции массива импульсов за цикл от счетного канала
-     inipar->stDate.pMSlow1 =  19; //inipar->stDate.pMSlow2 = 19; // указатель текущей позиции массива накопленных импульсов от счетного канала
+    inipar->stDate.pMFast1 = 3; //inipar->stDate.pMFast2 = 3; // указатель текущей позиции массива импульсов за цикл от счетного канала
+    inipar->stDate.pMSlow1 = 19; //inipar->stDate.pMSlow2 = 19; // указатель текущей позиции массива накопленных импульсов от счетного канала
 
     SetBoxLen(inipar->BoxLen);
 
     RQ = (unsigned char) (tdrv->address & 0xff);
     CLEAR_MEM
+
     WritePort(ADR_MISPA, RQ);
+
     if (ERR_MEM) {
         tdrv->error = 0x80;
         return;
@@ -169,7 +171,7 @@ void vchs_ini(table_drv *tdrv) {
  */
 void vchs_dr(table_drv *tdrv) {
     float fslow = 0, ffast = 0;
-    unsigned char RH = 0, RQ = 0, RQt = 0, takt = 0.005;    
+    unsigned char RH = 0, RQ = 0, RQt = 0, takt = 0.005;
     int ADR_MISPA = 0x118;
     unsigned long tempI;
 
@@ -177,9 +179,8 @@ void vchs_dr(table_drv *tdrv) {
     if (tdrv->error == 0x80)
         return;
 
-    RQ = (char) (tdrv->address & 0xff);
-    СLEAR_MEM
-    WritePort(ADR_MISPA, RQ);
+    CLEAR_MEM
+    WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
         tdrv->error = 0x80;
         return;
@@ -236,31 +237,31 @@ void vchs_dr(table_drv *tdrv) {
             }
 
             if (!VchDate->K01VCHS.error) {
-                tempI =  inipar->stDate.CountChHigh[0];
-                tempI = tempI * 256 +  inipar->stDate.CountChLow[0];
+                tempI = inipar->stDate.CountChHigh[0];
+                tempI = tempI * 256 + inipar->stDate.CountChLow[0];
 
                 if (tempI > 64000) {
                     VchDate->K01VCHS.error = 1;
                     tdrv->error |= 1;
                 } else {
-                    if ( inipar->stDate.pMFast1 >= 3) {
-                         inipar->stDate.pMFast1 = 0;
-                        if ( inipar->stDate.pMSlow1 >= 19)
-                             inipar->stDate.pMSlow1 = 0;
+                    if (inipar->stDate.pMFast1 >= 3) {
+                        inipar->stDate.pMFast1 = 0;
+                        if (inipar->stDate.pMSlow1 >= 19)
+                            inipar->stDate.pMSlow1 = 0;
                         else
-                             inipar->stDate.pMSlow1++;
+                            inipar->stDate.pMSlow1++;
 
-                         inipar->stDate.lSmS1 =  inipar->stDate.lSmS1 -  inipar->stDate.lMSlow1[ inipar->stDate.pMSlow1] +  inipar->stDate.lSmF1;
-                         inipar->stDate.fTimS1 =  inipar->stDate.fTimS1 -  inipar->stDate.fMStim1[ inipar->stDate.pMSlow1] +  inipar->stDate.fTimF1;
-                         inipar->stDate.fMStim1[ inipar->stDate.pMSlow1] =  inipar->stDate.fTimF1;
-                         inipar->stDate.lMSlow1[ inipar->stDate.pMSlow1] =  inipar->stDate.lSmF1;
+                        inipar->stDate.lSmS1 = inipar->stDate.lSmS1 - inipar->stDate.lMSlow1[ inipar->stDate.pMSlow1] + inipar->stDate.lSmF1;
+                        inipar->stDate.fTimS1 = inipar->stDate.fTimS1 - inipar->stDate.fMStim1[ inipar->stDate.pMSlow1] + inipar->stDate.fTimF1;
+                        inipar->stDate.fMStim1[ inipar->stDate.pMSlow1] = inipar->stDate.fTimF1;
+                        inipar->stDate.lMSlow1[ inipar->stDate.pMSlow1] = inipar->stDate.lSmF1;
                     } else
-                         inipar->stDate.pMFast1++;
+                        inipar->stDate.pMFast1++;
 
-                     inipar->stDate.lSmF1 =  inipar->stDate.lSmF1 -  inipar->stDate.iMFast1[ inipar->stDate.pMFast1] + tempI;
-                     inipar->stDate.fTimF1 =  inipar->stDate.fTimF1 -  inipar->stDate.fMFtim1[ inipar->stDate.pMFast1] + takt;
-                     inipar->stDate.iMFast1[ inipar->stDate.pMFast1] = tempI;
-                     inipar->stDate.fMFtim1[ inipar->stDate.pMFast1] = takt;
+                    inipar->stDate.lSmF1 = inipar->stDate.lSmF1 - inipar->stDate.iMFast1[ inipar->stDate.pMFast1] + tempI;
+                    inipar->stDate.fTimF1 = inipar->stDate.fTimF1 - inipar->stDate.fMFtim1[ inipar->stDate.pMFast1] + takt;
+                    inipar->stDate.iMFast1[ inipar->stDate.pMFast1] = tempI;
+                    inipar->stDate.fMFtim1[ inipar->stDate.pMFast1] = takt;
 
                     fslow = VchDate->K01VCHS.f;
                     VchDate->K01VCHS.f = tempI;
@@ -270,30 +271,30 @@ void vchs_dr(table_drv *tdrv) {
                     // {
                     //   inipar->ChMask = ((inipar->ChMask & 2) + 1);
                     // }
-                    ffast =  inipar->stDate.lSmF1;
+                    ffast = inipar->stDate.lSmF1;
 
-                    if ( inipar->stDate.fTimF1 < 0.000001)
+                    if (inipar->stDate.fTimF1 < 0.000001)
                         ffast = 0;
                     else
-                        ffast = ffast /  inipar->stDate.fTimF1;
+                        ffast = ffast / inipar->stDate.fTimF1;
 
                     if (ffast < 20) { //  посчитать частоту  по медленному усреднению
                         fslow = ffast;
-                        ffast =  inipar->stDate.lSmS1;
-                        if ( inipar->stDate.fTimS1 < 0.00001)
+                        ffast = inipar->stDate.lSmS1;
+                        if (inipar->stDate.fTimS1 < 0.00001)
                             ffast = 0;
                         else
-                            ffast = ffast /  inipar->stDate.fTimS1;
+                            ffast = ffast / inipar->stDate.fTimS1;
                         if (ffast > 5)
                             ffast = (fslow + ffast) / 2;
                     } else if (ffast > 1000) { //  посчитать частоту  по мгновенному значению
-                        ffast =  inipar->stDate.iMFast1[ inipar->stDate.pMFast1];
+                        ffast = inipar->stDate.iMFast1[ inipar->stDate.pMFast1];
                         ffast = ffast / takt;
                     }
 
-                    if (inipar->Gmin1 > 0.1 && ffast < inipar->Gmin1 || ffast > inipar->Gmax1) { //  частота  выходит за допустимый дианазон
-                        VchDate->K01VCHS.error = 2;
-                    }
+//                    if ((inipar->Gmin1 > 0.1) && (ffast < inipar->Gmin1) || (ffast > inipar->Gmax1)) { //  частота  выходит за допустимый дианазон
+//                        VchDate->K01VCHS.error = 2;
+//                    }
 
                     VchDate->K01VCHS.f = ffast;
                 }

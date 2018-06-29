@@ -67,8 +67,8 @@ extern unsigned int irq_count;
 
 void vds32r_ini(table_drv *tdrv) {
     unsigned char RQ, RH = 0, RL;
-    int ADR_MISPA;
-    ADR_MISPA = 0x118;
+    int ADR_MISPA = 0x118;
+
 
     SetBoxLen(inipar->BoxLen);
 
