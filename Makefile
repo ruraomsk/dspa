@@ -5,7 +5,7 @@ PWD = $(shell pwd)
 DEST = /lib/modules/$(CURRENT)/misc
 VPATH = /drivers
 DR = drivers/
-OBJS = dspa.o misparw.o $(DR)sbkfp7.o $(DR)fds16r.o $(DR)vas84r.o $(DR)vds32r.o 
+OBJS = dspa.o misparw.o $(DR)sbkfp7.o $(DR)fds16r.o $(DR)vas84r.o $(DR)vds32r.o $(DR)vchs2.o
 
 TARGET = dsp
 obj-m := $(TARGET).o

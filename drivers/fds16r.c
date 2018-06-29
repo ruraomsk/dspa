@@ -41,7 +41,7 @@
 #define inipar  ((fds16r_inipar*)(tdrv->inimod)) 
 #define fdsDate ((fds16r_data*)(tdrv->data)) 
 
-
+extern unsigned int irq_count;
 
 
 #define AdrType          0x04  // тип модуля 

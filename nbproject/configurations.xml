@@ -8299,6 +8299,17 @@
           <executablePath></executablePath>
           <cTool>
             <standard>2</standard>
+            <incDir>
+              <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
+              <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
+            </incDir>
             <preprocessorList>
               <Elem>CC_HAVE_ASM_GOTO</Elem>
               <Elem>CONFIG_AS_AVX2=1</Elem>
@@ -8325,32 +8336,10 @@
       </makefileType>
       <item path="drivers/fds16r.c" ex="false" tool="0" flavor2="10">
         <cTool flags="0">
-          <incDir>
-            <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
-          </incDir>
         </cTool>
       </item>
       <item path="drivers/sbkfp7.c" ex="false" tool="0" flavor2="3">
         <cTool flags="0">
-          <incDir>
-            <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
-          </incDir>
           <preprocessorList>
             <Elem>KBUILD_BASENAME="sbkfp7"</Elem>
           </preprocessorList>
@@ -8358,46 +8347,20 @@
       </item>
       <item path="drivers/vas84r.c" ex="false" tool="0" flavor2="10">
         <cTool flags="0">
-          <incDir>
-            <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
-          </incDir>
           <preprocessorList>
             <Elem>KBUILD_BASENAME="vas84r"</Elem>
           </preprocessorList>
         </cTool>
       </item>
       <item path="drivers/vchs2.c" ex="false" tool="0" flavor2="3">
-        <cTool>
-          <incDir>
-            <pElem>../../cpc108/include</pElem>
-          </incDir>
+        <cTool flags="0">
           <preprocessorList>
-            <Elem>KBUILD_BASENAME="dspa"</Elem>
-            <Elem>KBUILD_MODNAME="dspa"</Elem>
+            <Elem>KBUILD_BASENAME="vchs2"</Elem>
           </preprocessorList>
         </cTool>
       </item>
       <item path="drivers/vds32r.c" ex="false" tool="0" flavor2="10">
         <cTool flags="0">
-          <incDir>
-            <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
-          </incDir>
           <preprocessorList>
             <Elem>KBUILD_BASENAME="vds32r"</Elem>
           </preprocessorList>
@@ -8405,17 +8368,6 @@
       </item>
       <item path="dspa.c" ex="false" tool="0" flavor2="0">
         <cTool flags="0">
-          <incDir>
-            <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
-          </incDir>
           <preprocessorList>
             <Elem>KBUILD_BASENAME="dspa"</Elem>
           </preprocessorList>
@@ -8423,17 +8375,6 @@
       </item>
       <item path="misparw.c" ex="false" tool="0" flavor2="10">
         <cTool flags="0">
-          <incDir>
-            <pElem>C:/usr/lib/gcc/i486-pc-linux-gnu/6.4.0/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/generated</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/arch/x86/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1/include/generated/uapi</pElem>
-            <pElem>C:/usr/src/linux-4.9.76-gentoo-r1</pElem>
-          </incDir>
           <preprocessorList>
             <Elem>KBUILD_BASENAME="misparw"</Elem>
           </preprocessorList>

@@ -1,14 +1,15 @@
+
+
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "vchs2.h"
 
-#include <sys/time.h>
 #include "linux/printk.h"
 
 #define inipar ((vchs_inipar *)(tdrv->inimod))
 #define VchDate ((vchs_data *)(tdrv->data))
 
-
+extern unsigned int irq_count;
 
 #define AdrType 0x4 // тип модуля   0xC6
 #define AdrRQ 0x5   // inv 0xFA регистр запроса обслуживания
@@ -40,6 +41,7 @@
 #define CountCh2Low 0x39  // Регистр счетчика импульсов младший байт 2 канала
 #define CountCh2High 0x3A // Регистр счетчика импульсов старший байт 2 канала
 
+extern unsigned int irq_count;
 /*
 ===========================================================
 Типы диагностических сообщений модуля
@@ -68,8 +70,8 @@ void vchs_ini(table_drv *tdrv) {
     int ADR_MISPA = 0x118;
 
     //  VchDate->Cyklen.c = 10;
-     inipar->stDate.pMFast1 =  inipar->stDate.pMFast2 = 3; // указатель текущей позиции массива импульсов за цикл от счетного канала
-     inipar->stDate.pMSlow1 =  inipar->stDate.pMSlow2 = 19; // указатель текущей позиции массива накопленных импульсов от счетного канала
+     inipar->stDate.pMFast1 =  3; //inipar->stDate.pMFast2 = 3; // указатель текущей позиции массива импульсов за цикл от счетного канала
+     inipar->stDate.pMSlow1 =  19; //inipar->stDate.pMSlow2 = 19; // указатель текущей позиции массива накопленных импульсов от счетного канала
 
     SetBoxLen(inipar->BoxLen);
 
@@ -167,9 +169,8 @@ void vchs_ini(table_drv *tdrv) {
  */
 void vchs_dr(table_drv *tdrv) {
     float fslow = 0, ffast = 0;
-    unsigned char RH = 0, RQ = 0, RQt = 0;
+    unsigned char RH = 0, RQ = 0, RQt = 0, takt = 0.005;    
     int ADR_MISPA = 0x118;
-    takt = 0.005;
     unsigned long tempI;
 
     SetBoxLen(inipar->BoxLen);

@@ -26,6 +26,7 @@
 #include "drivers/vds32r.h"
 #include "drivers/vas84r.h"
 #include "drivers/sbkfp7.h"
+#include "drivers/vchs2.h"
 //#pragma pack(push, 1)
 
 static int drv_count = 0;
@@ -68,10 +69,10 @@ static type_drivers tab_t[MAX_DRIVERS] = {
         NULL,
         &vas84r_rd,
     },
-//  { VCHS,
-//        &vchs_ini,
-//        NULL, 
-//        &vchs_dr,
+  { VCHS,
+        &vchs_ini,
+        NULL, 
+        &vchs_dr,
     },
     { SBK,
         &sbkfp7_ini,
