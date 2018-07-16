@@ -9,8 +9,6 @@
 #define inipar ((vchs_inipar *)(tdrv->inimod))
 #define VchDate ((vchs_data *)(tdrv->data))
 
-extern unsigned int irq_count;
-
 #define AdrType 0x4 // тип модуля   0xC6
 #define AdrRQ 0x5   // inv 0xFA регистр запроса обслуживания
 #define AdrSV 0x6
@@ -42,6 +40,7 @@ extern unsigned int irq_count;
 #define CountCh2High 0x3A // Регистр счетчика импульсов старший байт 2 канала
 
 extern unsigned int irq_count;
+extern float takt;
 /*
 ===========================================================
 Типы диагностических сообщений модуля
@@ -67,11 +66,13 @@ extern unsigned int irq_count;
 
 void vchs_ini(table_drv *tdrv) {
     unsigned char RQ, RH = 0;
-    int ADR_MISPA = 0x118;
+    int ADR_MISPA = 0x118, i;
 
-    //  VchDate->Cyklen.c = 10;
-    inipar->stDate.pMFast1 = 3; //inipar->stDate.pMFast2 = 3; // указатель текущей позиции массива импульсов за цикл от счетного канала
-    inipar->stDate.pMSlow1 = 19; //inipar->stDate.pMSlow2 = 19; // указатель текущей позиции массива накопленных импульсов от счетного канала
+    for (i = 0; i < 2; i++) {
+        VchDate->takt[i] = 0.0;
+        VchDate->cykl[i] = 0.01;
+        VchDate->perm[i] = 0;
+    }
 
     SetBoxLen(inipar->BoxLen);
 
@@ -91,7 +92,6 @@ void vchs_ini(table_drv *tdrv) {
         tdrv->error = RH;
         return;
     }
-
     // Натсройка диапазонов
     RQ = 0x40 | inipar->chn1d;
     RH |= WriteBox(DiCont1, RQ);
@@ -101,6 +101,10 @@ void vchs_ini(table_drv *tdrv) {
     // Управление коммутатором каналов
     RH |= WriteBox(CommCh1, 0x1);
     RH |= WriteBox(CommCh2, 0x1);
+
+    // взбодрим интервальный регистр
+    RH |= ReadBx3w(IntrvCh1Low, &RQ);
+    RH |= ReadBx3w(IntrvCh2Low, &RQ);
 
     // очистка регистров состояния канала
     RH |= WriteBox(RgSost1, 0xff);
@@ -114,6 +118,13 @@ void vchs_ini(table_drv *tdrv) {
 
     // очистка регистр RQ
     RH |= WriteBox(AdrRQ, 0xff);
+
+    RH |= ReadBx3w(AdrSTAT, &RQ);
+
+    if (RQ != 0) {
+        tdrv->error = 0x90;
+        return;
+    } // ошибка состояния модуля
 
     // освободить ПЯ
 
@@ -170,11 +181,9 @@ void vchs_ini(table_drv *tdrv) {
 
  */
 void vchs_dr(table_drv *tdrv) {
-    float fslow = 0, ffast = 0;
-    unsigned char RH = 0, RQ = 0, RQt = 0, takt = 0.005;
+    unsigned char RH = 0, RQ = 0, RQt = 0;
     int ADR_MISPA = 0x118;
-    unsigned long tempI;
-
+    unsigned char CountChLow[2]={0,0}, CountChHigh[2]={0,0}, c1err = 0;
     SetBoxLen(inipar->BoxLen);
     if (tdrv->error == 0x80)
         return;
@@ -186,6 +195,8 @@ void vchs_dr(table_drv *tdrv) {
         return;
     }
 
+    RH |= ReadBx3w(AdrRQ, &RQ);
+
     // читаем статус модуля
     RH |= ReadBx3w(AdrSTAT, &RQ);
 
@@ -194,63 +205,100 @@ void vchs_dr(table_drv *tdrv) {
         return;
     }
 
-    RQt = (RQ >> 1) & 1;
-    if (RQt) {
-        tdrv->error |= 0x83;
-        VchDate->K01VCHS.error = 0x80;
-    }
-    RQt = (RQ >> 5) & 1;
-    if (RQt) {
-        tdrv->error |= 0x83;
-        VchDate->K02VCHS.error = 0x80;
-    }
-
-
-    if (!VchDate->K01VCHS.error || !VchDate->K02VCHS.error) {
-        RH = CatchBox();
-        if (RH) {
-            tdrv->error = RH;
-            return;
+    if ((inipar->UsMask & 1) == 0)
+        c1err |= 0x3;
+    else {
+        RQt = RQ & 0xf;
+        if (RQt) {
+            tdrv->error |= 0x83;
+            c1err |= 0x80;
+            VchDate->SVCHS[0] = 0;
         }
-        ReadBx3w(AdrSVE, &RQ);
-        if (!RQ) {
-            RH = CatchBox();
-            if (RH) {
-                tdrv->error = RH;
-                return;
-            }
-        }
+    }
 
-        // первый канал
-        if ((inipar->UsMask & 1) && !VchDate->K01VCHS.error) {
-            ReadBx3w(RgSost1, &RQ);
-            RQ &= 0x2b;
+    // if ((inipar->UsMask & 2) == 0)
+    //     VchDate->K02VCHS.error = 0xc0;
+    // else {
+    //     RQt = RQ & 0xf0;
+    //     if (RQt) {
+    //         tdrv->error |= 0x8c;
+    //         VchDate->K02VCHS.error = 0x80;
+    //         VchDate->SVCHS[1] = 0;
+    //     }
+    // }
+    // printk("perm = %d",VchDate->perm[0]);
 
-            if (RQ & 0x20) {
-                VchDate->K01VCHS.error = 1;
-                ReadBx3w(CountCh1Low, &RQ); // ЗАЧЕМ?? (сброс при чтении?)
-                WriteBox(RgSost1, 0xff);
+
+    if (!c1err && (VchDate->perm[0] <= 0)) {      // || (!VchDate->K02VCHS.error && (VchDate->perm[1] <= 0))) {
+        printk("tyt 1= %hhx", c1err);
+        printk("perm= %d", VchDate->perm[0]);      
+      
+        // RH = CatchBox();
+        // if (RH) {
+        //     tdrv->error = RH;
+        //     return;
+        // }
+        // ReadBx3w(AdrSVE, &RQ);
+        // if (!RQ) {
+        //     RH = CatchBox();
+        //     ReadBx3w(AdrSVE, &RQ);
+        //     if (RH) {
+        //         tdrv->error = RH;
+        //         return;
+        //     }
+        // }
+        if (VchDate->perm[0] <= 0) {
+            if (!c1err) {
+                ReadBx3w(RgSost1, &RQ);
+                RQ &= 0x2b;
+                if (RQ & 0x20) {
+                    printk("perepolnenie");
+                    c1err |= 1;
+                    ReadBx3w(CountCh1Low, &RQ); // ЗАЧЕМ?? (сброс при чтении?)
+                    ReadBx3w(CountCh1High, &RQ);
+                    VchDate->SVCHS[0] = 0;
+                    VchDate->cykl[0] = 0.01;
+                    WriteBox(RgSost1, 0xff);
+                } else {
+                    ReadBx3w(CountCh1Low, &CountChLow[0]);
+                    ReadBx3w(CountCh1High, &CountChHigh[0]);
+                    printk("19 = %hhx", CountChLow[0]);
+                    printk("1a = %hhx", CountChHigh[0]);
+                    WriteBox(AdrSV, 0x1);
+                }
+
+                // if (!c1err) {    находимся под такимже if
+                    printk("tempO = %d", VchDate->tempI);
+                    VchDate->tempI = CountChHigh[0] * 256 + CountChLow[0];
+                    VchDate->SVCHS[0] = 1;
+                    printk("tempN = %d", VchDate->tempI);
+                // }
             } else {
-                ReadBx3w(CountCh1Low, & inipar->stDate.CountChLow[0]);
-                ReadBx3w(CountCh1High, & inipar->stDate.CountChHigh[0]);
+                printk("t1");
+                c1err = 0xff;
+                // VchDate->K01VCHS.f = 0.0;
+                VchDate->SVCHS[0] = 0;
             }
-
-            if (!VchDate->K01VCHS.error) {
-                inipar->stDate.tempI = inipar->stDate.CountChHigh[0] * 256 + inipar->stDate.CountChLow[0];
-            }
-
-        } else {
-            VchDate->K01VCHS.error = 0xff;
-            VchDate->K01VCHS.f = 0;
         }
-
         // тут второй
 
     }//
     else { // читать-то неча из-за статуса
-        ReadBx3w(CountCh1Low, &RQ);
-        ReadBx3w(CountCh2Low, &RQ);
+        if (c1err && (VchDate->perm[0] <= 0)) {
+                printk("c1err = %hhx", c1err);
+                printk("perm[0] = %d", VchDate->perm[0]);
+                ReadBx3w(CountCh1Low, &RQ);
+                printk("RQc = %hhx", RQ);
+                VchDate->takt[0] = 0.0;
+                VchDate->cykl[0] = 0.01;
+            }
+        // if (VchDate->K02VCHS.error && (VchDate->perm[1] <= 0)) {
+        //         ReadBx3w(CountCh2Low, &RQ);
+        //         VchDate->takt[1] = 0.0;
+        //         VchDate->cykl[1] = 10.0;
+        //     }
     }
+    VchDate->K01VCHS.error = c1err;
     RH |= FreeBox();
     RH |= WriteBox(AdrRQ, 0xff);
     if (RH) {

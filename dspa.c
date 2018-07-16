@@ -87,7 +87,6 @@ void WatchPort(void) {
 static int dev_open(struct inode *n, struct file *f) {
     //    if (device_open) return -EBUSY;
     unsigned char ti;
-    int i;
     clearMemory();
     device_open = 1;
     WatchPort();
