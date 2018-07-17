@@ -26,6 +26,7 @@ typedef struct __attribute__((packed))
   float cykl[2];
   short perm[2];
   unsigned char SVCHS[2];
+  float fvch[2];
   // unsigned int    iMFast2[4];    // массив значений импульсов за цикл от счетного канала 2
   // float           fMFtim2[4];    // массив времен цикла измерения счетного канала 2 
   // unsigned long   lMSlow2[20];   // массив накопленных значений импульсов от счетного канала 2 

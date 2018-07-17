@@ -112,7 +112,7 @@ void vds32r_ini(table_drv *tdrv) {
 void vds32r_rd(table_drv *tdrv) {
     vds32r_str vdsValue;
     unsigned char i, j, z;
-    unsigned char RH = 0, SErr = 0, RQ=0; // RL;
+    unsigned char RH = 0, SErr = 0; // RL;
     int k = 0;
     int ADR_MISPA;
     SetBoxLen(0xFF);

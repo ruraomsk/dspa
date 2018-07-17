@@ -72,8 +72,8 @@ void vchs_ini(table_drv *tdrv) {
         VchDate->takt[i] = 0.0;
         VchDate->cykl[i] = 0.01;
         VchDate->perm[i] = 0;
+        VchDate->fvch[i] = 0;
     }
-
     SetBoxLen(inipar->BoxLen);
 
     RQ = (unsigned char) (tdrv->address & 0xff);
@@ -246,9 +246,7 @@ void vchs_dr(table_drv *tdrv) {
                         WriteBox(0x13 + (0x20 * i), 0xff); // Сброс состояния адрес 0x13 и 0x33
                     } else { // ?
                         ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
-                        printk("19- %hhx = %hhx", 0x19 + (0x20 * i), CountChLow[i]);
                         ReadBx3w(0x1a + (0x20 * i), &CountChHigh[i]);
-                        printk("1a- %hhx = %hhx", 0x1a + (0x20 * i), CountChHigh[i]);
                         // Сброс регистров 3 команды
                         WriteSinglBox(AdrSV, 1);
                         ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
@@ -274,8 +272,10 @@ void vchs_dr(table_drv *tdrv) {
             }
         }
     }
-
-
+    //  значение полученной частоты хранится в массиве fvch полученное после вычислений, присвоение делаем для коректного отображения (если не присваивать то в переменных бедет 0)
+    VchDate->K01VCHS.f = VchDate->fvch[0];
+    VchDate->K02VCHS.f = VchDate->fvch[1];
+    // --------
     VchDate->K01VCHS.error = cerr[0];
     VchDate->K02VCHS.error = cerr[1];
     RH |= FreeBox();
