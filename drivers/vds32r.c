@@ -112,7 +112,7 @@ void vds32r_ini(table_drv *tdrv) {
 void vds32r_rd(table_drv *tdrv) {
     vds32r_str vdsValue;
     unsigned char i, j, z;
-    unsigned char RH = 0, SErr = 0; // RL;
+    unsigned char RH = 0, SErr = 0, RQ=0; // RL;
     int k = 0;
     int ADR_MISPA;
     SetBoxLen(0xFF);
@@ -131,6 +131,11 @@ void vds32r_rd(table_drv *tdrv) {
 
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
+    //  printk("tyt?");
+    // do{
+    //     ReadBx3w(AdrRQ, &RQ);
+    //     printk("RQ=%hhx",RQ);
+    // }while(RQ !=0x11);
 
     // проверка инверсии в статусе
     RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
@@ -190,4 +195,5 @@ void vds32r_rd(table_drv *tdrv) {
             k++;
         }
     }
+
 }

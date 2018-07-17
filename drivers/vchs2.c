@@ -180,10 +180,11 @@ void vchs_ini(table_drv *tdrv) {
 ===========================================================
 
  */
+
 void vchs_dr(table_drv *tdrv) {
     unsigned char RH = 0, RQ = 0, RQt = 0;
-    int ADR_MISPA = 0x118;
-    unsigned char CountChLow[2]={0,0}, CountChHigh[2]={0,0}, c1err = 0;
+    int ADR_MISPA = 0x118, i;
+    unsigned char CountChLow[2] = {0, 0}, CountChHigh[2] = {0, 0}, cerr[2] = {0, 0};
     SetBoxLen(inipar->BoxLen);
     if (tdrv->error == 0x80)
         return;
@@ -206,99 +207,77 @@ void vchs_dr(table_drv *tdrv) {
     }
 
     if ((inipar->UsMask & 1) == 0)
-        c1err |= 0x3;
+        cerr[0] |= 0x3;
     else {
         RQt = RQ & 0xf;
         if (RQt) {
             tdrv->error |= 0x83;
-            c1err |= 0x80;
+            cerr[0] |= 0x80;
             VchDate->SVCHS[0] = 0;
         }
     }
 
-    // if ((inipar->UsMask & 2) == 0)
-    //     VchDate->K02VCHS.error = 0xc0;
-    // else {
-    //     RQt = RQ & 0xf0;
-    //     if (RQt) {
-    //         tdrv->error |= 0x8c;
-    //         VchDate->K02VCHS.error = 0x80;
-    //         VchDate->SVCHS[1] = 0;
-    //     }
-    // }
-    // printk("perm = %d",VchDate->perm[0]);
+    if ((inipar->UsMask & 2) == 0)
+        cerr[1] |= 0xc0;
+    else {
+        RQt = RQ & 0xf0;
+        if (RQt) {
+            tdrv->error |= 0x8c;
+            cerr[1] |= 0x80;
+            VchDate->SVCHS[1] = 0;
+        }
+    }
 
-
-    if (!c1err && (VchDate->perm[0] <= 0)) {      // || (!VchDate->K02VCHS.error && (VchDate->perm[1] <= 0))) {
-        printk("tyt 1= %hhx", c1err);
-        printk("perm= %d", VchDate->perm[0]);      
-      
-        // RH = CatchBox();
-        // if (RH) {
-        //     tdrv->error = RH;
-        //     return;
-        // }
-        // ReadBx3w(AdrSVE, &RQ);
-        // if (!RQ) {
-        //     RH = CatchBox();
-        //     ReadBx3w(AdrSVE, &RQ);
-        //     if (RH) {
-        //         tdrv->error = RH;
-        //         return;
-        //     }
-        // }
-        if (VchDate->perm[0] <= 0) {
-            if (!c1err) {
-                ReadBx3w(RgSost1, &RQ);
-                RQ &= 0x2b;
-                if (RQ & 0x20) {
-                    printk("perepolnenie");
-                    c1err |= 1;
-                    ReadBx3w(CountCh1Low, &RQ); // ЗАЧЕМ?? (сброс при чтении?)
-                    ReadBx3w(CountCh1High, &RQ);
-                    VchDate->SVCHS[0] = 0;
-                    VchDate->cykl[0] = 0.01;
-                    WriteBox(RgSost1, 0xff);
+    for (i = 0; i < 2; i++) {
+        if ((!cerr[0] && (VchDate->perm[0] <= 0)) || (!cerr[1] && (VchDate->perm[1] <= 0))) {
+            if (VchDate->perm[i] <= 0) {
+                if (!cerr[i]) {
+                    ReadBx3w(0x13 + (0x20 * i), &RQ); // Состояния адрес 0x13 и 0x33
+                    RQ &= 0x2b;
+                    if (RQ & 0x20) {
+                        cerr[i] |= 1;
+                        // Сброс регистров 3 команды  //?
+                        WriteSinglBox(AdrSV, 1);
+                        ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
+                        ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
+                        // СБРОС
+                        VchDate->SVCHS[i] = 0;
+                        VchDate->cykl[i] = 0.01;
+                        WriteBox(0x13 + (0x20 * i), 0xff); // Сброс состояния адрес 0x13 и 0x33
+                    } else { // ?
+                        ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
+                        printk("19- %hhx = %hhx", 0x19 + (0x20 * i), CountChLow[i]);
+                        ReadBx3w(0x1a + (0x20 * i), &CountChHigh[i]);
+                        printk("1a- %hhx = %hhx", 0x1a + (0x20 * i), CountChHigh[i]);
+                        // Сброс регистров 3 команды
+                        WriteSinglBox(AdrSV, 1);
+                        ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
+                        ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
+                        // СБРОС
+                    }
+                    VchDate->tempI[i] = CountChHigh[i] * 256 + CountChLow[i];
+                    VchDate->SVCHS[i] = 1;
                 } else {
-                    ReadBx3w(CountCh1Low, &CountChLow[0]);
-                    ReadBx3w(CountCh1High, &CountChHigh[0]);
-                    printk("19 = %hhx", CountChLow[0]);
-                    printk("1a = %hhx", CountChHigh[0]);
-                    WriteBox(AdrSV, 0x1);
+                    cerr[i] = 0xff;
+                    VchDate->SVCHS[i] = 0;
                 }
-
-                // if (!c1err) {    находимся под такимже if
-                    printk("tempO = %d", VchDate->tempI);
-                    VchDate->tempI = CountChHigh[0] * 256 + CountChLow[0];
-                    VchDate->SVCHS[0] = 1;
-                    printk("tempN = %d", VchDate->tempI);
-                // }
-            } else {
-                printk("t1");
-                c1err = 0xff;
-                // VchDate->K01VCHS.f = 0.0;
-                VchDate->SVCHS[0] = 0;
+            }
+        } else { // читать-то неча из-за статуса
+            if (cerr[i] && (VchDate->perm[i] <= 0)) {
+                // Сброс регистров 3 команды
+                WriteSinglBox(AdrSV, 1);
+                ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
+                ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
+                // СБРОС
+                VchDate->takt[i] = 0.0;
+                VchDate->cykl[i] = 0.01;
             }
         }
-        // тут второй
-
-    }//
-    else { // читать-то неча из-за статуса
-        if (c1err && (VchDate->perm[0] <= 0)) {
-                printk("c1err = %hhx", c1err);
-                printk("perm[0] = %d", VchDate->perm[0]);
-                ReadBx3w(CountCh1Low, &RQ);
-                printk("RQc = %hhx", RQ);
-                VchDate->takt[0] = 0.0;
-                VchDate->cykl[0] = 0.01;
-            }
-        // if (VchDate->K02VCHS.error && (VchDate->perm[1] <= 0)) {
-        //         ReadBx3w(CountCh2Low, &RQ);
-        //         VchDate->takt[1] = 0.0;
-        //         VchDate->cykl[1] = 10.0;
-        //     }
     }
-    VchDate->K01VCHS.error = c1err;
+
+
+    VchDate->K01VCHS.error = cerr[0];
+    VchDate->K02VCHS.error = cerr[1];
     RH |= FreeBox();
     RH |= WriteBox(AdrRQ, 0xff);
     if (RH) {

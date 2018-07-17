@@ -21,12 +21,11 @@ typedef struct __attribute__((packed))
 {
   ssfloat         K01VCHS;       // частота 1 канал 
   ssfloat         K02VCHS;       // частота 2 канал 
-  unsigned int tempI;
+  unsigned int tempI[2];
   float takt[2];
   float cykl[2];
   short perm[2];
   unsigned char SVCHS[2];
-  // sschar          Cyklen;        // увеличение длины цикла контроллера   
   // unsigned int    iMFast2[4];    // массив значений импульсов за цикл от счетного канала 2
   // float           fMFtim2[4];    // массив времен цикла измерения счетного канала 2 
   // unsigned long   lMSlow2[20];   // массив накопленных значений импульсов от счетного канала 2 
@@ -38,24 +37,6 @@ typedef struct __attribute__((packed))
   // float           fTimS2;        // суммарное время измерения накопленных импульсов от счетного канала 2
   // unsigned long   lSmS2;         // суммарное измеренное количество импульсов от счётного канала 2
 } vchs_data;
-
-
-// typedef struct __attribute__((packed)){
-//   unsigned char CountChLow[2];     // внутри цикла DSP
-//   unsigned char CountChHigh[2];    // внутри цикла DSP
-
-//   unsigned int  iMFast1[4];    // массив значений импульсов за цикл от счетного канала1
-//   unsigned long lMSlow1[20];   // массив накопленных значений импульсов от счетного канала 1 
-//   unsigned long lSmF1;         // суммарное количество импульсов за цикл от счётного канала 1
-//   unsigned long lSmS1;         // суммарное измеренное количество импульсов от счётного канала 1
-//   float         fMFtim1[4];    // массив времен цикла измерения счетного канала 1 
-//   float         fMStim1[20];   // массив накопленных значений времени циклов измерения счетного канала 1
-//   float         fTimF1;        // суммарное время измерения импульсов за цикл от счетного канала 1
-//   float         fTimS1;        // суммарное время измерения накопленных импульсов от счетного канала 1
-//   int          pMFast1;       // указатель текущей позиции массива импульсов за цикл от счетного канала 1
-//   int          pMSlow1;       // указатель текущей позиции массива накопленных импульсов от счетного канала 1
-// } vchs_stDate;
-
 
 #define VCHS 0xc4
 #define VCHS_SIZE sizeof(vchs_data)
