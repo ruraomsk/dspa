@@ -109,15 +109,17 @@ void vds32r_ini(table_drv *tdrv) {
     // }
 }
 
+// static unsigned char RQl = 0;
+
 void vds32r_rd(table_drv *tdrv) {
     vds32r_str vdsValue;
     unsigned char i, j, z;
-    unsigned char RH = 0, SErr = 0; // RL;
+    unsigned char RH = 0, SErr = 0, RQ = 0; // RL;
     int k = 0;
     int ADR_MISPA;
     SetBoxLen(0xFF);
 
-    if (tdrv->error & 0x80) {
+    if (tdrv->error) {
         return; // пока повременить
     }
 
@@ -131,20 +133,24 @@ void vds32r_rd(table_drv *tdrv) {
 
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
-    //  printk("tyt?");
-    // do{
-    //     ReadBx3w(AdrRQ, &RQ);
-    //     printk("RQ=%hhx",RQ);
-    // }while(RQ !=0x11);
+    
+    
+//    ReadBx3w(AdrRQ, &RQ);
+//    if (RQl != RQ){ 
+//        printk("RQ1=%hhx", RQ);
+//        printk("addres = %d",tdrv->address);
+//    }
+//    RQl = RQ;
+
 
     // проверка инверсии в статусе
     RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
     RH |= ReadBox(AdrStatus1, &vdsValue.stat[1]);
+
     if (RH == 0x80) { // нет устройства
         tdrv->error = 0x80;
         return;
-    }
-    else if (RH == 0xC0) { // NEGC_BOX
+    } else if (RH == 0xC0) { // NEGC_BOX
         tdrv->error = 0xC0;
         return;
     }
@@ -162,6 +168,12 @@ void vds32r_rd(table_drv *tdrv) {
     RH |= ReadBx3w(AdrShortCircuit1, &vdsValue.kz[1]);
     RH |= ReadBx3w(AdrShortCircuit2, &vdsValue.kz[2]);
     RH |= ReadBx3w(AdrShortCircuit3, &vdsValue.kz[3]);
+
+//    ReadBx3w(AdrRQ, &RQ);
+//    if (RQl != RQ) 
+//        printk("RQ2=%hhx", RQ);
+//    RQl = RQ;
+
 
     if (RH == 0x80) { // нет устройства
         tdrv->error = 0x80;
@@ -195,5 +207,6 @@ void vds32r_rd(table_drv *tdrv) {
             k++;
         }
     }
+
 
 }
