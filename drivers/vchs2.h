@@ -27,6 +27,16 @@ typedef struct __attribute__((packed))
   short perm[2];
   unsigned char SVCHS[2];
   float fvch[2];
+//  unsigned int iMFast[2][4];
+//  long lMSlow[2][20];
+//  long lSmF[2];
+//  long lSmS[2];
+//  float fMFtim[2][4];
+//  float fMStim[2][20];
+//  float fTimF[2];
+//  float fTimS[2];
+//  int pMFast[2];
+//  int pMSlow[2];
 } vchs_data;
 
 #define VCHS 0xc4

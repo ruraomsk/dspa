@@ -66,14 +66,29 @@ extern float takt;
 
 void vchs_ini(table_drv *tdrv) {
     unsigned char RQ, RH = 0;
-    int ADR_MISPA = 0x118, i;
-
+    int ADR_MISPA = 0x118, i, j;
+    
     for (i = 0; i < 2; i++) {
         VchDate->takt[i] = 0.0;
         VchDate->cykl[i] = 0.01;
         VchDate->perm[i] = 0;
         VchDate->fvch[i] = 0;
+        // VchDate->lSmF[i] = 0;
+        // VchDate->lSmS[i] = 0;
+        // VchDate->fTimF[i] = 0;
+        // VchDate->fTimS[i] = 0;
+        // VchDate->pMFast[i] = 3;
+        // VchDate->pMSlow[i] = 19;
+        // for(j = 0; j < 20; j++){
+        //     VchDate->lMSlow[i][j] = 0;
+        //     VchDate->fMStim[i][j] = 0;
+        // }
+        //  for(j = 0; j < 4; j++){
+        //     VchDate->iMFast[i][j] = 0;
+        //     VchDate->fMFtim[i][j] = 0;
+        // }
     }
+    
     SetBoxLen(inipar->BoxLen);
 
     RQ = (unsigned char) (tdrv->address & 0xff);

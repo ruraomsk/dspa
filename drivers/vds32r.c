@@ -17,8 +17,8 @@
 //Регистры состояния контактов датчиков
 #define AdrSostContact0 0x10 // каналы 1-8
 #define AdrSostContact1 0x11 // каналы 9-16
-#define AdrSostContact2 0x12 // каналы 17-24
-#define AdrSostContact3 0x13 // каналы 25-32
+#define AdrSostContact2 0x40 // каналы 17-24
+#define AdrSostContact3 0x41 // каналы 25-32
 //Регистры обрывов линий связи с датчиками
 #define AdrOpnCircuit0 0x14 // каналы 1-8
 #define AdrOpnCircuit1 0x15 // каналы 9-16
@@ -84,6 +84,7 @@ void vds32r_ini(table_drv *tdrv) {
     tdrv->error = 0;
 
     RH |= WriteSinglBox(6, 0);
+    RH |= WriteSinglBox(4, 0);
     //    проверка типа модуля
     RH |= ReadBx3w(AdrType, &RL);
     if (RL != inipar->type) {
