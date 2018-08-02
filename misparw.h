@@ -32,8 +32,11 @@
 #define FLNET       0x10    //; длина таблицы сетевых передач
 #define ININET      0x12    //; запрос на инициализацию сетевого процессора
 
+#define SPAPS_OK    0x00
 #define BUSY_BOX    0x80
 #define NEGC_BOX    0xC0
+
+#define SPAPS_ADR_MISPA      0x118
 
 typedef unsigned char uspaint8;
 typedef signed char spaint8;
@@ -91,14 +94,14 @@ void SetBoxLen (int);
 unsigned char ReadPort( int);
 void WritePort(int , unsigned char );
 
-int WriteBox(unsigned char ptr,unsigned char value);
-int ReadBox(unsigned char ptr,unsigned char *value);
-int ReadSinglBox(unsigned char ptr,unsigned char *value);
-int WriteSinglBox(unsigned char ptr, unsigned char value);
-int ReadBx3w(unsigned char ptr,unsigned char *value);
-int ReadBox3(unsigned char ptr, unsigned char *value);
-int CatchBox(void);
-int FreeBox(void);
+unsigned char WriteBox(unsigned char ptr,unsigned char value);
+unsigned char ReadBox(unsigned char ptr,unsigned char *value);
+unsigned char ReadSinglBox(unsigned char ptr,unsigned char *value);
+unsigned char WriteSinglBox(unsigned char ptr, unsigned char value);
+unsigned char ReadBx3w(unsigned char ptr,unsigned char *value);
+unsigned char ReadBox3(unsigned char ptr, unsigned char *value);
+unsigned char CatchBox(void);
+unsigned char FreeBox(void);
 unsigned long decodegray(unsigned long k);
 void delaymcs(int x);
 #endif /* MISPARW_H */

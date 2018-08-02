@@ -27,6 +27,7 @@
 #include "drivers/vas84r.h"
 #include "drivers/sbkfp7.h"
 #include "drivers/vchs2.h"
+#include "drivers/vencf8l.h"
 //#pragma pack(push, 1)
 
 static int drv_count = 0;
@@ -79,6 +80,11 @@ static type_drivers tab_t[MAX_DRIVERS] = {
         &sbkfp7_dw,
         NULL,
     },
+    { VENCF,
+        &vencf8_ini,
+        NULL, 
+        &vencf8_dr,
+    }, 
     {-1, NULL, NULL, NULL},
 };
 //#pragma pop

@@ -13,7 +13,7 @@
 
 static int Box_len = 0xff;
 static void __iomem *rambase = NULL;
-extern unsigned int irq_count;
+extern volatile unsigned int irq_count;
 
 int init_memory() {
     if (rambase == NULL) {
@@ -51,21 +51,20 @@ void SetBoxLen(int lenBox) {
     //    Box_len = lenBox;
 }
 
-int WriteBox(unsigned char ptr, unsigned char value) {
+unsigned char WriteBox(unsigned char ptr, unsigned char value) {
     CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM)
         return BUSY_BOX;
-    value = ~value;
     // delaymcs(20);
     CLEAR_MEM
-    iowrite8(value, (unsigned char *) rambase + (Box_len - ptr));
+    iowrite8(~value, (unsigned char *) rambase + (Box_len - ptr));
     if (ERR_MEM)
         return BUSY_BOX;
-    return 0;
+    return SPAPS_OK;
 }
 
-int ReadBox(unsigned char ptr, unsigned char *value) {
+unsigned char ReadBox(unsigned char ptr, unsigned char *value) {
     //    sprintf(logstr, "ReadBox_1 %x ", ptr);
     //    log_debug();
     unsigned char val;
@@ -78,27 +77,29 @@ int ReadBox(unsigned char ptr, unsigned char *value) {
     //    log_debug();
     // delaymcs(20);
     CLEAR_MEM
-    lav = ioread8(rambase + (Box_len - ptr));
+    lav = ioread8((unsigned char *) rambase + (Box_len - ptr));
     if (ERR_MEM)
         return BUSY_BOX;
     //    printk(KERN_INFO "read adr %x ptr %d = %x !=%x\n", inb(0x118),ptr,val,lav);
+        if( value )
+     *value = val;
     if ((lav | val) != 0xff)
         return NEGC_BOX;
-    *value = val;
-    return 0;
+    return SPAPS_OK;
 }
 
-int ReadSinglBox(unsigned char ptr, unsigned char *value) {
+unsigned char ReadSinglBox(unsigned char ptr, unsigned char *value) {
     unsigned char val;
     CLEAR_MEM
     val = ioread8((unsigned char *) rambase + ptr);
+        if( value )
+     *value = val;
     if (ERR_MEM)
         return BUSY_BOX;
-    *value = val;
     return 0;
 }
 
-int WriteSinglBox(unsigned char ptr, unsigned char value) {
+unsigned char WriteSinglBox(unsigned char ptr, unsigned char value) {
     CLEAR_MEM
     iowrite8(value, (unsigned char *) rambase + ptr);
     if (ERR_MEM)
@@ -106,7 +107,7 @@ int WriteSinglBox(unsigned char ptr, unsigned char value) {
     return 0;
 }
 
-int ReadBx3w(unsigned char ptr, unsigned char *value) {
+unsigned char ReadBx3w(unsigned char ptr, unsigned char *value) {
     char x1, x2, x3;
     if (ReadSinglBox(ptr, &x1))
         return BUSY_BOX;
@@ -116,17 +117,16 @@ int ReadBx3w(unsigned char ptr, unsigned char *value) {
     // delaymcs(5);
     if (ReadSinglBox(ptr, &x3))
         return BUSY_BOX;
+        if( value )
     *value = (x1 & x2) | (x1 & x3) | (x2 & x3);
     return 0;
 }
 
-int ReadBox3(unsigned char ptr, unsigned char *value) {
-    int i = 0;
-    char RH;
-
+unsigned char ReadBox3(unsigned char ptr, unsigned char *value) {
+unsigned char RH, i = 0;
     while (i < 3) {
         RH = ReadBox(ptr, value);
-        if (RH == 0x80)
+        if( RH == BUSY_BOX || RH == SPAPS_OK )
             break;
         i++;
     }
@@ -140,7 +140,7 @@ int ReadBox3(unsigned char ptr, unsigned char *value) {
     return RH;
 }
 
-int CatchBox(void) {
+unsigned char CatchBox(void) {
     char ret;
     int count = 0;
     while (count < 3) {
@@ -165,7 +165,7 @@ int CatchBox(void) {
     //    return BUSY_BOX;
 }
 
-int FreeBox(void) {
+unsigned char FreeBox(void) {
     char ret;
     int count = 0;
     while (count < 3) {

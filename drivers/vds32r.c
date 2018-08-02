@@ -41,7 +41,7 @@
 
 
 
-extern unsigned int irq_count;
+//extern unsigned int irq_count;
 
 /*
 ===========================================================
@@ -115,7 +115,7 @@ void vds32r_ini(table_drv *tdrv) {
 void vds32r_rd(table_drv *tdrv) {
     vds32r_str vdsValue;
     unsigned char i, j, z;
-    unsigned char RH = 0, SErr = 0, RQ = 0; // RL;
+    unsigned char RH = 0, SErr = 0; // RL;
     int k = 0;
     int ADR_MISPA;
     SetBoxLen(0xFF);
@@ -135,15 +135,6 @@ void vds32r_rd(table_drv *tdrv) {
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
     
-    
-//    ReadBx3w(AdrRQ, &RQ);
-//    if (RQl != RQ){ 
-//        printk("RQ1=%hhx", RQ);
-//        printk("addres = %d",tdrv->address);
-//    }
-//    RQl = RQ;
-
-
     // проверка инверсии в статусе
     RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
     RH |= ReadBox(AdrStatus1, &vdsValue.stat[1]);
@@ -169,11 +160,6 @@ void vds32r_rd(table_drv *tdrv) {
     RH |= ReadBx3w(AdrShortCircuit1, &vdsValue.kz[1]);
     RH |= ReadBx3w(AdrShortCircuit2, &vdsValue.kz[2]);
     RH |= ReadBx3w(AdrShortCircuit3, &vdsValue.kz[3]);
-
-//    ReadBx3w(AdrRQ, &RQ);
-//    if (RQl != RQ) 
-//        printk("RQ2=%hhx", RQ);
-//    RQl = RQ;
 
 
     if (RH == 0x80) { // нет устройства

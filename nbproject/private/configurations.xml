@@ -13,6 +13,8 @@
         <in>vchs2.h</in>
         <in>vds32r.c</in>
         <in>vds32r.h</in>
+        <in>vencf8l.c</in>
+        <in>vencf8l.h</in>
       </df>
       <in>dspa.c</in>
       <in>dspa.h</in>

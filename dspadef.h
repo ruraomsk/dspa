@@ -20,7 +20,7 @@
 //static int drv_count = 0;
 //static int drv_flag = 0;
 //static unsigned int irq_count;
-
+extern volatile unsigned int irq_count;
 //#pragma pack(push, 1)
 
 typedef struct __attribute__((packed)) {

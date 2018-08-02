@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-//
 #include <linux/cdev.h>
 #include <linux/kernel.h>
 #include <linux/miscdevice.h>
@@ -28,7 +27,7 @@ static int major = 0;
 module_param(irq, int, S_IRUGO);
 static int device_open = 0;
 static char name_dev[] = "spa_device_ports";
-unsigned int irq_count = 0;
+volatile unsigned int irq_count = 0;
 
 static union {
     loff_t ppos;
@@ -163,7 +162,7 @@ static ssize_t dev_read(struct file * file, char * buf,
         if (*ppos == 1) ptr = drv_len_data[i].step1;
         if (*ppos == 2) ptr = drv_len_data[i].step2;
         if (*ppos == 3) {
-            if ((tdi->error == 0x80) || (tdi->error == 0x90) || tdi->error == 0xc0) {
+            if ((tdi->error & 0x80) || (tdi->error == 0x90) || tdi->error == 0xc0) {
                 ptr = drv_len_data[i].init;
             }
         }
@@ -271,7 +270,7 @@ static struct class *devclass;
 static int __init dev_init(void) {
     int ret, i;
     dev_t dev;
-    for (i = 0; i < 40; i++)
+    for (i = 0; i < 9; i++)
         SP.Port[i] = 0;
     //    printk("file property = %s {%d}\n", name_file, strlen(name_file));
 

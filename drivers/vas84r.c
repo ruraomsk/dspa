@@ -11,7 +11,7 @@
 #define inipar  ((vas84r_inipar*)(tdrv->inimod)) 
 
 #define VasData ((vas84r_data*)(tdrv->data))
-extern unsigned int irq_count;
+//extern unsigned int irq_count;  ??
 #define AdrType       0x4   // тип модуля   
 
 #define AdrRQ         0x5   // запрос на обслуживание  

@@ -39,7 +39,7 @@
 #define CountCh2Low 0x39  // Регистр счетчика импульсов младший байт 2 канала
 #define CountCh2High 0x3A // Регистр счетчика импульсов старший байт 2 канала
 
-extern unsigned int irq_count;
+//extern unsigned int irq_count;
 extern float takt;
 /*
 ===========================================================
