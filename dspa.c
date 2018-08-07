@@ -90,9 +90,7 @@ static int dev_open(struct inode *n, struct file *f) {
     device_open = 1;
     WatchPort();
 
-    WritePort(0x128, 0xff);
-    WritePort(0x100, 0x06);
-    WritePort(0x128, 0x00);
+ 
     WritePort(0x110, 0); //WD-D
     WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
     
@@ -273,7 +271,10 @@ static int __init dev_init(void) {
     for (i = 0; i < 9; i++)
         SP.Port[i] = 0;
     //    printk("file property = %s {%d}\n", name_file, strlen(name_file));
-    
+
+    WritePort(0x128, 0xff);
+    WritePort(0x100, 0x06);
+    WritePort(0x128, 0x00);
     WritePort(0x130, 1);
     
     if (major != 0) {
