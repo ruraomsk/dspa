@@ -268,7 +268,7 @@ void vchs_dr(table_drv *tdrv) {
                         ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
                         // СБРОС
                     }
-                    VchDate->tempI[i] = CountChHigh[i] * 256 + CountChLow[i];
+                    VchDate->tempI[i] = (unsigned int)((unsigned int)(CountChHigh[i] * 256) + CountChLow[i]);
                     VchDate->SVCHS[i] = 1;
                 } else {
                     cerr[i] = 0xff;

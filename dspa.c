@@ -273,7 +273,9 @@ static int __init dev_init(void) {
     for (i = 0; i < 9; i++)
         SP.Port[i] = 0;
     //    printk("file property = %s {%d}\n", name_file, strlen(name_file));
-
+    
+    WritePort(0x130, 1);
+    
     if (major != 0) {
         dev = MKDEV(major, DEVICE_FIRST);
         ret = register_chrdev_region(dev, DEVICE_COUNT, MODNAME);
