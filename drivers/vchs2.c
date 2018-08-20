@@ -262,6 +262,10 @@ void vchs_dr(table_drv *tdrv) {
                     } else { // ?
                         ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
                         ReadBx3w(0x1a + (0x20 * i), &CountChHigh[i]);
+//                        printk("modyl = %hhx", tdrv->address);
+//                        printk("low = %hhx",CountChLow[i]);
+//                        printk("high = %hhx",CountChHigh[i]);
+//                        printk("----------------------");
                         // Сброс регистров 3 команды
                         WriteSinglBox(AdrSV, 1);
                         ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
