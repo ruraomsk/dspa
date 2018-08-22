@@ -66,27 +66,13 @@ extern float takt;
 
 void vchs_ini(table_drv *tdrv) {
     unsigned char RQ, RH = 0;
-    int ADR_MISPA = 0x118, i, j;
+    int ADR_MISPA = 0x118, i;
     
     for (i = 0; i < 2; i++) {
         VchDate->takt[i] = 0.0;
         VchDate->cykl[i] = 0.01;
         VchDate->perm[i] = 0;
         VchDate->fvch[i] = 0;
-        // VchDate->lSmF[i] = 0;
-        // VchDate->lSmS[i] = 0;
-        // VchDate->fTimF[i] = 0;
-        // VchDate->fTimS[i] = 0;
-        // VchDate->pMFast[i] = 3;
-        // VchDate->pMSlow[i] = 19;
-        // for(j = 0; j < 20; j++){
-        //     VchDate->lMSlow[i][j] = 0;
-        //     VchDate->fMStim[i][j] = 0;
-        // }
-        //  for(j = 0; j < 4; j++){
-        //     VchDate->iMFast[i][j] = 0;
-        //     VchDate->fMFtim[i][j] = 0;
-        // }
     }
     
     SetBoxLen(inipar->BoxLen);
@@ -224,7 +210,7 @@ void vchs_dr(table_drv *tdrv) {
     if ((inipar->UsMask & 1) == 0)
         cerr[0] |= 0x3;
     else {
-        RQt = RQ & 0xf;
+        RQt = RQ & 0x1;
         if (RQt) {
             tdrv->error |= 0x83;
             cerr[0] |= 0x80;
@@ -235,7 +221,7 @@ void vchs_dr(table_drv *tdrv) {
     if ((inipar->UsMask & 2) == 0)
         cerr[1] |= 0xc0;
     else {
-        RQt = RQ & 0xf0;
+        RQt = RQ & 0x10;
         if (RQt) {
             tdrv->error |= 0x8c;
             cerr[1] |= 0x80;
@@ -262,10 +248,6 @@ void vchs_dr(table_drv *tdrv) {
                     } else { // ?
                         ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
                         ReadBx3w(0x1a + (0x20 * i), &CountChHigh[i]);
-//                        printk("modyl = %hhx", tdrv->address);
-//                        printk("low = %hhx",CountChLow[i]);
-//                        printk("high = %hhx",CountChHigh[i]);
-//                        printk("----------------------");
                         // Сброс регистров 3 команды
                         WriteSinglBox(AdrSV, 1);
                         ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
