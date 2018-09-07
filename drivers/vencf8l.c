@@ -45,9 +45,9 @@ unsigned char vds32CheckData(unsigned char nByteAddrA, unsigned char nWaitForDat
         }
         if (res.error) {
             if (res.error == BUSY_BOX) {
-                #ifdef DEBUG_MODE_ON
+#ifdef DEBUG_MODE_ON
                 printk("[vencf::vds32CheckData] vds_getRQ_FAILED");
-                #endif
+#endif
                 return 0;
             }
             if (nWaitForDataA & RQ_NO_ERRORS) {
@@ -60,13 +60,12 @@ unsigned char vds32CheckData(unsigned char nByteAddrA, unsigned char nWaitForDat
             break;
         }
         if (!(res.c & rqbit) && (nWaitForDataA & RQ_WAIT_MODE)) {
-            #ifdef DEBUG_MODE_ON
+#ifdef DEBUG_MODE_ON
             if (nTOut == 1)
                 printk("[vencf::vds32CheckData] waiting for RQ..");
-            #endif        
+#endif        
             VENCF_DELAY;
-        }
-        else
+        } else
             break;
     }
     return (res.c & rqbit) != 0 ? 1 : 0;
@@ -80,30 +79,29 @@ sschar vds32GetData(unsigned char nByteAddrA) {
         res.error = ReadBox3(nByteAddrA, &res.c);
         res.c = ~res.c;
         if (res.error) { // read failed - return
-            #ifdef DEBUG_MODE_ON
+#ifdef DEBUG_MODE_ON
             ++lCnt.l;
             lCnt.error = res.error;
             //if( lCnt.l > 1 )
             printk("[vencf::vds32GetData] getData FAILED cnt=%d err=%d", lCnt.l, lCnt.error);
-            #endif
+#endif
             if (res.error == BUSY_BOX)
                 return res;
         }
-        #ifdef DEBUG_MODE_ON         
+#ifdef DEBUG_MODE_ON         
         if (++nTOut > VDS_WAIT_TIMEOUT) {
             printk("[vencf::vds32GetData] ~~~ getData_TOut ~~~");
             res.error |= VDS_WAIT_TIMEOUT;
             break;
         }
-        #endif        
+#endif        
         if (res.error) {
-            #ifdef DEBUG_MODE_ON         
+#ifdef DEBUG_MODE_ON         
             if (nTOut == 1)
                 printk("[vencf::vds32GetData] waiting for correct Data..");
-            #endif                
+#endif                
             VENCF_DELAY;
-        }
-        else
+        } else
             break;
     }
     return res;
@@ -112,16 +110,16 @@ sschar vds32GetData(unsigned char nByteAddrA) {
 sschar vds32GetStat(unsigned char nModIdA, unsigned char nAddrA) {
     sschar res = {0, 0};
     if (nModIdA) {
-        #ifdef CHECK_WRITEPORT
+#ifdef CHECK_WRITEPORT
         CLEAR_MEM
         WritePort(SPAPS_ADR_MISPA, nModIdA);
         if (ERR_MEM) {
             res.error = BUSY_BOX;
             return res;
         }
-        #else
+#else
         WritePort(SPAPS_ADR_MISPA, nModIdA);
-        #endif
+#endif
     }
     //Регистры статуса
     res.error = ReadBox3(nAddrA, &res.c);
@@ -131,16 +129,16 @@ sschar vds32GetStat(unsigned char nModIdA, unsigned char nAddrA) {
 sschar vds32GetRq(unsigned char nModIdA) {
     sschar res = {0, 0};
     if (nModIdA) {
-        #ifdef CHECK_WRITEPORT
+#ifdef CHECK_WRITEPORT
         CLEAR_MEM
         WritePort(SPAPS_ADR_MISPA, nModIdA);
         if (ERR_MEM) {
             res.error = BUSY_BOX;
             return res;
         }
-        #else
+#else
         WritePort(SPAPS_ADR_MISPA, nModIdA);
-        #endif
+#endif
     }
     res.error = ReadBox3(ADR_REQUEST_REG, &res.c);
     return res;
@@ -418,8 +416,7 @@ void vencf8_ini(table_drv* tdrv) {
         printk("[vencf::vencf8_ini] FDS init (WritePort) FAILED - mod %d!", inipar->AdrFds);
 #endif           
         return;
-    }
-    else
+    } else
 #else
     WritePort(SPAPS_ADR_MISPA, inipar->AdrFds);
 #endif
@@ -719,8 +716,7 @@ void vencf8_dr(table_drv* tdrv) {
             if (inipar->model_present || (tdrv->error & VENCF_ERR_CRIT_MALFUNC)) {
                 set_all_errs(tdrv, tdrv->error);
                 return;
-            }
-            else {
+            } else {
                 devdata->venc[i].error = RH;
                 j <<= 1; // shift BUS variable to the next BUS
                 continue;
@@ -804,8 +800,7 @@ void vencf8_dr(table_drv* tdrv) {
                             }
                         return;
                     }
-                }
-                else
+                } else
                     if (er.c & inipar->MaskChanSinc) {
                     if (++nIter > 3) {
 #ifdef DEBUG_MODE_ON
@@ -959,8 +954,7 @@ void vencf8_dr(table_drv* tdrv) {
                     printk("[vencf::vencf8_dr]  wait for DataHold... ");
 #endif          
                 VENCF_DELAY;
-            }
-            else
+            } else
                 break;
         }
 
@@ -1072,8 +1066,7 @@ void vencf8_dr(table_drv* tdrv) {
                     printk("[vencf::vencf8_dr]  reading Data[%d]...", i);
 #endif  
                 VENCF_DELAY;
-            }
-            else
+            } else
                 break;
         }
         //while((g_encTmp[0].l != g_encTmp[1].l || g_encTmp[0].l != g_encTmp[2].l) /*&& ++indx2 < VDS_WAIT_TIMEOUT */ );          
@@ -1144,8 +1137,7 @@ void vencf8_dr(table_drv* tdrv) {
                 devdata->venc[i].l = g_sslSavCoord.l;
                 devdata->venc[i].error = g_sslCurCoordinate.error;
             }
-        }
-        else {
+        } else {
             g_iVencError[i].i = 0;
             devdata->venc[i].l = g_sslSavCoord.l;
             devdata->venc[i].error = 0;
@@ -1268,8 +1260,7 @@ void vencf8_dr(table_drv* tdrv) {
                             }
                         return;
                     }
-                }
-                else
+                } else
                     if (!(er.c & inipar->MaskChanSinc)) {
                     if (++nIter > 3) {
                         // VALID is falled - lets continue                
@@ -1281,8 +1272,7 @@ void vencf8_dr(table_drv* tdrv) {
 #endif  
                         break;
                     }
-                }
-                else
+                } else
                     nIter = 0;
 #ifdef DEBUG_MODE_ON         
                 if (++indx2 > VDS_WAIT_TIMEOUT) {

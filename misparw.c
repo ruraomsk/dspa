@@ -117,7 +117,7 @@ unsigned char ReadBx3w(unsigned char ptr, unsigned char *value) {
     // delaymcs(5);
     if (ReadSinglBox(ptr, &x3))
         return BUSY_BOX;
-        if( value )
+    if( value )
     *value = (x1 & x2) | (x1 & x3) | (x2 & x3);
     return 0;
 }

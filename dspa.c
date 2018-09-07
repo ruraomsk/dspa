@@ -69,7 +69,7 @@ void clearMemory(void) {
     drv_count = 0;
 }
 
-static int ports[6] = {0x100, 0x112, 0x114, 0x128, 0x130, 0x138};  // 0x108 0x110
+static int ports[6] = {0x100, 0x112, 0x114, 0x128, 0x130, 0x138}; // 0x108 0x110
 
 void WatchPort(void) {
     unsigned char temp;
@@ -95,10 +95,10 @@ static int dev_open(struct inode *n, struct file *f) {
     WritePort(0x128, 0x00);
     WritePort(0x110, 0); //WD-D
     WritePort(0x138, 1); // Типа мы ведущие захватываем мир!
-    
+
     //-------------------  // гасим красную лампочку
-    ti=ReadPort(0x108);
-    WritePort(0x108,ti & 0xf8);
+    ti = ReadPort(0x108);
+    WritePort(0x108, ti & 0xf8);
     //-------------------
     if (ReadPort(0x112)&0x2) return EOK;
     return -EBUSY;
@@ -132,7 +132,7 @@ static ssize_t dev_read(struct file * file, char * buf,
     int i;
     table_drv *tdi;
     WatchPort();
-
+    
     if (count == 0) { // Запрос не мастер ли  мы?
         if ((ReadPort(0x100)&0x80) == 0) return 1; // нет не мастер
         return EOK;
@@ -270,12 +270,11 @@ static struct class *devclass;
 static int __init dev_init(void) {
     int ret, i;
     dev_t dev;
-    
+
     WritePort(0x110, 0); //WD-D
-       
-    for (i = 0; i < 9; i++)
+
+    for (i = 0; i < 6; i++)
         SP.Port[i] = 0;
-    //    printk("file property = %s {%d}\n", name_file, strlen(name_file));
 
     if (major != 0) {
         dev = MKDEV(major, DEVICE_FIRST);
