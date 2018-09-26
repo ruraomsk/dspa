@@ -39,8 +39,6 @@
 #define AdrStatus0 0x22 // каналы 1-16
 #define AdrStatus1 0x25 // каналы 17-32
 
-
-
 //extern unsigned int irq_count;
 
 /*
@@ -64,11 +62,11 @@
 
  */
 
+// static unsigned char test[4][2];
 
 void vds32r_ini(table_drv *tdrv) {
     unsigned char RQ, RH = 0, RL;
     int ADR_MISPA = 0x118;
-
 
     SetBoxLen(inipar->BoxLen);
 
@@ -88,7 +86,7 @@ void vds32r_ini(table_drv *tdrv) {
     //    проверка типа модуля
     RH |= ReadBx3w(AdrType, &RL);
     if (RL != inipar->type) {
-        RH |= 0x80;
+        tdrv->error = 0x80;
         return;
     } //ошибка типа модуля
     RH |= WriteBox(AdrAntiTrembl0, inipar->tadr116); // каналы 1-16   0x20
@@ -108,6 +106,11 @@ void vds32r_ini(table_drv *tdrv) {
     //     tdrv->error = 0xC0;
     //     return;
     // }
+
+    // int i, j;
+    // for (i = 0; i < 4; i++)
+    //     for (j = 0; j < 2; j++)
+    //         test[i][j] = 0;
 }
 
 // static unsigned char RQl = 0;
@@ -115,7 +118,7 @@ void vds32r_ini(table_drv *tdrv) {
 void vds32r_rd(table_drv *tdrv) {
     vds32r_str vdsValue;
     unsigned char i, j, z;
-    unsigned char RH = 0, SErr = 0; // RL;
+    unsigned char RH = 0, SErr = 0; //, RL = 0, temp = 0;
     int k = 0;
     int ADR_MISPA;
     SetBoxLen(0xFF);
@@ -135,12 +138,95 @@ void vds32r_rd(table_drv *tdrv) {
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
 
+
+
+    // if (tdrv->address == 0x03) {
+    //     // printk("----------------------------");
+    //     // 21 de
+    //     ReadSinglBox(0x21, &RH);
+    //     if (RH != test[0][0]) {
+    //         temp = 1;
+    //         printk("0x21 izmenilsia -  old = %hhx  , new = %hhx", test[0][0], RH);
+    //         test[0][0] = RH;
+    //     }
+
+    //     ReadSinglBox(0xde, &RH);
+    //     if (RH != test[0][1]) {
+    //         temp = 1;
+    //         printk("0xde izmenilsia -  old = %hhx  , new = %hhx", test[0][1], RH);
+    //         test[0][1] = RH;
+    //     }
+    //     if (temp == 1) {
+    //         printk("tekyhee 21(de) %hhx - %hhx", test[0][0], test[0][1]);
+    //         temp = 0;
+    //     }
+
+    //     // 24 db
+    //     ReadSinglBox(0x24, &RH);
+    //     if (RH != test[1][0]) {
+    //         temp = 1;
+    //         printk("0x24 izmenilsia -  old = %hhx  , new = %hhx", test[1][0], RH);
+    //         test[1][0] = RH;
+    //     }
+
+    //     ReadSinglBox(0xdb, &RH);
+    //     if (RH != test[1][1]) {
+    //         temp = 1;
+    //         printk("0xdb izmenilsia -  old = %hhx  , new = %hhx", test[1][1], RH);
+    //         test[1][1] = RH;
+    //     }
+    //     if (temp == 1) {
+    //         printk("tekyhee 24(db) %hhx - %hhx", test[1][0], test[1][1]);
+    //         temp = 0;
+    //     }
+
+    //     // 20 df
+    //     ReadSinglBox(0x20, &RH);
+    //     if (RH != test[2][0]) {
+    //         temp = 1;
+    //         printk("0x20 izmenilsia -  old = %hhx  , new = %hhx", test[2][0], RH);
+    //         test[2][0] = RH;
+    //     }
+
+    //     ReadSinglBox(0xdf, &RH);
+    //     if (RH != test[2][1]) {
+    //         temp = 1;
+    //         printk("0xdf izmenilsia -  old = %hhx  , new = %hhx", test[2][1], RH);
+    //         test[2][1] = RH;
+    //     }
+    //     if (temp == 1) {
+    //         printk("tekyhee 20(df) %hhx - %hhx", test[2][0], test[2][1]);
+    //         temp = 0;
+    //     }
+
+    //     // 23 dc
+    //     ReadSinglBox(0x23, &RH);
+    //     if (RH != test[3][0]) {
+    //         temp = 1;
+    //         printk("0x23 izmenilsia -  old = %hhx  , new = %hhx", test[3][0], RH);
+    //         test[3][0] = RH;
+    //     }
+
+    //     ReadSinglBox(0xdc, &RH);
+    //     if (RH != test[3][1]) {
+    //         temp = 1;
+    //         printk("0xdc izmenilsia -  old = %hhx  , new = %hhx", test[3][1], RH);
+    //         test[3][1] = RH;
+    //     }
+    //     if (temp == 1) {
+    //         printk("tekyhee 23(dc) %hhx - %hhx", test[3][0], test[3][1]);
+    //         temp = 0;
+    //     }
+
+    //     // printk("============================");
+    // }
+
     ReadBox(AdrRQ, &RH);
     if ((RH & 0x01) || (RH & 0x10)) {
-        
+
         // проверка инверсии в статусе
-        RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
-        RH |= ReadBox(AdrStatus1, &vdsValue.stat[1]);
+        RH |= ReadBox3(AdrStatus0, &vdsValue.stat[0]);
+        RH |= ReadBox3(AdrStatus1, &vdsValue.stat[1]);
 
         if (RH == 0x80) { // нет устройства
             tdrv->error = 0x80;
@@ -163,7 +249,6 @@ void vds32r_rd(table_drv *tdrv) {
         RH |= ReadBx3w(AdrShortCircuit1, &vdsValue.kz[1]);
         RH |= ReadBx3w(AdrShortCircuit2, &vdsValue.kz[2]);
         RH |= ReadBx3w(AdrShortCircuit3, &vdsValue.kz[3]);
-
 
         if (RH == 0x80) { // нет устройства
             tdrv->error = 0x80;
@@ -198,6 +283,4 @@ void vds32r_rd(table_drv *tdrv) {
             }
         }
     }
-    // тут конец
-
 }

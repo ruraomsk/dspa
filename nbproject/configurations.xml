@@ -8,6 +8,7 @@
         <in>vas84r.c</in>
         <in>vchs2.c</in>
         <in>vds32r.c</in>
+        <in>vencf8l.c</in>
       </df>
       <in>dspa.c</in>
       <in>misparw.c</in>
@@ -8363,6 +8364,13 @@
         <cTool flags="0">
           <preprocessorList>
             <Elem>KBUILD_BASENAME="vds32r"</Elem>
+          </preprocessorList>
+        </cTool>
+      </item>
+      <item path="drivers/vencf8l.c" ex="false" tool="0" flavor2="0">
+        <cTool flags="0">
+          <preprocessorList>
+            <Elem>KBUILD_BASENAME="vencf8l"</Elem>
           </preprocessorList>
         </cTool>
       </item>

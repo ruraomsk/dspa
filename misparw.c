@@ -81,8 +81,8 @@ unsigned char ReadBox(unsigned char ptr, unsigned char *value) {
     if (ERR_MEM)
         return BUSY_BOX;
     //    printk(KERN_INFO "read adr %x ptr %d = %x !=%x\n", inb(0x118),ptr,val,lav);
-        if( value )
-     *value = val;
+    if (value)
+        *value = val;
     if ((lav | val) != 0xff)
         return NEGC_BOX;
     return SPAPS_OK;
@@ -92,8 +92,8 @@ unsigned char ReadSinglBox(unsigned char ptr, unsigned char *value) {
     unsigned char val;
     CLEAR_MEM
     val = ioread8((unsigned char *) rambase + ptr);
-        if( value )
-     *value = val;
+    if (value)
+        *value = val;
     if (ERR_MEM)
         return BUSY_BOX;
     return 0;
@@ -117,16 +117,16 @@ unsigned char ReadBx3w(unsigned char ptr, unsigned char *value) {
     // delaymcs(5);
     if (ReadSinglBox(ptr, &x3))
         return BUSY_BOX;
-    if( value )
-    *value = (x1 & x2) | (x1 & x3) | (x2 & x3);
+    if (value)
+        *value = (x1 & x2) | (x1 & x3) | (x2 & x3);
     return 0;
 }
 
 unsigned char ReadBox3(unsigned char ptr, unsigned char *value) {
-unsigned char RH, i = 0;
+    unsigned char RH, i = 0;
     while (i < 3) {
         RH = ReadBox(ptr, value);
-        if( RH == BUSY_BOX || RH == SPAPS_OK )
+        if (RH == BUSY_BOX || RH == SPAPS_OK)
             break;
         i++;
     }

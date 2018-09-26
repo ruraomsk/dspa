@@ -36,7 +36,7 @@
 #define BUSY_BOX    0x80
 #define NEGC_BOX    0xC0
 
-#define SPAPS_ADR_MISPA      0x118
+#define SPAPS_ADR_MISPA 0x118
 
 typedef unsigned char uspaint8;
 typedef signed char spaint8;
