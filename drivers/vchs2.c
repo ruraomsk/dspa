@@ -245,17 +245,14 @@ void vchs_dr(table_drv *tdrv) {
                         printk("kanal slomalsia %hhx na modyle %hhx", 0x13 + (0x20 * i), tdrv->address);
                         cerr[i] |= 1;
                         // Сброс регистров 3 команды  //?
-                        WriteSinglBox(AdrSV, 1);
-                        ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
-                        ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
+                        // WriteSinglBox(AdrSV, 1);
+                        // ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
+                        // ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
                         // СБРОС
-                        VchDate->takt[i] = 0;
-                        VchDate->cykl[i] = 0.01;
-                        VchDate->SVCHS[i] = 0;
-                        // tdrv->error = 0x80;
-                        return;
-
-                        // break;
+                        tdrv->error = 0x80;
+                        continue;
+                        // VchDate->SVCHS[i] = 0;
+                        // VchDate->cykl[i] = 0.01;
                         // WriteBox(0x13 + (0x20 * i), 0xff); // Сброс состояния адрес 0x13 и 0x33
                     } else { // ?
                         ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
@@ -266,7 +263,6 @@ void vchs_dr(table_drv *tdrv) {
                         ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
                         // СБРОС
                     }
-                    
                     VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]);
                     if ((i == 1) && (tdrv->address == 0x01)) 
                         printk("%d      %hhx %hhx - %d", i, CountChHigh[i], CountChLow[i], VchDate->tempI[i]);
