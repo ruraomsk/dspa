@@ -19,6 +19,7 @@
 //Регистрыы статуса
 #define AdrVdsStatus0 0x22 // каналы 1-16
 #define AdrVdsStatus1 0x25 // каналы 17-32
+
 //Fds
 #define AdrFdsOut18         0x01  // регистр вывода сигналов каналов 1-8  
 #define AdrFdsOut916        0x02  // регистр вывода сигналов каналов 9-16  
@@ -28,13 +29,14 @@
 
 typedef struct __attribute__((packed))
 {
-  unsigned char   typeVds;       // тип вдс32р                                   
-  unsigned short  BoxLen;        // длина ПЯ, уменьшенная на 1                   
-  unsigned char   vip;           // флаг критически важного для системы модуля   
-  unsigned char   AdrFds;        // Адрес ФДС на МИСПА  
-  unsigned char   typeFds;       // тип Фдс16р                                   
+  unsigned char   typeVds;       // 0xc2 тип вдс32р                                   
+  unsigned short  BoxLen;        // 0xff длина ПЯ, уменьшенная на 1                   
+  unsigned char   vip;           // 0    флаг критически важного для системы модуля   
+  unsigned char   AdrFds;        // 0x6  Адрес ФДС на МИСПА  
+  unsigned char   typeFds;       // 0x04 тип Фдс16р                                   
 } vencf8_inipar;
 
+// Структура для считывания
 typedef union  { 
     unsigned long l;
     unsigned short i[2];

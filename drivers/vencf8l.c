@@ -10,15 +10,18 @@
 #define devdata ((vencf8_data *)(tdrv->data))
 #define LastIn ((char *)(&tdrv->time))
 
-
 enc_value_t TempEnc[3];
 
-
+// Соединение с модулем
 inline void ConnMod(unsigned char addr) {
     CLEAR_MEM
     WritePort(SPAPS_ADR_MISPA, addr);
 }
 
+// Выбор для выставления BUS на ФДС
+// Сдвиг необходим для того, чтобы нормально уложить данные 
+// считанные на ВДС, выставленные на ФДС в прошлом цикле.
+// В итоге все 8 координат считываются за 8 циклов (160мс) 
 unsigned char ChoseDev(int num) {
     switch (num) {
         case 0: return 0x02; // 0x01;
@@ -34,7 +37,7 @@ unsigned char ChoseDev(int num) {
 }
 
 
-
+// Инициализация модуля ВДС
 unsigned char vds32init(unsigned char AdrMod, unsigned char TypeMod) {
     unsigned char temp = 0, RH = 0, Err = 0;
     ConnMod(AdrMod);
@@ -48,19 +51,20 @@ unsigned char vds32init(unsigned char AdrMod, unsigned char TypeMod) {
     // RH |= ReadBx3w(AdrType, &temp);
     // if (temp != TypeMod) {
     //     return 0x80;
-//    } //ошибка типа модуля
-    RH |= WriteBox(AdrVdsAntiTrembl0, 0xff);  //  антидребезг каналы 1-16   0x20  AdrAntiTrembl0
-    RH |= WriteBox(AdrVdsChanlsMask0, 0x0);   // маска каналы 1-16   0x21          AdrChanlsMask0
+    // } //ошибка типа модуля
+    RH |= WriteBox(AdrVdsAntiTrembl0, 0xff);  // антидребезг каналы 1-16   0x20   AdrAntiTrembl0
+    RH |= WriteBox(AdrVdsChanlsMask0, 0x0);   // маска каналы 1-16         0x21   AdrChanlsMask0
     RH |= WriteBox(AdrVdsAntiTrembl1, 0xff);  // антидребезг каналы 17-32  0x23   AdrAntiTrembl1
-    RH |= WriteBox(AdrVdsChanlsMask1, 0x0);   // маска каналы 1-16   0x21          AdrChanlsMask1
-    RH |= ReadBx3w(AdrVdsStatus0, &temp); // статус0                   AdrStatus0
-    RH |= ReadBx3w(AdrVdsStatus1, &temp); // статус1                   AdrStatus1
-    RH |= ReadBx3w(AdrRQ, &temp);  // RQ                        AdrRQ
+    RH |= WriteBox(AdrVdsChanlsMask1, 0x0);   // маска каналы 1-16         0x21   AdrChanlsMask1
+    RH |= ReadBx3w(AdrVdsStatus0, &temp);     // статус0                          AdrStatus0
+    RH |= ReadBx3w(AdrVdsStatus1, &temp);     // статус1                          AdrStatus1
+    RH |= ReadBx3w(AdrRQ, &temp);             // регистр запроса обслуживания     AdrRQ
     if (RH)
         Err = RH;
     return Err;
 }
 
+// Инициализация модуля ФДС
 unsigned char fds16init(unsigned char AdrMod, unsigned char TypeMod) {
     unsigned char RH = 0, temp = 0, Err = 0, isp = 0;
     ConnMod(AdrMod);
@@ -70,11 +74,11 @@ unsigned char fds16init(unsigned char AdrMod, unsigned char TypeMod) {
     // RH |= ReadBx3w(AdrType, &temp);
     // if (temp != TypeMod)
     //     Err = 0x80;
-    RH |= WriteBox(AdrFdsOut18, 0);
-    RH |= WriteBox(AdrFdsOut916, 0);
-    RH |= ReadBx3w(AdrFdsISP18, &temp);
+    RH |= WriteBox(AdrFdsOut18, 0);      // регистр вывода сигналов каналов 1-8  
+    RH |= WriteBox(AdrFdsOut916, 0);     // регистр вывода сигналов каналов 9-16  
+    RH |= ReadBx3w(AdrFdsISP18, &temp);  // регистр исправности каналов 1-8  
     isp |= temp;
-    RH |= ReadBx3w(AdrFdsISP916, &temp);
+    RH |= ReadBx3w(AdrFdsISP916, &temp); // регистр исправности каналов 9-16  
     isp |= temp;
     if (RH || isp)
         Err = RH;
@@ -90,8 +94,8 @@ void vencf8_ini(table_drv *tdrv) {
     devdata->numE = 0;
     tdrv->error = 0; // clear DRV error
     SetBoxLen(inipar->BoxLen);
-    RH |= vds32init(tdrv->address, inipar->typeVds); // Вдс на 1 месте
-    RH |= fds16init(inipar->AdrFds, inipar->typeFds); // Фдс на 3 месте
+    RH |= vds32init(tdrv->address, inipar->typeVds); // инит Вдс на 1 месте
+    RH |= fds16init(inipar->AdrFds, inipar->typeFds); // инит Фдс на 3 месте
     if (RH)
         tdrv->error = RH;
 }
@@ -100,26 +104,40 @@ void vencf8_ini(table_drv *tdrv) {
 // Чтение модуля VENCF8
 //===========================================================
 
+
+// Работаем без выставления Latch 
+
+// Если нужно добавить выставление 
+// RH = WriteBox(AdrFdsOut916, 1);  
+// if (RH) {
+//     tdrv->error = RH;
+//     return;
+// }
+
+
+
 void vencf8_dr(table_drv *tdrv) {
-    unsigned char RH = 0, j, tempEnc;
+    unsigned char RH = 0, tempEnc;
     sslong ReciveEnc = {0,0};
     int k1, k2; // для считывания координат
     sschar er = {0, 0};
 
     SetBoxLen(inipar->BoxLen);
 
-    // читаем данные с ВДС
-    ConnMod(tdrv->address);
+    
+    ConnMod(tdrv->address);  // подключаемся к ВДС на 1 месте
     if (ERR_MEM) {
         tdrv->error = BUSY_BOX;
         return;
     }
+
     // считываем пока не считаем 3 раза одинаковое значение
+    // всего читаем 4 байта
     while (1) {
-        ReadBox(AdrRQ, &RH);
-        if (RH & 0x01) {
-            for (k1 = 0; k1 < 2; k1++) {
-                for (k2 = 0; k2 < 3; k2++) {
+        ReadBox(AdrRQ, &RH);  
+        if (RH & 0x01) {    //изменения состояния данных в каналах 1-16
+            for (k1 = 0; k1 < 2; k1++) { // при k1=0 считываем с 0х10(каналы 1-8 ВДС), при k1=1 с 0х11(каналы 9-16 ВДС)
+                for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
                     er.error = ReadBx3w(AdrSostContact0 + k1, &er.c);
                     TempEnc[k2].c[k1] = ~er.c;
                     devdata->venc[k1].error |= er.error;
@@ -127,46 +145,46 @@ void vencf8_dr(table_drv *tdrv) {
 
             }
         }
-        if (RH & 0x10) {
-            for (k1 = 2; k1 < 4; k1++) {
-                for (k2 = 0; k2 < 3; k2++) {
+        if (RH & 0x10) {    //изменения состояния данных в каналах 17-32
+            for (k1 = 2; k1 < 4; k1++) { // при k1=2 считываем с 0х40(каналы 17-24 ВДС), при k2=3 с 0х41(каналы 25-32 ВДС)     (0х40 0х41 для вдс с новой прошивкой)
+                for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
                     er.error = ReadBx3w(AdrSostContact2 + (k1 - 2), &er.c);
                     TempEnc[k2].c[k1] = ~er.c;
                     devdata->venc[k1].error |= er.error;
                 }
             }
-            if (er.error == BUSY_BOX) {
+            if (er.error == BUSY_BOX) { // При ошибке во время чтения вылетаем
                 tdrv->error = er.error;
                 return;
             }
         }
-        if ((TempEnc[0].l == TempEnc[1].l && TempEnc[0].l == TempEnc[2].l)) {
+        if ((TempEnc[0].l == TempEnc[1].l && TempEnc[0].l == TempEnc[2].l)) { // Если считанные значения равны, выходим
             break;
         }
     }
 
     // преобразуем и декодируем
-    ReciveEnc.l = (TempEnc[0].l & TempEnc[1].l) | (TempEnc[1].l & TempEnc[2].l) | (TempEnc[0].l & TempEnc[2].l);
-    devdata->gray[devdata->numE].l = (unsigned long) ReciveEnc.l & 0x00fffffful;
-    // printk("do dekoda = %d", devdata->gray[j].l);
+    ReciveEnc.l = (TempEnc[0].l & TempEnc[1].l) | (TempEnc[1].l & TempEnc[2].l) | (TempEnc[0].l & TempEnc[2].l);  // выбор 2 из 3
+    devdata->gray[devdata->numE].l = (unsigned long) ReciveEnc.l & 0x00fffffful;   // убираем старший байт
     devdata->gray[devdata->numE].error = 0;
-    devdata->venc[devdata->numE].l = decodegray(devdata->gray[devdata->numE].l);
-    // printk("posle dekod = %d", devdata->venc[j].l);
+    devdata->venc[devdata->numE].l = decodegray(devdata->gray[devdata->numE].l);  // декодируем
 
-    tempEnc = ChoseDev(devdata->numE); // для выставления BUS
-//    printk("i = %d, fds = %hhx",devdata->numE,tempEnc);
+    tempEnc = ChoseDev(devdata->numE); // выбираем какой BUS выставить
+
     // ставим новый BUS
-    ConnMod(inipar->AdrFds);
+    ConnMod(inipar->AdrFds); // подключаемся к ФДС на 3 месте
     if (ERR_MEM) {
         tdrv->error = BUSY_BOX;
         return;
     }
-    RH = WriteBox(AdrFdsOut18, tempEnc); 
+
+    RH = WriteBox(AdrFdsOut18, tempEnc);  // записывает нужный BUS
     if (RH) {
         tdrv->error = RH;
         return;
     }
 
+    // работаем по циклу от 0 до 7
     if (devdata->numE < 7)
         devdata->numE++;
     else
