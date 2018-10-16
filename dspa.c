@@ -7,6 +7,7 @@
 #include <linux/kernel.h>
 #include <linux/miscdevice.h>
 #include <linux/slab.h>
+//#include <linux/uaccess.h>
 #include <asm/io.h>
 #include "dspa.h"
 #include "misparw.h"
