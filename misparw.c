@@ -65,22 +65,17 @@ unsigned char WriteBox(unsigned char ptr, unsigned char value) {
 }
 
 unsigned char ReadBox(unsigned char ptr, unsigned char *value) {
-    //    sprintf(logstr, "ReadBox_1 %x ", ptr);
-    //    log_debug();
     unsigned char val;
     unsigned char lav;
     CLEAR_MEM
     val = ioread8((unsigned char *) rambase + ptr);
     if (ERR_MEM)
         return BUSY_BOX;
-    //    sprintf(logstr, "ReadBox_2 %x ", ( (Box_len - ptr)));
-    //    log_debug();
-    // delaymcs(20);
     CLEAR_MEM
+
     lav = ioread8((unsigned char *) rambase + (Box_len - ptr));
     if (ERR_MEM)
         return BUSY_BOX;
-    //    printk(KERN_INFO "read adr %x ptr %d = %x !=%x\n", inb(0x118),ptr,val,lav);
     if (value)
         *value = val;
     if ((lav | val) != 0xff)
