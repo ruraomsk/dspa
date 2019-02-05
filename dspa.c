@@ -21,7 +21,7 @@ MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Yury Rusinov <ruraomsk@list.ru>");
 MODULE_VERSION("1.0");
 
-static SostPort SP;
+static SostPort SP; // информациия отладки модуля
 static int irq = SHARED_IRQ;
 static int spa_dev_id;
 static int major = 0;
@@ -70,6 +70,7 @@ void clearMemory(void) {
     drv_count = 0;
 }
 
+// мониторинг портов модуля ФП
 static int ports[6] = {0x100, 0x112, 0x114, 0x128, 0x130, 0x138}; // 0x108 0x110
 
 void WatchPort(void) {
@@ -128,17 +129,17 @@ int make_init(int driver_no) {
 
 }
 
-static ssize_t dev_read(struct file * file, char * buf,
-        size_t count, loff_t *ppos) {
+static ssize_t dev_read(struct file * file, char * buf, size_t count, loff_t *ppos) {
     int i;
     table_drv *tdi;
     WatchPort();
-    
     if (count == 0) { // Запрос не мастер ли  мы?
-        if ((ReadPort(0x100)&0x80) == 0) return 1; // нет не мастер
+        if ((ReadPort(0x100)&0x80) == 0)
+            return 1; // нет не мастер
         return EOK;
     }
-    if ((ReadPort(0x100)&0x80) == 0) return 1; //Slave
+    if ((ReadPort(0x100)&0x80) == 0)
+        return 1; //Slave
 
     WritePort(0x110, 0); //WD-D
     WritePort(0x130, 1); // типа мы работаем!
@@ -160,8 +161,10 @@ static ssize_t dev_read(struct file * file, char * buf,
         //                printk(KERN_INFO "run step section %d\n",i);
         ptr = NULL;
         tdi = (table_drv *) drv_len_data[i].td;
-        if (*ppos == 1) ptr = drv_len_data[i].step1;
-        if (*ppos == 2) ptr = drv_len_data[i].step2;
+        if (*ppos == 1) 
+            ptr = drv_len_data[i].step1;
+        if (*ppos == 2) 
+            ptr = drv_len_data[i].step2;
         if (*ppos == 3) {
             if ((tdi->error & 0x80) || (tdi->error == 0x90) || tdi->error == 0xc0) {
                 ptr = drv_len_data[i].init;
