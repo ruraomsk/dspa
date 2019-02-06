@@ -68,18 +68,21 @@ void vchs_ini(table_drv *tdrv) {
     unsigned char RQ, RH = 0;
     int ADR_MISPA = 0x118;
     tdrv->error = 0;
+    VchDate->Diagn = 0;
     SetBoxLen(inipar->BoxLen);
     RQ = (unsigned char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
 
     if (ERR_MEM) {
+        VchDate->Diagn |= 0x80;
         tdrv->error = 0x80;
         return;
     }
 
     RH = CatchBox();
     if (RH) {
+        VchDate->Diagn |= 0x80;
         tdrv->error = RH;
         return;
     }
@@ -113,6 +116,7 @@ void vchs_ini(table_drv *tdrv) {
     RH |= ReadBx3w(AdrSTAT, &RQ);
 
     if (RQ != 0) {
+        VchDate->Diagn |= 0x90;
         tdrv->error = 0x90;
         return;
     } // ошибка состояния модуля
@@ -121,6 +125,7 @@ void vchs_ini(table_drv *tdrv) {
 
     RH |= FreeBox();
     if (RH) {
+        VchDate->Diagn |= 0x80;
         tdrv->error = RH; // ошибка миспа
         return;
     }
@@ -179,23 +184,27 @@ void vchs_dr(table_drv *tdrv) {
     SetBoxLen(inipar->BoxLen);
     if (tdrv->error == 0x80) {
         vchs_ini(tdrv);
-        if (tdrv->error == 0)
+        if (tdrv->error == 0){
+            VchDate->Diagn |= 0x80;
             tdrv->error = 0x81;
+        }
         return;
     }
     CLEAR_MEM
     WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
+        VchDate->Diagn |= 0x80;
         tdrv->error = 0x80;
         return;
     }
-
+    VchDate->Diagn = 0;
     RH |= ReadBx3w(AdrRQ, &RQ);
 
     // читаем статус модуля
     RH |= ReadBx3w(AdrSTAT, &RQ);
 
     if (RH) {
+        VchDate->Diagn |= 0x80;
         tdrv->error = RH;
         return;
     }
@@ -205,6 +214,7 @@ void vchs_dr(table_drv *tdrv) {
     else {
         RQt = RQ & 0x1;
         if (RQt) {
+            VchDate->Diagn |= 0x80;
             tdrv->error |= 0x83;
             cerr[0] |= 0x83;
         }
@@ -215,6 +225,7 @@ void vchs_dr(table_drv *tdrv) {
     else {
         RQt = RQ & 0x10;
         if (RQt) {
+            VchDate->Diagn |= 0x80;
             tdrv->error |= 0x8c;
             cerr[1] |= 0x8c;
         }
@@ -263,6 +274,7 @@ void vchs_dr(table_drv *tdrv) {
     RH |= FreeBox();
     RH |= WriteBox(AdrRQ, 0xff);
     if (RH) {
+        VchDate->Diagn |= 0x80;
         tdrv->error = RH; // ошибка миспа
         return;
     }

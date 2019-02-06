@@ -37,6 +37,7 @@ typedef struct __attribute__((packed))
 typedef struct __attribute__((packed))
 {
   ssbool SIGN[32]; // Результат счета каналов 1-8   
+  short Diagn;
 } vds32r_data;
 
 typedef struct __attribute__((packed))

@@ -1,16 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/* 
- * File:   sbkfp7.c
- * Author: rusin
- * 
- * Created on 22 РјР°СЂС‚Р° 2018 Рі., 10:00
- */
-
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "sbkfp7.h"
@@ -20,10 +7,6 @@
 #define sbkDate ((sbk_data *)(drv->data))
 
 static int UpRead = 0;
-
-//===========================================================
-//	РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РјРѕРґСѓР»СЏ
-//===========================================================
 
 void sbkfp7_ini(table_drv *drv) {
     drv->error = 0;
@@ -46,11 +29,11 @@ void sbkfp7_dw(table_drv *drv) {
 
     if (UpRead == 1) {
         temp.b = ReadPort(0x110);
-        sbkDate->SbkSIGN[0].b = (temp.b >> 0) & 1;
-        sbkDate->SbkSIGN[1].b = (temp.b >> 1) & 1;
-        sbkDate->SbkSIGN[2].b = (temp.b >> 3) & 1;
-        sbkDate->SbkSIGN[3].b = (temp.b >> 4) & 1;
-        sbkDate->SbkSIGN[4].b = (temp.b >> 5) & 1;
+        sbkDate->SbkSIGN[0].b = (temp.b >> 0) & 1;  // power 1
+        sbkDate->SbkSIGN[1].b = (temp.b >> 1) & 1;  // power 2
+        sbkDate->SbkSIGN[2].b = (temp.b >> 3) & 1;  // door
+        sbkDate->SbkSIGN[3].b = (temp.b >> 4) & 1;  // t < 43
+        sbkDate->SbkSIGN[4].b = (temp.b >> 5) & 1;  // t > 53
         for (i = 0; i < 5; i++) {
             sbkDate->SbkSIGN[i].error = 0;
         }
@@ -66,21 +49,18 @@ void sbkfp7_dw(table_drv *drv) {
 
     if (UpRead == 3) {
         temp.b = ReadPort(0x110);
-        for (i = 5, j = 0x1; i < 8; i++) {
-            if (temp.b & j)
-                sbkDate->SbkSIGN[i].b = 1;
-            else
-                sbkDate->SbkSIGN[i].b = 0;
-            j <<= 1;
-            sbkDate->SbkSIGN[i].error = 0;
-        }
+        printk("%hhx",temp.b);
+        sbkDate->SbkSIGN[5].b = (temp.b >> 0) & 1;  // MP15-3.1 - 1
+        sbkDate->SbkSIGN[6].b = (temp.b >> 1) & 1;  // MP15-3.1 - 2
+        sbkDate->SbkSIGN[7].b = (temp.b >> 2) & 1;  // MP15-3 - 3
+        sbkDate->SbkSIGN[8].b = (temp.b >> 3) & 1;  // MP24-2 - 4
     }
 
     temp.b = ReadPort(0x114);
-    sbkDate->SbkSIGN[9].b = (temp.b >> 0) & 1;
-    sbkDate->SbkSIGN[10].b = (temp.b >> 1) & 1;
-    sbkDate->SbkSIGN[11].b = (temp.b >> 6) & 1;
-    sbkDate->SbkSIGN[12].b = (temp.b >> 7) & 1;
+    sbkDate->SbkSIGN[9].b = (temp.b >> 0) & 1;  // PB5/24 - 5
+    sbkDate->SbkSIGN[10].b = (temp.b >> 1) & 1; // PB5/24 - 6
+    sbkDate->SbkSIGN[11].b = (temp.b >> 6) & 1; // PB5/24 - 7
+    sbkDate->SbkSIGN[12].b = (temp.b >> 7) & 1; // PB5/24 - 8
     for (i = 9; i < 12; i++) {
         sbkDate->SbkSIGN[i].error = 0;
     }

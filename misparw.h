@@ -28,13 +28,15 @@
 #define NINVFP      0x0C    //; слово - счетчик количества неинверсий ПЯ
 //; обнаруженных ФП
 #define CT_GLOB     0x0e    //; счетчик переворотов ПЯ
-#define MSTAT        0x0f    //; байт состояния модуля
+#define MSTAT       0x0f    //; байт состояния модуля
 #define FLNET       0x10    //; длина таблицы сетевых передач
 #define ININET      0x12    //; запрос на инициализацию сетевого процессора
 
 #define SPAPS_OK    0x00
-#define BUSY_BOX    0x80
-#define NEGC_BOX    0xC0
+#define BUSY_BOX    0x80    // Нет ответа он модуля
+#define NEGC_BOX    0xC0    // Неинверсия в ПЯ
+#define SOST_ERR    0x90    // Ошибка состояния модуля
+#define CHAN_ERR    0xE0    // Неисправность каналов
 
 #define SPAPS_ADR_MISPA 0x118
 

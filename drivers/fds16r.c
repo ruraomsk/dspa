@@ -65,10 +65,11 @@ void fds16r_ini(table_drv* tdrv) {
     CLEAR_MEM
     WritePort(ADR_MISPA, (char) (tdrv->address & 0xff)); //адрес модуля на миспа
     if (ERR_MEM) {
+        fdsDate->Diagn = 0x80;
         tdrv->error = 0x80;
         return;
     }
-
+    fdsDate->Diagn = 0;
     tdrv->error = 0;
     // unsigned char RL;    
     // ReadBox3(AdrType, &RL);
@@ -91,18 +92,22 @@ void fds16r_dw(table_drv* tdrv) {
     CLEAR_MEM
     WritePort(ADR_MISPA, (char) (tdrv->address & 0xff));
     if (ERR_MEM) {
+        fdsDate->Diagn = 0x80;
         tdrv->error = 0x80;
         return;
     }
+    fdsDate->Diagn = 0;
     tdrv->error = 0;
     
     RH |= WriteBox(AdrOut18, 0);
     RH |= WriteBox(AdrOut916, 0);
     if (RH == 0x80) { // нет устройства
         tdrv->error = 0x80;
+        fdsDate->Diagn |= 0x80;
         return;
     } else if (RH == 0xC0) { // NEGC_BOX
         tdrv->error = 0xC0;
+        fdsDate->Diagn |= 0xC0;
         return;
     }
 
@@ -119,5 +124,8 @@ void fds16r_dw(table_drv* tdrv) {
     fdsDate->ISP[0].i = temp;
     ReadBx3w(AdrISP916,&temp);
     fdsDate->ISP[1].i = temp;
+    if(fdsDate->ISP[0].i || fdsDate->ISP[1].i){
+        fdsDate->Diagn |= 0xE0;
+    }
 };
 

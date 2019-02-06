@@ -30,6 +30,7 @@ typedef struct __attribute__((packed))
 {
   ssint SIGN[8];   // Результат счета каналов 1-8   
   sschar widesos;  // расширенный байт состояния
+  short Diagn;
 } vas84r_data;
 
 #define VAS84R 0xC6
