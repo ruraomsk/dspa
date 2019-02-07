@@ -1,38 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-/*
-===========================================================
-Типы диагностических сообщений модуля
-
-структура байта достоверности модуля 
- 
-  Бит         Значение
-
-   0   -   неинверсия исправности каналов 1-8
-   1   -   неинверсия исправности каналов 9-16
-   2   -   неинверсия статуса каналов 1 - 4
-   3   -   неинверсия статуса каналов 5 - 8  
-   4   -   неинверсия статуса каналов 9 - 12
-   5   -   неинверсия статуса каналов 13 - 16
-   6   -   ошибка типа модуля
-   7   -   критическая ошибка или нет доступа к ПЯ
-
-   исправность: бит исправности == 1 - канал неисправен
-
-   статус: биты 0-2
-               команда 0 (выключить) 000 - нет напряжения в коммутируемой сети и выходной ключ закрыт
-                                     010 - есть напряжение в коммутируемой сети и выходной ключ закрыт
-                                     011 - резерв
-               команда 1 (включить)  101 - нет неисправности и выходной ключ открыт 
-                                     110 - короткое замыкание или перегрузка и выходной ключ открыт 
-                             001,100,111 - неисправность
-
-
-===========================================================
- */
 #include "../dspadef.h"
 #include "../misparw.h"
 #include "fds16r.h"
@@ -54,8 +19,6 @@ extern volatile unsigned int irq_count;
 #define AdrSost58        0x06 // регистр состояния каналов 5-8   
 #define AdrSost912       0x07 // регистр состояния каналов 9-12   
 #define AdrSost1316      0x08 // регистр состояния каналов 13-16   
-
-
 
 void fds16r_ini(table_drv* tdrv) {
     int ADR_MISPA;
@@ -83,11 +46,12 @@ void fds16r_ini(table_drv* tdrv) {
 };
 
 void fds16r_dw(table_drv* tdrv) {
-    unsigned char RH=0, temp;
+    unsigned char RH = 0, temp;
     int ADR_MISPA = 0x118, i, j;
 
-    if (tdrv->error == 0x80)
+    if (tdrv->error & 0x80) // что-то с модулем не работаем
         return;
+    
     SetBoxLen(inipar->BoxLen);
     CLEAR_MEM
     WritePort(ADR_MISPA, (char) (tdrv->address & 0xff));
@@ -96,18 +60,19 @@ void fds16r_dw(table_drv* tdrv) {
         tdrv->error = 0x80;
         return;
     }
+
     fdsDate->Diagn = 0;
     tdrv->error = 0;
-    
+
     RH |= WriteBox(AdrOut18, 0);
     RH |= WriteBox(AdrOut916, 0);
     if (RH == 0x80) { // нет устройства
+        fdsDate->Diagn = 0x80;
         tdrv->error = 0x80;
-        fdsDate->Diagn |= 0x80;
         return;
     } else if (RH == 0xC0) { // NEGC_BOX
+        fdsDate->Diagn = 0xC0;
         tdrv->error = 0xC0;
-        fdsDate->Diagn |= 0xC0;
         return;
     }
 
@@ -120,12 +85,12 @@ void fds16r_dw(table_drv* tdrv) {
         WriteBox(i + 1, temp);
     }
 
-    ReadBx3w(AdrISP18,&temp);
+    ReadBx3w(AdrISP18, &temp);
     fdsDate->ISP[0].i = temp;
-    ReadBx3w(AdrISP916,&temp);
+    ReadBx3w(AdrISP916, &temp);
     fdsDate->ISP[1].i = temp;
-    if(fdsDate->ISP[0].i || fdsDate->ISP[1].i){
-        fdsDate->Diagn |= 0xE0;
+    if (fdsDate->ISP[0].i || fdsDate->ISP[1].i) {
+        fdsDate->Diagn = 0xE0;
     }
 };
 

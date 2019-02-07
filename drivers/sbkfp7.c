@@ -49,7 +49,6 @@ void sbkfp7_dw(table_drv *drv) {
 
     if (UpRead == 3) {
         temp.b = ReadPort(0x110);
-        printk("%hhx",temp.b);
         sbkDate->SbkSIGN[5].b = (temp.b >> 0) & 1;  // MP15-3.1 - 1
         sbkDate->SbkSIGN[6].b = (temp.b >> 1) & 1;  // MP15-3.1 - 2
         sbkDate->SbkSIGN[7].b = (temp.b >> 2) & 1;  // MP15-3 - 3
