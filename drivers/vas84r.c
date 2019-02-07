@@ -102,7 +102,7 @@ void vas84r_rd(table_drv* tdrv) {
     SetBoxLen(inipar->BoxLen);
     if (tdrv->error & 0x80) 
         return;
-
+        
     // установить адрес модуля на МИСПА
     RQ = (char) (tdrv->address & 0xff);
     CLEAR_MEM

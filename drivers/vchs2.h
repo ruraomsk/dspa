@@ -21,6 +21,7 @@ typedef struct __attribute__((packed))
 {
   ssfloat         K01VCHS;       // частота 1 канал 
   ssfloat         K02VCHS;       // частота 2 канал 
+  short Diagn;
   unsigned int tempI[2];
   float takt[2];
   float cykl[2];
@@ -28,7 +29,6 @@ typedef struct __attribute__((packed))
   unsigned char SVCHS[2];
   float fvch[2];
   float cyklS[2];
-  short Diagn;
 //  unsigned int iMFast[2][4];
 //  long lMSlow[2][20];
 //  long lSmF[2];

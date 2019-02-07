@@ -13,7 +13,7 @@ void sbkfp7_ini(table_drv *drv) {
 }
 
 void sbkfp7_dw(table_drv *drv) {
-    int i, j;
+    int i;
     ssbool temp;
     unsigned char ti;
     // состояния шкафа

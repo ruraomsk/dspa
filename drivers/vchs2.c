@@ -197,6 +197,7 @@ void vchs_dr(table_drv *tdrv) {
         tdrv->error = 0x80;
         return;
     }
+
     VchDate->Diagn = 0;
 
     RH |= ReadBx3w(AdrRQ, &RQ);
