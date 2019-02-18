@@ -24,7 +24,6 @@ void fds16r_ini(table_drv* tdrv) {
     int ADR_MISPA;
     ADR_MISPA = 0x118;
 
-    SetBoxLen(inipar->BoxLen);
     CLEAR_MEM
     WritePort(ADR_MISPA, (char) (tdrv->address & 0xff)); //адрес модуля на миспа
     if (ERR_MEM) {
@@ -32,6 +31,7 @@ void fds16r_ini(table_drv* tdrv) {
         tdrv->error = 0x80;
         return;
     }
+    
     fdsDate->Diagn = 0;
     tdrv->error = 0;
     // unsigned char RL;    
@@ -49,20 +49,21 @@ void fds16r_dw(table_drv* tdrv) {
     unsigned char RH = 0, temp;
     int ADR_MISPA = 0x118, i, j;
 
-    if (tdrv->error & 0x80) // что-то с модулем не работаем
+    if (tdrv->error) // что-то с модулем не работаем
         return;
+
+    fdsDate->Diagn = 0;
+    tdrv->error = 0;   
     
-    SetBoxLen(inipar->BoxLen);
     CLEAR_MEM
-    WritePort(ADR_MISPA, (char) (tdrv->address & 0xff));
+    WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
         fdsDate->Diagn = 0x80;
         tdrv->error = 0x80;
         return;
     }
 
-    fdsDate->Diagn = 0;
-    tdrv->error = 0;
+
 
     RH |= WriteBox(AdrOut18, 0);
     RH |= WriteBox(AdrOut916, 0);

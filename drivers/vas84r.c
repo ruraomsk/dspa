@@ -68,11 +68,16 @@
 
 void vas84r_ini(table_drv* tdrv) {
     int ADR_MISPA = 0x118;
-    unsigned char RQ = (unsigned char) (tdrv->address & 0xff);
+    unsigned char RQ;
+
+    if (tdrv->error) // что-то с модулем не работаем
+        return;
+
     tdrv->error = 0;
     VasData->Diagn = 0;
+
     CLEAR_MEM
-    WritePort(ADR_MISPA, RQ);
+    WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
         VasData->Diagn = 0x80;
         tdrv->error = 0x80;
@@ -85,6 +90,7 @@ void vas84r_ini(table_drv* tdrv) {
             tdrv->error = RQ;
             return;
         } 
+
     RQ = FreeBox(); // освободить ПЯ
     if (RQ) {
         VasData->Diagn = 0x90;
@@ -99,9 +105,11 @@ void vas84r_rd(table_drv* tdrv) {
     short temp;
     int i, ADR_MISPA = 0x118;
 
-    SetBoxLen(inipar->BoxLen);
-    if (tdrv->error & 0x80) 
+    if (tdrv->error) 
         return;
+
+    VasData->Diagn = 0;
+    tdrv->error = 0;
         
     // установить адрес модуля на МИСПА
     RQ = (char) (tdrv->address & 0xff);
@@ -113,8 +121,6 @@ void vas84r_rd(table_drv* tdrv) {
         return;
     }
 
-    VasData->Diagn = 0;
-    tdrv->error = 0;
 
     for (i = 0; i < 8; i++)
         VasData->SIGN[i].error = 0xff;

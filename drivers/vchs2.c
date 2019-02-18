@@ -69,7 +69,7 @@ void vchs_ini(table_drv *tdrv) {
     int ADR_MISPA = 0x118;
     tdrv->error = 0;
     VchDate->Diagn = 0;
-    SetBoxLen(inipar->BoxLen);
+
     RQ = (unsigned char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
@@ -181,7 +181,7 @@ void vchs_dr(table_drv *tdrv) {
     unsigned char RH = 0, RQ = 0, RQt = 0;
     int ADR_MISPA = 0x118, i;
     unsigned char CountChLow[2] = {0, 0}, CountChHigh[2] = {0, 0}, cerr[2] = {0, 0};
-    SetBoxLen(inipar->BoxLen);
+
     if (tdrv->error == 0x80) {
         vchs_ini(tdrv);
         if (tdrv->error == 0) {
@@ -190,6 +190,10 @@ void vchs_dr(table_drv *tdrv) {
         VchDate->Diagn = 0x80;
         return;
     }
+
+    tdrv->error - 0;
+    VchDate->Diagn = 0;
+
     CLEAR_MEM
     WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
@@ -197,8 +201,6 @@ void vchs_dr(table_drv *tdrv) {
         tdrv->error = 0x80;
         return;
     }
-
-    VchDate->Diagn = 0;
 
     RH |= ReadBx3w(AdrRQ, &RQ);
     RH |= ReadBx3w(AdrSTAT, &RQ); // читаем статус модуля 
