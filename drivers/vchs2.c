@@ -191,7 +191,7 @@ void vchs_dr(table_drv *tdrv) {
         return;
     }
 
-    tdrv->error - 0;
+    tdrv->error = 0;
     VchDate->Diagn = 0;
 
     CLEAR_MEM

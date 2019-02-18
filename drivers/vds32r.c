@@ -141,6 +141,8 @@ void vds32r_rd(table_drv *tdrv)
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
 
+    // попытка потушить неисправность (красная лампочка)
+    // -----------------
     RH = 0;
     RH |= ReadBox(AdrAntiTrembl0, &RQ);
     RH |= ReadBox(AdrAntiTrembl1, &RQ);
@@ -168,7 +170,8 @@ void vds32r_rd(table_drv *tdrv)
             return;
         }
     }
-
+    // -----------------
+    
     RH = 0;
     ReadBox(AdrRQ, &RH);
     if ((RH & 0x01) || (RH & 0x10))
