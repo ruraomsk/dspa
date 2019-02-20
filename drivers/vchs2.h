@@ -41,7 +41,7 @@ typedef struct __attribute__((packed))
 //  int pMSlow[2];
 } vchs_data;
 
-#define VCHS 0xc4
+#define VCHS 0xc6
 #define VCHS_SIZE sizeof(vchs_data)
 
 void vchs_ini(table_drv* drv);
