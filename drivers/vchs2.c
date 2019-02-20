@@ -67,22 +67,28 @@ extern float takt;
 void vchs_ini(table_drv *tdrv) {
     unsigned char RQ, RH = 0;
     int ADR_MISPA = 0x118;
-    tdrv->error = 0;
-    VchDate->Diagn = 0;
+    tdrv->error = SPAPS_OK;
+    VchDate->Diagn = SPAPS_OK;
 
     RQ = (unsigned char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
-
     if (ERR_MEM) {
-        VchDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        VchDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
 
+    ReadBox3(AdrType, &RQ);
+     if (RQ != inipar->type) {
+         tdrv->error = BUSY_BOX;
+         VchDate->Diagn = WRONG_DEV;
+         return;
+     } //ошибка типа модуля
+
     RH = CatchBox();
     if (RH) {
-        VchDate->Diagn = 0x80;
+        VchDate->Diagn = BUSY_BOX;
         tdrv->error = RH;
         return;
     }
@@ -116,8 +122,8 @@ void vchs_ini(table_drv *tdrv) {
     RH |= ReadBx3w(AdrSTAT, &RQ);
 
     if (RQ != 0) {
-        VchDate->Diagn = 0x90;
-        tdrv->error = 0x90;
+        VchDate->Diagn = SOST_ERR;
+        tdrv->error = SOST_ERR;
         return;
     } // ошибка состояния модуля
 
@@ -125,7 +131,7 @@ void vchs_ini(table_drv *tdrv) {
 
     RH |= FreeBox();
     if (RH) {
-        VchDate->Diagn = 0x80;
+        VchDate->Diagn = BUSY_BOX;
         tdrv->error = RH; // ошибка миспа
         return;
     }
@@ -182,12 +188,12 @@ void vchs_dr(table_drv *tdrv) {
     int ADR_MISPA = 0x118, i;
     unsigned char CountChLow[2] = {0, 0}, CountChHigh[2] = {0, 0}, cerr[2] = {0, 0};
 
-    if (tdrv->error == 0x80) {
+    if (tdrv->error == BUSY_BOX) {
         vchs_ini(tdrv);
         if (tdrv->error == 0) {
             tdrv->error = 0x81;
         }
-        VchDate->Diagn = 0x80;
+        VchDate->Diagn = BUSY_BOX;
         return;
     }
 
@@ -197,15 +203,15 @@ void vchs_dr(table_drv *tdrv) {
     CLEAR_MEM
     WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
-        VchDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        VchDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
 
     RH |= ReadBx3w(AdrRQ, &RQ);
     RH |= ReadBx3w(AdrSTAT, &RQ); // читаем статус модуля 
     if (RH) {
-        VchDate->Diagn = 0x80;
+        VchDate->Diagn = BUSY_BOX;
         tdrv->error = RH;
         return;
     }
@@ -215,7 +221,7 @@ void vchs_dr(table_drv *tdrv) {
     else {
         RQt = RQ & 0x1;
         if (RQt) {
-            VchDate->Diagn = 0x80;
+            VchDate->Diagn = BUSY_BOX;
             tdrv->error |= 0x83;
             cerr[0] |= 0x83;
         }
@@ -226,7 +232,7 @@ void vchs_dr(table_drv *tdrv) {
     else {
         RQt = RQ & 0x10;
         if (RQt) {
-            VchDate->Diagn = 0x80;
+            VchDate->Diagn = BUSY_BOX;
             tdrv->error |= 0x8c;
             cerr[1] |= 0x8c;
         }
@@ -275,7 +281,7 @@ void vchs_dr(table_drv *tdrv) {
     RH |= FreeBox();
     RH |= WriteBox(AdrRQ, 0xff);
     if (RH) {
-        VchDate->Diagn = 0x80;
+        VchDate->Diagn = BUSY_BOX;
         tdrv->error = RH; // ошибка миспа
         return;
     }

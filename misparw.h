@@ -37,6 +37,7 @@
 #define NEGC_BOX    0xC0    // Неинверсия в ПЯ
 #define SOST_ERR    0x90    // Ошибка состояния модуля
 #define CHAN_ERR    0xE0    // Неисправность каналов
+#define WRONG_DEV   0x88    // Установлен не верный модуль
 
 #define SPAPS_ADR_MISPA 0x118
 

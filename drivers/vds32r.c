@@ -68,16 +68,16 @@ void vds32r_ini(table_drv *tdrv)
 {
     unsigned char RQ, RH = 0, RL;
     int ADR_MISPA = 0x118;
-    tdrv->error = 0;
-    vdsDate->Diagn = 0;
+    tdrv->error = SPAPS_OK;
+    vdsDate->Diagn = SPAPS_OK;
     
     RQ = (unsigned char)(tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
     if (ERR_MEM)
     {
-        vdsDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        vdsDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
 
@@ -87,8 +87,8 @@ void vds32r_ini(table_drv *tdrv)
     RH |= ReadBx3w(AdrType, &RL);
     if (RL != inipar->type)
     {
-        vdsDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        vdsDate->Diagn = WRONG_DEV;
+        tdrv->error = BUSY_BOX;
         return;
     }                                                //ошибка типа модуля
     RH |= WriteBox(AdrAntiTrembl0, inipar->tadr116); // каналы 1-16   0x20
@@ -100,10 +100,10 @@ void vds32r_ini(table_drv *tdrv)
     RH |= ReadBx3w(AdrStatus0, &RL);
     RH |= ReadBx3w(AdrStatus1, &RL);
     RH |= ReadBx3w(AdrRQ, &RL);
-    if (RH == 0x80)
+    if (RH == BUSY_BOX)
     { // нет устройства
-        vdsDate->Diagn = 0x90;
-        tdrv->error = 0x90;
+        vdsDate->Diagn = SOST_ERR;
+        tdrv->error = SOST_ERR;
         return;
     }
     // else if (RH == 0xC0) { // NEGC_BOX
@@ -126,14 +126,14 @@ void vds32r_rd(table_drv *tdrv)
     if (tdrv->error)
         return; // пока повременить
 
-    vdsDate->Diagn = 0;
-    tdrv->error = 0;
+    vdsDate->Diagn = SPAPS_OK;
+    tdrv->error = SPAPS_OK;
 
     CLEAR_MEM
     WritePort(ADR_MISPA, (unsigned char)(tdrv->address & 0xff));
     if (ERR_MEM){
-        vdsDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        vdsDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
     
@@ -150,10 +150,10 @@ void vds32r_rd(table_drv *tdrv)
     RH |= ReadBox(AdrChanlsMask1, &RQ);
     RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
     RH |= ReadBox(AdrStatus1, &vdsValue.stat[1]);
-    if (RH == 0x80)
+    if (RH == BUSY_BOX)
     { // нет устройства
-        vdsDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        vdsDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
     if (RH == NEGC_BOX)
@@ -163,10 +163,10 @@ void vds32r_rd(table_drv *tdrv)
         RH |= WriteBox(AdrChanlsMask0, 0x0);              // каналы 1-16   0x21
         RH |= WriteBox(AdrAntiTrembl1, inipar->tadr1732); // каналы 17-32  0x23
         RH |= WriteBox(AdrChanlsMask1, 0x0);              // каналы 17-32  0x24
-        if (RH == 0x80)
+        if (RH == BUSY_BOX)
         { // нет устройства
-            vdsDate->Diagn = 0x80;
-            tdrv->error = 0x80;
+            vdsDate->Diagn = BUSY_BOX;
+            tdrv->error = BUSY_BOX;
             return;
         }
     }
@@ -181,16 +181,16 @@ void vds32r_rd(table_drv *tdrv)
         RH |= ReadBox3(AdrStatus0, &vdsValue.stat[0]);
         RH |= ReadBox3(AdrStatus1, &vdsValue.stat[1]);
 
-        if (RH == 0x80)
+        if (RH == BUSY_BOX)
         { // нет устройства
-            vdsDate->Diagn = 0x80;
-            tdrv->error = 0x80;
+            vdsDate->Diagn = BUSY_BOX;
+            tdrv->error = BUSY_BOX;
             return;
         }
         else if (RH == 0xC0)
         { // NEGC_BOX
-            vdsDate->Diagn = 0xC0;
-            tdrv->error = 0xC0;
+            vdsDate->Diagn = NEGC_BOX;
+            tdrv->error = NEGC_BOX;
             return;
         }
 
@@ -208,10 +208,10 @@ void vds32r_rd(table_drv *tdrv)
         RH |= ReadBx3w(AdrShortCircuit2, &vdsValue.kz[2]);
         RH |= ReadBx3w(AdrShortCircuit3, &vdsValue.kz[3]);
 
-        if (RH == 0x80)
+        if (RH == BUSY_BOX)
         { // нет устройства
-            vdsDate->Diagn = 0x80;
-            tdrv->error = 0x80;
+            vdsDate->Diagn = BUSY_BOX;
+            tdrv->error = BUSY_BOX;
             return;
         }
         // else if (RH == 0xC0) { // NEGC_BOX
@@ -232,11 +232,11 @@ void vds32r_rd(table_drv *tdrv)
             {
                 SErr = 0;
                 if (vdsValue.obr[i] & j){
-                    vdsDate->Diagn |= 0xE0;    
+                    vdsDate->Diagn |= CHAN_ERR;    
                     SErr |= 0x0c;
                 }
                 if (!(vdsValue.kz[i] & j)){
-                    vdsDate->Diagn |= 0xE0;
+                    vdsDate->Diagn |= CHAN_ERR;
                     SErr |= 0x30;
                 }
                 vdsDate->SIGN[k].error = SErr;

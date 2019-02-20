@@ -22,27 +22,26 @@ extern volatile unsigned int irq_count;
 
 void fds16r_ini(table_drv* tdrv) {
     int ADR_MISPA;
+    unsigned char RL;    
     ADR_MISPA = 0x118;
 
     CLEAR_MEM
     WritePort(ADR_MISPA, (char) (tdrv->address & 0xff)); //адрес модуля на миспа
     if (ERR_MEM) {
-        fdsDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        fdsDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
-    
-    fdsDate->Diagn = 0;
-    tdrv->error = 0;
-    // unsigned char RL;    
-    // ReadBox3(AdrType, &RL);
-    // printk("rl- %hhx",RL);
-    // printk("type - %hhx",inipar->type);
-    // if (RL != inipar->type) {
-    //     tdrv->error = 0x80;
-    //     return;
-    // } //ошибка типа модуля
 
+    ReadBox3(AdrType, &RL);
+     if (RL != inipar->type) {
+         tdrv->error = BUSY_BOX;
+         fdsDate->Diagn = WRONG_DEV;
+         return;
+     } //ошибка типа модуля
+    
+    fdsDate->Diagn = SPAPS_OK;
+    tdrv->error = SPAPS_OK;
 };
 
 void fds16r_dw(table_drv* tdrv) {
@@ -52,14 +51,14 @@ void fds16r_dw(table_drv* tdrv) {
     if (tdrv->error) // что-то с модулем не работаем
         return;
 
-    fdsDate->Diagn = 0;
-    tdrv->error = 0;   
+    fdsDate->Diagn = SPAPS_OK;
+    tdrv->error = SPAPS_OK;   
     
     CLEAR_MEM
     WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
-        fdsDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+        fdsDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
 
@@ -67,13 +66,13 @@ void fds16r_dw(table_drv* tdrv) {
 
     RH |= WriteBox(AdrOut18, 0);
     RH |= WriteBox(AdrOut916, 0);
-    if (RH == 0x80) { // нет устройства
-        fdsDate->Diagn = 0x80;
-        tdrv->error = 0x80;
+    if (RH == BUSY_BOX) { // нет устройства
+        fdsDate->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
-    } else if (RH == 0xC0) { // NEGC_BOX
-        fdsDate->Diagn = 0xC0;
-        tdrv->error = 0xC0;
+    } else if (RH == NEGC_BOX) { // NEGC_BOX
+        fdsDate->Diagn = NEGC_BOX;
+        tdrv->error = NEGC_BOX;
         return;
     }
 
@@ -91,7 +90,7 @@ void fds16r_dw(table_drv* tdrv) {
     ReadBx3w(AdrISP916, &temp);
     fdsDate->ISP[1].i = temp;
     if (fdsDate->ISP[0].i || fdsDate->ISP[1].i) {
-        fdsDate->Diagn = 0xE0;
+        fdsDate->Diagn = CHAN_ERR;
     }
 };
 

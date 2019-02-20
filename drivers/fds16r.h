@@ -33,7 +33,7 @@ typedef struct __attribute__((packed))
   short Diagn; 
 } fds16r_data;
 
-#define FDS16R 0x04
+#define FDS16R 0x96
 #define FDS16R_SIZE sizeof(fds16r_data)
 
 void fds16r_ini(table_drv* drv);

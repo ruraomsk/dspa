@@ -14,7 +14,7 @@ typedef struct __attribute__((packed))
   ssbool SbkSIGN[13];
 } sbk_data;
 
-#define SBK 0x01
+#define SBK 0xCC
 #define SBK_SIZE sizeof(sbk_data)
 
 void sbkfp7_ini(table_drv *drv);

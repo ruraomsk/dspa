@@ -73,27 +73,34 @@ void vas84r_ini(table_drv* tdrv) {
     if (tdrv->error) // что-то с модулем не работаем
         return;
 
-    tdrv->error = 0;
-    VasData->Diagn = 0;
+    tdrv->error = SPAPS_OK;
+    VasData->Diagn = SPAPS_OK;
 
     CLEAR_MEM
     WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
     if (ERR_MEM) {
-        VasData->Diagn = 0x80;
-        tdrv->error = 0x80;
+        VasData->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
+    ReadBox3(AdrType, &RQ);
+     if (RQ != inipar->type) {
+         tdrv->error = BUSY_BOX;
+         VasData->Diagn = WRONG_DEV;
+         return;
+     } //ошибка типа модуля
+
 
     RQ = CatchBox();
         if (RQ) {
-            VasData->Diagn = 0x90;
+            VasData->Diagn = SOST_ERR;
             tdrv->error = RQ;
             return;
         } 
 
     RQ = FreeBox(); // освободить ПЯ
     if (RQ) {
-        VasData->Diagn = 0x90;
+        VasData->Diagn = SOST_ERR;
         tdrv->error = RQ; // ошибка миспа
         return;
     }
@@ -108,16 +115,16 @@ void vas84r_rd(table_drv* tdrv) {
     if (tdrv->error) 
         return;
 
-    VasData->Diagn = 0;
-    tdrv->error = 0;
+    VasData->Diagn = SPAPS_OK;
+    tdrv->error = SPAPS_OK;
         
     // установить адрес модуля на МИСПА
     RQ = (char) (tdrv->address & 0xff);
     CLEAR_MEM
     WritePort(ADR_MISPA, RQ);
     if (ERR_MEM) {
-        VasData->Diagn = 0x80;
-        tdrv->error = 0x80;
+        VasData->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX;
         return;
     }
 
@@ -129,7 +136,7 @@ void vas84r_rd(table_drv* tdrv) {
     while (1) {
         RH = CatchBox();
         if (RH) {
-            VasData->Diagn = 0x80;
+            VasData->Diagn = BUSY_BOX;
             tdrv->error = RH;
             break;
         } // не могу захватить ПЯ
@@ -137,13 +144,13 @@ void vas84r_rd(table_drv* tdrv) {
 
         RH |= ReadBx3w(AdrSOST, &VasData->widesos.c);
         RH |= ReadBx3w(AdrSTAT, &RQ);
-        if (RQ & 0x80) {
-            VasData->Diagn = 0x90;
+        if (RQ & BUSY_BOX) {
+            VasData->Diagn = SOST_ERR;
             tdrv->error = RQ;
             break;
         }
-        if (RH == 0x80) { // нет устройства
-            VasData->Diagn = 0x80;
+        if (RH == BUSY_BOX) { // нет устройства
+            VasData->Diagn = BUSY_BOX;
             tdrv->error = RH;
             break;
         }
@@ -154,8 +161,8 @@ void vas84r_rd(table_drv* tdrv) {
         for (i = 0; i < 8; i++) {
             RH |= ReadBx3w(AdrData + (i * 3), &RL);
             RH |= ReadBx3w(AdrData + (i * 3) + 1, &RQ);
-            if (RH == 0x80) {
-                VasData->Diagn = 0x80;
+            if (RH == BUSY_BOX) {
+                VasData->Diagn = BUSY_BOX;
                 tdrv->error = RH;
                 break;
             }
@@ -170,7 +177,7 @@ void vas84r_rd(table_drv* tdrv) {
 
     RH = FreeBox(); // освободить ПЯ
     if (RH) {
-        VasData->Diagn = 0x80;
+        VasData->Diagn = BUSY_BOX;
         tdrv->error = RH; // ошибка миспа
     }
 }
