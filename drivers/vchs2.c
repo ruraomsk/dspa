@@ -79,12 +79,12 @@ void vchs_ini(table_drv *tdrv) {
         return;
     }
 
-    ReadBox3(AdrType, &RQ);
-     if (RQ != inipar->type) {
-         tdrv->error = BUSY_BOX;
-         VchDate->Diagn = WRONG_DEV;
-         return;
-     } //ошибка типа модуля
+    // ReadBox3(AdrType, &RQ);
+    //  if (RQ != inipar->type) {
+    //      tdrv->error = BUSY_BOX;
+    //      VchDate->Diagn = WRONG_DEV;
+    //      return;
+    //  } //ошибка типа модуля
 
     RH = CatchBox();
     if (RH) {

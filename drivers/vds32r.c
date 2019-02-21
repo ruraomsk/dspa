@@ -81,27 +81,39 @@ void vds32r_ini(table_drv *tdrv)
         return;
     }
 
-    RH |= WriteSinglBox(6, 0);
-    RH |= WriteSinglBox(4, 0);
+    // RH |= WriteSinglBox(6, 0);
+    // RH |= WriteSinglBox(4, 0);
     //    проверка типа модуля
     RH |= ReadBx3w(AdrType, &RL);
+    // printk("RL - %hhx, type - %hhx",RL,inipar->type);
     if (RL != inipar->type)
     {
         vdsDate->Diagn = WRONG_DEV;
         tdrv->error = BUSY_BOX;
         return;
     }                                                //ошибка типа модуля
+    // printk("RH0 - %hhx",RH);
     RH |= WriteBox(AdrAntiTrembl0, inipar->tadr116); // каналы 1-16   0x20
+    // printk("RH1 - %hhx",RH);
     // RH = WriteBox(AdrChanlsMask0, inipar->Dmask116); // каналы 1-16   0x21
     RH |= WriteBox(AdrChanlsMask0, 0x0);              // каналы 1-16   0x21
+    // printk("RH2 - %hhx",RH);
     RH |= WriteBox(AdrAntiTrembl1, inipar->tadr1732); // каналы 17-32  0x23
+    // printk("RH3 - %hhx",RH);
     // RH = WriteBox(AdrChanlsMask1, inipar->Dmask1732); // каналы 17-32  0x24
     RH |= WriteBox(AdrChanlsMask1, 0x0); // каналы 1-16   0x21
+    // printk("RH4 - %hhx",RH);
     RH |= ReadBx3w(AdrStatus0, &RL);
+    // printk("RH5 - %hhx",RH);
+    // printk("Stat1 - %hhx",RL);
     RH |= ReadBx3w(AdrStatus1, &RL);
+    // printk("RH6 - %hhx",RH);
+    // printk("Stat2 - %hhx",RL);
     RH |= ReadBx3w(AdrRQ, &RL);
+    // printk("RH7 - %hhx",RH);
     if (RH == BUSY_BOX)
     { // нет устройства
+        // printk("SOSt");
         vdsDate->Diagn = SOST_ERR;
         tdrv->error = SOST_ERR;
         return;
