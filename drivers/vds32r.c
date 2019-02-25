@@ -188,37 +188,39 @@ void vds32r_rd(table_drv *tdrv)
     ReadBox(AdrRQ, &RH);
     if ((RH & 0x01) || (RH & 0x10))
     {
-        RH = 0;
-        // проверка инверсии в статусе
-        RH |= ReadBox3(AdrStatus0, &vdsValue.stat[0]);
-        RH |= ReadBox3(AdrStatus1, &vdsValue.stat[1]);
+        // Попытка добиться стабильности модуля
+        // RH = 0;
+        // // проверка инверсии в статусе
+        // RH |= ReadBox3(AdrStatus0, &vdsValue.stat[0]);
+        // RH |= ReadBox3(AdrStatus1, &vdsValue.stat[1]);
 
-        if (RH == BUSY_BOX)
-        { // нет устройства
-            vdsDate->Diagn = BUSY_BOX;
-            tdrv->error = BUSY_BOX;
-            return;
-        }
-        else if (RH == 0xC0)
-        { // NEGC_BOX
-            vdsDate->Diagn = NEGC_BOX;
-            tdrv->error = NEGC_BOX;
-            return;
-        }
+        // if (RH == BUSY_BOX)
+        // { // нет устройства
+        //     vdsDate->Diagn = BUSY_BOX;
+        //     tdrv->error = BUSY_BOX;
+        //     return;
+        // }
+        // else if (RH == 0xC0)
+        // { // NEGC_BOX
+        //     vdsDate->Diagn = NEGC_BOX;
+        //     tdrv->error = NEGC_BOX;
+        //     return;
+        // }
 
         RH = 0;
         RH |= ReadBx3w(AdrSostContact0, &vdsValue.sost[0]);
         RH |= ReadBx3w(AdrSostContact1, &vdsValue.sost[1]);
         RH |= ReadBx3w(AdrSostContact2, &vdsValue.sost[2]);
         RH |= ReadBx3w(AdrSostContact3, &vdsValue.sost[3]);
-        RH |= ReadBx3w(AdrOpnCircuit0, &vdsValue.obr[0]);
-        RH |= ReadBx3w(AdrOpnCircuit1, &vdsValue.obr[1]);
-        RH |= ReadBx3w(AdrOpnCircuit2, &vdsValue.obr[2]);
-        RH |= ReadBx3w(AdrOpnCircuit3, &vdsValue.obr[3]);
-        RH |= ReadBx3w(AdrShortCircuit0, &vdsValue.kz[0]);
-        RH |= ReadBx3w(AdrShortCircuit1, &vdsValue.kz[1]);
-        RH |= ReadBx3w(AdrShortCircuit2, &vdsValue.kz[2]);
-        RH |= ReadBx3w(AdrShortCircuit3, &vdsValue.kz[3]);
+        // Попытка добиться стабильности модуля
+        // RH |= ReadBx3w(AdrOpnCircuit0, &vdsValue.obr[0]);
+        // RH |= ReadBx3w(AdrOpnCircuit1, &vdsValue.obr[1]);
+        // RH |= ReadBx3w(AdrOpnCircuit2, &vdsValue.obr[2]);
+        // RH |= ReadBx3w(AdrOpnCircuit3, &vdsValue.obr[3]);
+        // RH |= ReadBx3w(AdrShortCircuit0, &vdsValue.kz[0]);
+        // RH |= ReadBx3w(AdrShortCircuit1, &vdsValue.kz[1]);
+        // RH |= ReadBx3w(AdrShortCircuit2, &vdsValue.kz[2]);
+        // RH |= ReadBx3w(AdrShortCircuit3, &vdsValue.kz[3]);
 
         if (RH == BUSY_BOX)
         { // нет устройства
@@ -243,14 +245,15 @@ void vds32r_rd(table_drv *tdrv)
             for (z = 0; z < 8; z++)
             {
                 SErr = 0;
-                if (vdsValue.obr[i] & j){
-                    vdsDate->Diagn |= CHAN_ERR;    
-                    SErr |= 0x0c;
-                }
-                if (!(vdsValue.kz[i] & j)){
-                    vdsDate->Diagn |= CHAN_ERR;
-                    SErr |= 0x30;
-                }
+                // Попытка добиться стабильности модуля
+                // if (vdsValue.obr[i] & j){
+                //     vdsDate->Diagn |= CHAN_ERR;    
+                //     SErr |= 0x0c;
+                // }
+                // if (!(vdsValue.kz[i] & j)){
+                //     vdsDate->Diagn |= CHAN_ERR;
+                //     SErr |= 0x30;
+                // }
                 vdsDate->SIGN[k].error = SErr;
 
                 if (vdsValue.sost[i] & j)
