@@ -155,33 +155,33 @@ void vds32r_rd(table_drv *tdrv)
 
     // попытка потушить неисправность (красная лампочка)
     // -----------------
-    RH = 0;
-    RH |= ReadBox(AdrAntiTrembl0, &RQ);
-    RH |= ReadBox(AdrAntiTrembl1, &RQ);
-    RH |= ReadBox(AdrChanlsMask0, &RQ);
-    RH |= ReadBox(AdrChanlsMask1, &RQ);
-    RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
-    RH |= ReadBox(AdrStatus1, &vdsValue.stat[1]);
-    if (RH == BUSY_BOX)
-    { // нет устройства
-        vdsDate->Diagn = BUSY_BOX;
-        tdrv->error = BUSY_BOX;
-        return;
-    }
-    if (RH == NEGC_BOX)
-    {
-        RH = 0;
-        RH |= WriteBox(AdrAntiTrembl0, inipar->tadr116);  // каналы 1-16   0x20
-        RH |= WriteBox(AdrChanlsMask0, 0x0);              // каналы 1-16   0x21
-        RH |= WriteBox(AdrAntiTrembl1, inipar->tadr1732); // каналы 17-32  0x23
-        RH |= WriteBox(AdrChanlsMask1, 0x0);              // каналы 17-32  0x24
-        if (RH == BUSY_BOX)
-        { // нет устройства
-            vdsDate->Diagn = BUSY_BOX;
-            tdrv->error = BUSY_BOX;
-            return;
-        }
-    }
+    // RH = 0;
+    // RH |= ReadBox(AdrAntiTrembl0, &RQ);
+    // RH |= ReadBox(AdrAntiTrembl1, &RQ);
+    // RH |= ReadBox(AdrChanlsMask0, &RQ);
+    // RH |= ReadBox(AdrChanlsMask1, &RQ);
+    // RH |= ReadBox(AdrStatus0, &vdsValue.stat[0]);
+    // RH |= ReadBox(AdrStatus1, &vdsValue.stat[1]);
+    // if (RH == BUSY_BOX)
+    // { // нет устройства
+    //     vdsDate->Diagn = BUSY_BOX;
+    //     tdrv->error = BUSY_BOX;
+    //     return;
+    // }
+    // if (RH == NEGC_BOX)
+    // {
+    //     RH = 0;
+    //     RH |= WriteBox(AdrAntiTrembl0, inipar->tadr116);  // каналы 1-16   0x20
+    //     RH |= WriteBox(AdrChanlsMask0, 0x0);              // каналы 1-16   0x21
+    //     RH |= WriteBox(AdrAntiTrembl1, inipar->tadr1732); // каналы 17-32  0x23
+    //     RH |= WriteBox(AdrChanlsMask1, 0x0);              // каналы 17-32  0x24
+    //     if (RH == BUSY_BOX)
+    //     { // нет устройства
+    //         vdsDate->Diagn = BUSY_BOX;
+    //         tdrv->error = BUSY_BOX;
+    //         return;
+    //     }
+    // }
     // -----------------
     
     RH = 0;

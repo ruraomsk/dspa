@@ -69,7 +69,8 @@
 void vas84r_ini(table_drv* tdrv) {
     int ADR_MISPA = 0x118;
     unsigned char RQ;
-
+    
+    VasData->NumK = 0;
     tdrv->error = SPAPS_OK;
     VasData->Diagn = SPAPS_OK;
 
@@ -123,9 +124,9 @@ void vas84r_rd(table_drv* tdrv) {
         return;
     }
 
-
-    for (i = 0; i < 8; i++)
-        VasData->SIGN[i].error = 0xff;
+    if(VasData->NumK == 0)
+        for (i = 0; i < 8; i++)
+            VasData->SIGN[i].error = 0xff;
 
     //     // захват ПЯ модуля 
     while (1) {
@@ -152,21 +153,23 @@ void vas84r_rd(table_drv* tdrv) {
         ReadBx3w(AdrRQ, &RQ);
         if (RQ == 0)
             break;
+
         RH = 0;
-        for (i = 0; i < 8; i++) {
-            RH |= ReadBx3w(AdrData + (i * 3), &RL);
-            RH |= ReadBx3w(AdrData + (i * 3) + 1, &RQ);
-            if (RH == BUSY_BOX) {
-                // VasData->Diagn = BUSY_BOX;
-                // tdrv->error = RH;
-                break;
-            }
-            temp = ((RL << 8) | RQ);
-            VasData->SIGN[i].i = temp;
-            VasData->SIGN[i].error = 0;
+        // for (i = 0; i < 8; i++) {
+        RH |= ReadBx3w(AdrData + (VasData->NumK * 3), &RL);
+        RH |= ReadBx3w(AdrData + (VasData->NumK * 3) + 1, &RQ);
+        if (RH == BUSY_BOX) {
+            // VasData->Diagn = BUSY_BOX;
+            // tdrv->error = RH;
+            break;
         }
+        temp = ((RL << 8) | RQ);
+        VasData->SIGN[VasData->NumK].i = temp;
+        VasData->SIGN[VasData->NumK].error = 0;
+        // }
         break;
     }
+
     WriteBox(AdrRQ, 0);
     WriteBox(AdrSVE, 1);
 
@@ -175,5 +178,10 @@ void vas84r_rd(table_drv* tdrv) {
         VasData->Diagn = BUSY_BOX;
         tdrv->error = RH; // ошибка миспа
     }
+
+    if(VasData->NumK == 7)
+        VasData->NumK = 0;
+    else
+        VasData->NumK++;
 }
 
