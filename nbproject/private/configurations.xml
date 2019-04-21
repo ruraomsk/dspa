@@ -4,6 +4,36 @@
     <df root="." name="0">
       <df name=".tmp.drivedownload">
       </df>
+      <df name=".vscode">
+        <df name="ipch">
+          <df name="2ebe240cef880d9a">
+          </df>
+          <df name="35a4d13a499d9079">
+          </df>
+          <df name="44b6094c5b1e5756">
+          </df>
+          <df name="4a127a8f48582132">
+          </df>
+          <df name="4a12818f48582d17">
+          </df>
+          <df name="5343cb3a26025367">
+          </df>
+          <df name="5c1c74fe8c65ac17">
+          </df>
+          <df name="60237dfb1c6e8d52">
+          </df>
+          <df name="644cde2ef82d1cdd">
+          </df>
+          <df name="8a7f24d32c8db479">
+          </df>
+          <df name="b992a718478d7af0">
+          </df>
+          <df name="bf59b2344ed880c0">
+          </df>
+          <df name="e84a894c4945c873">
+          </df>
+        </df>
+      </df>
       <df name="drivers">
         <in>fds16r.c</in>
         <in>fds16r.h</in>

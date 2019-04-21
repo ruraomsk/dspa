@@ -135,6 +135,11 @@ void vds32r_rd(table_drv *tdrv)
     unsigned char RH = 0, SErr = 0, RQ = 0, i, j, z; 
     int k = 0, ADR_MISPA = 0x118;
 
+    for (k = 0; k < 32; k++){
+        vdsDate->SIGN[k].error = vdsDate->PastValue[k].error;
+        vdsDate->SIGN[k].error = vdsDate->PastValue[k].error;
+    }
+
     if (tdrv->error)
         return; // пока повременить
 
@@ -149,7 +154,6 @@ void vds32r_rd(table_drv *tdrv)
         return;
     }
     
-
     for (k = 0; k < 32; k++)
         vdsDate->SIGN[k].error = 0xff;
 
@@ -186,8 +190,9 @@ void vds32r_rd(table_drv *tdrv)
     
     RH = 0;
     ReadBox(AdrRQ, &RH);
-    if ((RH & 0x01) || (RH & 0x10))
-    {
+    
+    // if ((RH & 0x01) || (RH & 0x10))
+    // {   
         // Попытка добиться стабильности модуля
         // RH = 0;
         // // проверка инверсии в статусе
@@ -254,99 +259,16 @@ void vds32r_rd(table_drv *tdrv)
                 //     vdsDate->Diagn |= CHAN_ERR;
                 //     SErr |= 0x30;
                 // }
-                vdsDate->SIGN[k].error = SErr;
-
-                if (vdsValue.sost[i] & j)
-                    vdsDate->SIGN[k].b = 1;
-                else
-                    vdsDate->SIGN[k].b = 0;
+                vdsDate->SIGN[k].error = vdsDate->PastValue[k].error = SErr;
+                if (vdsValue.sost[i] & j){
+                    vdsDate->SIGN[k].b = vdsDate->PastValue[k].b = 1;
+                }
+                else{
+                    vdsDate->SIGN[k].b = vdsDate->PastValue[k].b = 0;
+                }
                 j <<= 1;
                 k++;
             }
         }
-    }
-}
-
-
-    // для отладки
-    // if (tdrv->address == 0x03) {
-    //     // printk("----------------------------");
-    //     // 21 de
-    //     ReadSinglBox(0x21, &RH);
-    //     if (RH != test[0][0]) {
-    //         temp = 1;
-    //         printk("0x21 izmenilsia -  old = %hhx  , new = %hhx", test[0][0], RH);
-    //         test[0][0] = RH;
-    //     }
-
-    //     ReadSinglBox(0xde, &RH);
-    //     if (RH != test[0][1]) {
-    //         temp = 1;
-    //         printk("0xde izmenilsia -  old = %hhx  , new = %hhx", test[0][1], RH);
-    //         test[0][1] = RH;
-    //     }
-    //     if (temp == 1) {
-    //         printk("tekyhee 21(de) %hhx - %hhx", test[0][0], test[0][1]);
-    //         temp = 0;
-    //     }
-
-    //     // 24 db
-    //     ReadSinglBox(0x24, &RH);
-    //     if (RH != test[1][0]) {
-    //         temp = 1;
-    //         printk("0x24 izmenilsia -  old = %hhx  , new = %hhx", test[1][0], RH);
-    //         test[1][0] = RH;
-    //     }
-
-    //     ReadSinglBox(0xdb, &RH);
-    //     if (RH != test[1][1]) {
-    //         temp = 1;
-    //         printk("0xdb izmenilsia -  old = %hhx  , new = %hhx", test[1][1], RH);
-    //         test[1][1] = RH;
-    //     }
-    //     if (temp == 1) {
-    //         printk("tekyhee 24(db) %hhx - %hhx", test[1][0], test[1][1]);
-    //         temp = 0;
-    //     }
-
-    //     // 20 df
-    //     ReadSinglBox(0x20, &RH);
-    //     if (RH != test[2][0]) {
-    //         temp = 1;
-    //         printk("0x20 izmenilsia -  old = %hhx  , new = %hhx", test[2][0], RH);
-    //         test[2][0] = RH;
-    //     }
-
-    //     ReadSinglBox(0xdf, &RH);
-    //     if (RH != test[2][1]) {
-    //         temp = 1;
-    //         printk("0xdf izmenilsia -  old = %hhx  , new = %hhx", test[2][1], RH);
-    //         test[2][1] = RH;
-    //     }
-    //     if (temp == 1) {
-    //         printk("tekyhee 20(df) %hhx - %hhx", test[2][0], test[2][1]);
-    //         temp = 0;
-    //     }
-
-    //     // 23 dc
-    //     ReadSinglBox(0x23, &RH);
-    //     if (RH != test[3][0]) {
-    //         temp = 1;
-    //         printk("0x23 izmenilsia -  old = %hhx  , new = %hhx", test[3][0], RH);
-    //         test[3][0] = RH;
-    //     }
-
-    //     ReadSinglBox(0xdc, &RH);
-    //     if (RH != test[3][1]) {
-    //         temp = 1;
-    //         printk("0xdc izmenilsia -  old = %hhx  , new = %hhx", test[3][1], RH);
-    //         test[3][1] = RH;
-    //     }
-    //     if (temp == 1) {
-    //         printk("tekyhee 23(dc) %hhx - %hhx", test[3][0], test[3][1]);
-    //         temp = 0;
-    //     }
-
-    //     // printk("============================");
     // }
-    // убириаем красный глаз?
+}
