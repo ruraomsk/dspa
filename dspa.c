@@ -90,7 +90,7 @@ static int dev_open(struct inode *n, struct file *f) {
     unsigned char ti;
     clearMemory();
     device_open = 1;
-    WatchPort();
+    // WatchPort();
 
     WritePort(0x128, 0xff);
     WritePort(0x100, 0x06);
@@ -132,7 +132,7 @@ int make_init(int driver_no) {
 static ssize_t dev_read(struct file * file, char * buf, size_t count, loff_t *ppos) {
     int i;
     table_drv *tdi;
-    WatchPort();
+    // WatchPort();
     if (count == 0) { // Запрос не мастер ли  мы?
         if ((ReadPort(0x100)&0x80) == 0)
             return 1; // нет не мастер
