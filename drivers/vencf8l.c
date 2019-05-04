@@ -96,12 +96,18 @@ unsigned char fds16init(unsigned char AdrMod, unsigned char TypeMod) {
 void vencf8_ini(table_drv *tdrv) {
     unsigned char RH = 0;
     devdata->numE = 0;
+    devdata->DiagnFDS = 0;
+    devdata->DiagnVDS = 0;
     tdrv->error = 0; // clear DRV error
     SetBoxLen(inipar->BoxLen);
-    RH |= vds32init(tdrv->address, inipar->typeVds); // инит Вдс на 1 месте
-    RH |= fds16init(inipar->AdrFds, inipar->typeFds); // инит Фдс на 3 месте
-    if (RH)
-        tdrv->error = RH;
+    RH = vds32init(tdrv->address, inipar->typeVds); // инит Вдс на 1 месте
+    devdata->DiagnVDS = RH;
+    RH = fds16init(inipar->AdrFds, inipar->typeFds); // инит Фдс на 3 месте
+    devdata->DiagnFDS = RH;
+    if (devdata->DiagnFDS || devdata->DiagnVDS) {
+        tdrv->error = devdata->DiagnFDS | devdata->DiagnVDS;
+        return;
+    }
 }
 
 //===========================================================
@@ -123,11 +129,11 @@ void vencf8_dr(table_drv *tdrv) {
     sslong ReciveEnc = {0, 0};
     int k1, k2, PermCykl = 0; // k1,k2 - для считывания координат, PermCykl = счетчик по кол-ву циклов считывания 
     sschar er = {0, 0};
-
-    SetBoxLen(inipar->BoxLen);
-
+    devdata->DiagnFDS = 0;
+    devdata->DiagnVDS = 0;
     ConnMod(tdrv->address); // подключаемся к ВДС на 1 месте
     if (ERR_MEM) {
+        devdata->DiagnVDS = BUSY_BOX;
         tdrv->error = BUSY_BOX;
         return;
     }
@@ -137,39 +143,40 @@ void vencf8_dr(table_drv *tdrv) {
     while (1) {
         ReadBox(AdrRQ, &RH);
         // if (RH & 0x01) { //изменения состояния данных в каналах 1-16
-            for (k1 = 0; k1 < 2; k1++) { // при k1=0 считываем с 0х10(каналы 1-8 ВДС), при k1=1 с 0х11(каналы 9-16 ВДС)
-                for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
-                    er.error = ReadBx3w(AdrSostContact0 + k1, &er.c);
-                    TempEnc[k2].c[k1] = ~er.c;
-                    devdata->venc[k1].error |= er.error;
-                }
-
+        for (k1 = 0; k1 < 2; k1++) { // при k1=0 считываем с 0х10(каналы 1-8 ВДС), при k1=1 с 0х11(каналы 9-16 ВДС)
+            for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
+                er.error = ReadBx3w(AdrSostContact0 + k1, &er.c);
+                TempEnc[k2].c[k1] = ~er.c;
+                devdata->venc[k1].error |= er.error;
             }
+
+        }
         // }
         // if (RH & 0x10) { //изменения состояния данных в каналах 17-32
-            for (k1 = 2; k1 < 4; k1++) { // при k1=2 считываем с 0х40(каналы 17-24 ВДС), при k2=3 с 0х41(каналы 25-32 ВДС)     (0х40 0х41 для вдс с новой прошивкой)
-                for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
-                    er.error = ReadBx3w(AdrSostContact2 + (k1 - 2), &er.c);
-                    TempEnc[k2].c[k1] = ~er.c;
-                    devdata->venc[k1].error |= er.error;
-                }
+        for (k1 = 2; k1 < 4; k1++) { // при k1=2 считываем с 0х40(каналы 17-24 ВДС), при k2=3 с 0х41(каналы 25-32 ВДС)     (0х40 0х41 для вдс с новой прошивкой)
+            for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
+                er.error = ReadBx3w(AdrSostContact2 + (k1 - 2), &er.c);
+                TempEnc[k2].c[k1] = ~er.c;
+                devdata->venc[k1].error |= er.error;
             }
-            if (er.error == BUSY_BOX) { // При ошибке во время чтения вылетаем
-                tdrv->error = er.error;
-                return;
-            }
+        }
+        if (er.error == BUSY_BOX) { // При ошибке во время чтения вылетаем
+            devdata->DiagnVDS = BUSY_BOX;
+            tdrv->error = er.error;
+            return;
+        }
         // }
         if ((TempEnc[0].l == TempEnc[1].l && TempEnc[0].l == TempEnc[2].l)) { // Если считанные значения равны, выходим
             break;
         }
         if (PermCykl < 5)
             PermCykl++; // пытаемся считать 10 раз
-        else{
+        else {
             PermCykl = 13; // если не получилось считать, записываем 13
             break;
         }
     }
-    if (PermCykl != 13) {   // в обычном состоянии расчитываем координату, если не получилось считать - оставляем старое значение
+    if (PermCykl != 13) { // в обычном состоянии расчитываем координату, если не получилось считать - оставляем старое значение
         // преобразуем и декодируем
         ReciveEnc.l = (TempEnc[0].l & TempEnc[1].l) | (TempEnc[1].l & TempEnc[2].l) | (TempEnc[0].l & TempEnc[2].l); // выбор 2 из 3
         devdata->gray[devdata->numE].l = (unsigned long) ReciveEnc.l & 0x00fffffful; // убираем старший байт
@@ -182,12 +189,14 @@ void vencf8_dr(table_drv *tdrv) {
     // ставим новый BUS
     ConnMod(inipar->AdrFds); // подключаемся к ФДС на 3 месте
     if (ERR_MEM) {
+        devdata->DiagnFDS = BUSY_BOX;
         tdrv->error = BUSY_BOX;
         return;
     }
 
     RH = WriteBox(AdrFdsOut18, BusEnc); // записывает нужный BUS
     if (RH) {
+        devdata->DiagnFDS = RH;
         tdrv->error = RH;
         return;
     }
