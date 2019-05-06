@@ -273,11 +273,22 @@ void vchs_dr(table_drv *tdrv) {
         }
     }
 
-    VchDate->K01VCHS.f = VchDate->fvch[0];
-    VchDate->K02VCHS.f = VchDate->fvch[1];
-    // --------
     VchDate->K01VCHS.error = cerr[0];
     VchDate->K02VCHS.error = cerr[1];
+
+    if(!cerr[0])
+        VchDate->K01VCHS.f = VchDate->fvch[0];
+    else
+        VchDate->K01VCHS.f = 3000000.0;
+
+    if(!cerr[1])
+        VchDate->K02VCHS.f = VchDate->fvch[1];
+    else
+        VchDate->K02VCHS.f = 3000000.0;
+
+    // VchDate->K01VCHS.f = VchDate->fvch[0];
+    // VchDate->K02VCHS.f = VchDate->fvch[1];
+
     RH |= FreeBox();
     RH |= WriteBox(AdrRQ, 0xff);
     if (RH) {
