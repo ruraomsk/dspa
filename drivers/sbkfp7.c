@@ -10,6 +10,8 @@ static int UpRead = 0;
 
 void sbkfp7_ini(table_drv *drv) {
     drv->error = 0;
+    for (i = 0; i < 13; i++)
+        sbkDate->SbkSIGN[i].error = 0;
 }
 
 void sbkfp7_dw(table_drv *drv) {
@@ -23,8 +25,6 @@ void sbkfp7_dw(table_drv *drv) {
         ti |= 0xfd;
         WritePort(0x108, ti);
         //      WritePort(0x108, 0xfd);
-        for (i = 0; i < 13; i++)
-            sbkDate->SbkSIGN[i].error = 0xff;
     }
 
     if (UpRead == 1) {
@@ -34,9 +34,6 @@ void sbkfp7_dw(table_drv *drv) {
         sbkDate->SbkSIGN[2].b = (temp.b >> 3) & 1;  // door
         sbkDate->SbkSIGN[3].b = (temp.b >> 4) & 1;  // t < 43
         sbkDate->SbkSIGN[4].b = (temp.b >> 5) & 1;  // t > 53
-        for (i = 0; i < 5; i++) {
-            sbkDate->SbkSIGN[i].error = 0;
-        }
     }
     // состояния БП
     if (UpRead == 2) {
@@ -60,9 +57,6 @@ void sbkfp7_dw(table_drv *drv) {
     sbkDate->SbkSIGN[10].b = (temp.b >> 1) & 1; // PB5/24 - 6
     sbkDate->SbkSIGN[11].b = (temp.b >> 6) & 1; // PB5/24 - 7
     sbkDate->SbkSIGN[12].b = (temp.b >> 7) & 1; // PB5/24 - 8
-    for (i = 9; i < 12; i++) {
-        sbkDate->SbkSIGN[i].error = 0;
-    }
 
     if (UpRead != 3)
         UpRead++;

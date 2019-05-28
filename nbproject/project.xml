@@ -11,7 +11,7 @@
             <make-dep-projects/>
             <sourceRootList>
                 <sourceRootElem>.</sourceRootElem>
-                <sourceRootElem>D:/cpc108/include</sourceRootElem>
+                <sourceRootElem>../../cpc108/include</sourceRootElem>
             </sourceRootList>
             <confList>
                 <confElem>

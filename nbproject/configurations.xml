@@ -8274,7 +8274,7 @@
   <sourceFolderFilter>^(nbproject)$</sourceFolderFilter>
   <sourceRootList>
     <Elem>.</Elem>
-    <Elem>D:/cpc108/include</Elem>
+    <Elem>../../cpc108/include</Elem>
   </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
@@ -8335,32 +8335,32 @@
           <preBuildCommand></preBuildCommand>
         </preBuild>
       </makefileType>
-      <item path="drivers/fds16r.c" ex="false" tool="0" flavor2="10">
+      <item path="drivers/fds16r.c" ex="false" tool="0" flavor2="0">
         <cTool flags="0">
         </cTool>
       </item>
-      <item path="drivers/sbkfp7.c" ex="false" tool="0" flavor2="3">
+      <item path="drivers/sbkfp7.c" ex="false" tool="0" flavor2="0">
         <cTool flags="0">
           <preprocessorList>
             <Elem>KBUILD_BASENAME="sbkfp7"</Elem>
           </preprocessorList>
         </cTool>
       </item>
-      <item path="drivers/vas84r.c" ex="false" tool="0" flavor2="10">
+      <item path="drivers/vas84r.c" ex="false" tool="0" flavor2="0">
         <cTool flags="0">
           <preprocessorList>
             <Elem>KBUILD_BASENAME="vas84r"</Elem>
           </preprocessorList>
         </cTool>
       </item>
-      <item path="drivers/vchs2.c" ex="false" tool="0" flavor2="3">
+      <item path="drivers/vchs2.c" ex="false" tool="0" flavor2="0">
         <cTool flags="0">
           <preprocessorList>
             <Elem>KBUILD_BASENAME="vchs2"</Elem>
           </preprocessorList>
         </cTool>
       </item>
-      <item path="drivers/vds32r.c" ex="false" tool="0" flavor2="10">
+      <item path="drivers/vds32r.c" ex="false" tool="0" flavor2="0">
         <cTool flags="0">
           <preprocessorList>
             <Elem>KBUILD_BASENAME="vds32r"</Elem>
@@ -8381,7 +8381,7 @@
           </preprocessorList>
         </cTool>
       </item>
-      <item path="misparw.c" ex="false" tool="0" flavor2="10">
+      <item path="misparw.c" ex="false" tool="0" flavor2="0">
         <cTool flags="0">
           <preprocessorList>
             <Elem>KBUILD_BASENAME="misparw"</Elem>
