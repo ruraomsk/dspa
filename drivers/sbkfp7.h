@@ -12,7 +12,7 @@ typedef struct __attribute__((packed))
 typedef struct __attribute__((packed))
 {
   ssbool SbkSIGN[13];
-  unsigned char SbkSaveS[3][13]; 
+  // unsigned char SbkSaveS[3][13]; 
 } sbk_data;
 
 #define SBK 0xCC
