@@ -8295,7 +8295,7 @@
       <makefileType>
         <makeTool>
           <buildCommandWorkingDir>.</buildCommandWorkingDir>
-          <buildCommand>make all</buildCommand>
+          <buildCommand>make all SYS=G</buildCommand>
           <cleanCommand>make clean</cleanCommand>
           <executablePath></executablePath>
           <cTool>
