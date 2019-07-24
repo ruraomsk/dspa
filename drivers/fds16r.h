@@ -31,6 +31,7 @@ typedef struct __attribute__((packed))
   sschar SIGN[16]; // Результат счета каналов 1-8  
   ssint ISP[2];
   short Diagn; 
+  char emptyspace[64];
 } fds16r_data;
 
 #define FDS16R 0x96

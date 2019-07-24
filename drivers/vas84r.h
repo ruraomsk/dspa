@@ -32,6 +32,7 @@ typedef struct __attribute__((packed))
   sschar widesos;  // расширенный байт состояния
   short Diagn;
   short NumK;
+  char emptyspace[64];
 } vas84r_data;
 
 #define VAS84R 0xC6

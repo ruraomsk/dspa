@@ -39,6 +39,7 @@ typedef struct __attribute__((packed))
   ssbool SIGN[32]; // Результат счета каналов 1-8   
   short Diagn;
   ssbool PastValue[32];
+  char emptyspace[64];
 } vds32r_data;
 
 typedef struct __attribute__((packed))

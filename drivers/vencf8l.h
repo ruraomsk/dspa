@@ -50,6 +50,7 @@ typedef struct __attribute__((packed))
   short     DiagnFDS;      // диагностика ФДС
   short     DiagnVDS;      // диагностика ВДС 
   short     numE;          // переменная для выбора цикла (выбирает следующий BUS)
+  char emptyspace[64];
 } vencf8_data;
 
 #define VENCF 0x2
