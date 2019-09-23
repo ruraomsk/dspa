@@ -4,7 +4,6 @@
 #include <linux/string.h>
 #include <linux/delay.h>
 #include "vencf8l.h"
-#include "linux/printk.h"
 
 #define inipar ((vencf8_inipar *)(tdrv->inimod))
 #define devdata ((vencf8_data *)(tdrv->data))
@@ -113,16 +112,6 @@ void vencf8_ini(table_drv *tdrv) {
 //===========================================================
 // Чтение модуля VENCF8
 //===========================================================
-
-
-// Работаем без выставления Latch 
-
-// Если нужно добавить выставление 
-// RH = WriteBox(AdrFdsOut916, 1);  
-// if (RH) {
-//     tdrv->error = RH;
-//     return;
-// }
 
 void vencf8_dr(table_drv *tdrv) {
     unsigned char RH = 0, BusEnc;

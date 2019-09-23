@@ -33,7 +33,7 @@
 #define ININET      0x12    //; запрос на инициализацию сетевого процессора
 
 #define SPAPS_OK    0x00
-#define BUSY_BOX    0x80    // Нет ответа он модуля
+#define BUSY_BOX    0x80    // Нет ответа от модуля
 #define NEGC_BOX    0xC0    // Неинверсия в ПЯ
 #define SOST_ERR    0x90    // Ошибка состояния модуля
 #define CHAN_ERR    0xE0    // Неисправность каналов
