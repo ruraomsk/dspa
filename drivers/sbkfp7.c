@@ -26,8 +26,8 @@ void sbkfp7_dw(table_drv *drv) {
     // состояние шкафа
     if (UpRead == 0) {
         ti = ReadPort(0x108); //читаем из  порта 0x108 
-        ti &= 0xf9; 
-        ti |= 0xfd; 
+        ti &= 0xf9;
+        ti |= 0xfd;
         WritePort(0x108, ti); //записываем измененное значение в порт 0x108
     }
 
@@ -65,6 +65,6 @@ void sbkfp7_dw(table_drv *drv) {
     //работа по циклу из 4 значений
     if (UpRead != 3)
         UpRead++;
-    else 
+    else
         UpRead = 0;
 }

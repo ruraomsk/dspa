@@ -5,22 +5,16 @@
 #define inipar ((vchs_inipar *)(tdrv->inimod))
 #define VchDate ((vchs_data *)(tdrv->data))
 #define AdrType 0x4 // тип модуля   0xC6
-#define AdrRQ 0x5   // inv 0xFA регистр запроса обслуживания
+#define AdrRQ 0x5   // регистр запроса обслуживания
 #define AdrSV 0x6
 #define AdrSVE 0x7
-#define AdrSTAT 0xF       // inv 0xF0 – состояние модуля
+#define AdrSTAT 0xF       // Регистр состояние модуля
 #define IntrvCh1Low 0x10  // Регистр результата счета младший байт 1 канала
 #define IntrvCh1High 0x11 // Регистр результата счета старший байт 1 канала
 #define IntrvCh2Low 0x30  // Регистр результата счета младший байт 2 канала
 #define IntrvCh2High 0x31 // Регистр результата счета старший байт 2 канала
-#define RzCh1 0x12        // Регистр контроля диапазона 1 канал
-#define RzCh2 0x32        // Регистр контроля диапазона 2 канал
 #define RgSost1 0x13      // Регистр состояния канала 1 канал
 #define RgSost2 0x33      // Регистр состояния канала 2 канал
-#define CurCh1Low 0x15    // Регистр текущего значения младший байт 1 канала
-#define CurCh1High 0x16   // Регистр текущего значения старший байт 1 канала
-#define CurCh2Low 0x35    // Регистр текущего значения младший байт 2 канала
-#define CurCh2High 0x36   // Регистр текущего значения старший байт 2 канала
 #define DiCont1 0x1C      // Регистр управления диапазоном 1 канал
 #define DiCont2 0x3C      // Регистр управления диапазоном 2 канал
 #define CommCh1 0x1D      // Регистр управления коммутатором каналов 1 канал
@@ -41,33 +35,27 @@ extern float takt;
 //===========================================================
 
 void vchs_ini(table_drv *tdrv) {
-    unsigned char RQ, RH = 0;
-    int ADR_MISPA = 0x118;
+    unsigned char RQ, RH = 0; //переменные для хранения возвращаемых значений
+    int ADR_MISPA = 0x118; //переменная хранящаая адрес миспы
     tdrv->error = SPAPS_OK;
-    VchDate->Diagn = SPAPS_OK;
+    VchDate->Diagn = SPAPS_OK; //считаем что модуль исправен
 
-    RQ = (unsigned char) (tdrv->address & 0xff);
-    CLEAR_MEM
-    WritePort(ADR_MISPA, RQ);
-    if (ERR_MEM) {
+    CLEAR_MEM //подготовка памяти
+    WritePort(ADR_MISPA, (char) (tdrv->address & 0xff)); //сообщаем миспе какой модуль к ней обращается
+    if (ERR_MEM) { //проверка на наличие ошибки
         VchDate->Diagn = BUSY_BOX;
-        tdrv->error = BUSY_BOX;
-        return;
+        tdrv->error = BUSY_BOX; //запоминаем значение - Нет ответа от модуля
+        return; //прекращаем работу до исправления ошибки
     }
 
-    // ReadBox3(AdrType, &RQ);
-    //  if (RQ != inipar->type) {
-    //      tdrv->error = BUSY_BOX;
-    //      VchDate->Diagn = WRONG_DEV;
-    //      return;
-    //  } //ошибка типа модуля
+    // проверка типа модуля
+    ReadBox3(AdrType, &RQ);
+     if (RQ != inipar->type) { //проверяем верный ли модуль установлен на данном месте
+         tdrv->error = BUSY_BOX;
+         VchDate->Diagn = WRONG_DEV; //запоминаем значение - ошибка типа модуля
+         return; //прекращаем работу до исправления ошибки
+     } 
 
-    RH = CatchBox();
-    if (RH) {
-        VchDate->Diagn = BUSY_BOX;
-        tdrv->error = RH;
-        return;
-    }
     // Натсройка диапазонов
     RQ = 0x40 | inipar->chn1d;
     RH |= WriteBox(DiCont1, RQ);
@@ -94,23 +82,13 @@ void vchs_ini(table_drv *tdrv) {
 
     // очистка регистр RQ
     RH |= WriteBox(AdrRQ, 0xff);
-
+    // проверка статуса модуля
     RH |= ReadBx3w(AdrSTAT, &RQ);
-
-    if (RQ != 0) {
+    if (RQ != 0) { // ошибка состояния модуля
         VchDate->Diagn = SOST_ERR;
         tdrv->error = SOST_ERR;
         return;
-    } // ошибка состояния модуля
-
-    // освободить ПЯ
-
-    RH |= FreeBox();
-    if (RH) {
-        VchDate->Diagn = BUSY_BOX;
-        tdrv->error = RH; // ошибка миспа
-        return;
-    }
+    } 
 }
 
 //===========================================================
@@ -118,28 +96,28 @@ void vchs_ini(table_drv *tdrv) {
 //===========================================================
 
 void vchs_dr(table_drv *tdrv) {
-    unsigned char RH = 0, RQ = 0, RQt = 0;
-    int ADR_MISPA = 0x118, i;
-    unsigned char CountChLow[2] = {0, 0}, CountChHigh[2] = {0, 0}, cerr[2] = {0, 0};
+    unsigned char RH = 0, RQ = 0, RQt = 0; //переменные для хранения возвращаемых значений
+    int ADR_MISPA = 0x118, i; //переменная хранящаая адрес миспы
+    unsigned char CountChLow[2] = {0, 0}, CountChHigh[2] = {0, 0}, cerr[2] = {0, 0}; //переменные для хранения считанных значений
 
-    if (tdrv->error == BUSY_BOX) {
-        vchs_ini(tdrv);
+    if (tdrv->error == BUSY_BOX) { //проверка не произошла ли ошибка на прошлом цикле
+        vchs_ini(tdrv); // если ошибка была, сделать быструю инициализацию
         if (tdrv->error == 0) {
             tdrv->error = 0x81;
         }
         VchDate->Diagn = BUSY_BOX;
-        return;
+        return; //быстро устранить не получилось, ожидаем...
     }
 
     tdrv->error = 0;
-    VchDate->Diagn = 0;
+    VchDate->Diagn = 0; //ошибоки с прошлого раза нет все впорядке
 
-    CLEAR_MEM
-    WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
-    if (ERR_MEM) {
+    CLEAR_MEM //подготовка памяти
+    WritePort(ADR_MISPA, (char) (tdrv->address & 0xff)); //сообщаем миспе какой модуль к ней обращается
+    if (ERR_MEM) { //проверка на наличие ошибки
         VchDate->Diagn = BUSY_BOX;
-        tdrv->error = BUSY_BOX;
-        return;
+        tdrv->error = BUSY_BOX; //запоминаем значение - Нет ответа от модуля
+        return; //прекращаем работу до исправления ошибки
     }
 
     RH |= ReadBx3w(AdrRQ, &RQ);
@@ -147,9 +125,10 @@ void vchs_dr(table_drv *tdrv) {
     if (RH) {
         VchDate->Diagn = BUSY_BOX;
         tdrv->error = RH;
-        return;
+        return; //прекращаем работу до исправления ошибки
     }
 
+    //достаем ошибку из статуса для 1 канала 
     if ((inipar->UsMask & 1) == 0)
         cerr[0] |= 0x3;
     else {
@@ -161,6 +140,7 @@ void vchs_dr(table_drv *tdrv) {
         }
     }
 
+    //достаем ошибку из статуса для 2 канала 
     if ((inipar->UsMask & 2) == 0)
         cerr[1] |= 0xc0;
     else {
@@ -172,18 +152,20 @@ void vchs_dr(table_drv *tdrv) {
         }
     }
 
-
+    //обработка 2х каналов ВЧС
     for (i = 0; i < 2; i++) {
-        if (!cerr[i] && VchDate->perm[i] <= 0) {
-            // есть ли переполнение?
-            ReadBx3w(0x13 + (0x20 * i), &RQ); // Состояния адрес 0x13 и 0x33
+        if (!cerr[i] && VchDate->perm[i] <= 0) { //проверяем если ли ошибка по каналу и разрешение на чтение получено
+            //проверяем переполнение канала
+            ReadBx3w(0x13 + (0x20 * i), &RQ); //читаем состояния адрес 0x13 и 0x33
             RQ &= 0x2b;
-            if (RQ & 0x20) {
+            if (RQ & 0x20) { //проверка на переполнение канала
                 VchDate->SVCHS[i] = 1; // 1 - есть переполнение 0 - нет
-                // Сброс регистров 3 команды  
-                ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
+                // Сброс регистров   
+                ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]); 
                 ReadBx3w(0x1a + (0x20 * i), &CountChHigh[i]);
-                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]);
+                //преобразуем значение по каналу, для дальнейшего решения ситуации  переполнением
+                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]); 
+                //сбрасываем счетчик по текущему каналу
                 WriteSinglBox(AdrSV, 1);
                 ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
                 ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
@@ -191,23 +173,27 @@ void vchs_dr(table_drv *tdrv) {
                 WriteBox(0x13 + (0x20 * i), 0xff);
                 continue;
             } else {
+                //переполнение не произошло значение можно доверять
                 ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
                 ReadBx3w(0x1a + (0x20 * i), &CountChHigh[i]);
-                // Сброс регистров 3 команды
+                //сбрасываем счетчик текущего канала для следующего интервала подсчета
                 WriteSinglBox(AdrSV, 1);
                 ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
                 ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
-                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]);
+                //преобразование значения по каналу
+                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]); 
                 WriteSinglBox(AdrSV, 0);
-                VchDate->SVCHS[i] = 0; // все нормально
+                VchDate->SVCHS[i] = 0; // все нормально, переполнения не было
             }
 
         }
     }
 
+    //запись значений 
     VchDate->K01VCHS.error = cerr[0];
     VchDate->K02VCHS.error = cerr[1];
 
+    //если появились ошибки по каналам, ставим частоту 3М
     if (!cerr[0])
         VchDate->K01VCHS.f = VchDate->fvch[0];
     else
@@ -218,8 +204,7 @@ void vchs_dr(table_drv *tdrv) {
     else
         VchDate->K02VCHS.f = 3000000.0;
 
-    RH |= FreeBox();
-    RH |= WriteBox(AdrRQ, 0xff);
+    RH |= WriteBox(AdrRQ, 0xff); //сообщаем модулю что бы завершили обслуживание
     if (RH) {
         VchDate->Diagn = BUSY_BOX;
         tdrv->error = RH; // ошибка миспа

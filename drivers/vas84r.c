@@ -8,131 +8,123 @@
 #define AdrRQ         0x5   // запрос на обслуживание  
 #define AdrSV         0x6   // флаг захвата ПЯ со стороны ФП                 
 #define AdrSVE        0x7   // флаг завершения обслуживания ПЯ 
-#define AdrMASTER     0x8   // флаг задатчика времени                        
-#define AdrNewTime    0x9   // флаг нового времени                           
-#define AdrNOTINV     0xa   // слово - счетчик количества неинверсий ПЯ      
-// обнаруженных модулем                          
-#define AdrNINVFP     0xc   // слово - счетчик количества неинверсий ПЯ      
-// обнаруженных ФП                               
-#define AdrCT_GLOB    0xe   // счетчик переворотов ПЯ                        
 #define AdrSTAT       0xF   // байт состояния модуля
 #define AdrData       0x10  // начало таблицы данных                 
 #define AdrSOST       0x43  // расширенный байт состояния  
 
+//===========================================================
+//  Инициализация модуля VAS84r
+//===========================================================
+
 void vas84r_ini(table_drv* tdrv) {
-    int ADR_MISPA = 0x118;
-    unsigned char RQ;
+    int ADR_MISPA = 0x118; //переменная хранящаая адрес миспы
+    unsigned char temp; //буфферная переменная
 
-    VasData->NumK = 0;
-    tdrv->error = SPAPS_OK;
+    VasData->NumK = 0; //счетчик каналов - работа начинается с 0
     VasData->Diagn = SPAPS_OK;
+    tdrv->error = SPAPS_OK; //считаем что модуль исправен
 
-    CLEAR_MEM
-    WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff));
-    if (ERR_MEM) {
+    CLEAR_MEM //подготовка памяти
+    WritePort(ADR_MISPA, (unsigned char) (tdrv->address & 0xff)); //сообщаем миспе какой модуль к ней обращается
+    if (ERR_MEM) { //проверка на наличие ошибки
         VasData->Diagn = BUSY_BOX;
+        tdrv->error = BUSY_BOX; //запоминаем значение - Нет ответа от модуля
+        return; //прекращаем работу до исправления ошибки
+    }
+
+    ReadBox3(AdrType, &temp); //читаем из памяти тип установленного модуля
+    if (temp != inipar->type) { //проверяем верный ли модуль установлен на данном месте
         tdrv->error = BUSY_BOX;
-        return;
+        VasData->Diagn = WRONG_DEV; //запоминаем значение - ошибка типа модуля
+        return; //прекращаем работу до исправления ошибки
     }
 
-    // ReadBox3(AdrType, &RQ);
-    //  if (RQ != inipar->type) {
-    //      tdrv->error = BUSY_BOX;
-    //      VasData->Diagn = WRONG_DEV;
-    //      return;
-    //  } //ошибка типа модуля
 
-
-    RQ = CatchBox();
-    if (RQ) {
+    temp = CatchBox(); //захват ПЯ 
+    if (temp) { //проверяем захват ПЯ
         VasData->Diagn = SOST_ERR;
-        tdrv->error = RQ;
-        return;
+        tdrv->error = temp; //запоминаем значение вернувшееся после попытки захвата ПЯ
+        return; //прекращаем работу до исправления ошибки
     }
 
-    RQ = FreeBox(); // освободить ПЯ
-    if (RQ) {
+    temp = FreeBox(); // освободить ПЯ
+    if (temp) {
         VasData->Diagn = SOST_ERR;
-        tdrv->error = RQ; // ошибка миспа
-        return;
+        tdrv->error = temp; // запоминаем значение вернувшееся после попытки освобождения ПЯ
+        return; //прекращаем работу до исправления ошибки
     }
 
 }
 
 void vas84r_rd(table_drv* tdrv) {
-    unsigned char RQ, RH, RL;
-    short temp;
-    int i, ADR_MISPA = 0x118;
+    unsigned char RQ, RH, RL; //переменные для хранения возвращаемых значений
+    short temp; //буфферная переменная
+    int i, ADR_MISPA = 0x118; //переменная хранящаая адрес миспы
 
-    if (tdrv->error)
+    if (tdrv->error) //если есть ошибка ожидаем пока она не решится
         return;
 
-    // установить адрес модуля на МИСПА
-    RQ = (char) (tdrv->address & 0xff);
-    CLEAR_MEM
-    WritePort(ADR_MISPA, RQ);
-    if (ERR_MEM) {
+    CLEAR_MEM //подготовка памяти
+    WritePort(ADR_MISPA, (char) (tdrv->address & 0xff)); //сообщаем миспе какой модуль к ней обращается
+    if (ERR_MEM) { // проверка на наличие ошибки
         VasData->Diagn = BUSY_BOX;
-        tdrv->error = BUSY_BOX;
-        return;
+        tdrv->error = BUSY_BOX; //запоминаем значение - Нет ответа от модуля
+        return; //прекращаем работу до исправления ошибки
     }
 
-    if (VasData->NumK == 0)
+    if (VasData->NumK == 0) //если это начало работы, считаем что все каналы не подключены
         for (i = 0; i < 8; i++)
             VasData->SIGN[i].error = 0xff;
 
-    //     // захват ПЯ модуля 
+
     while (1) {
-        RH = CatchBox();
-        if (RH) {
+        RH = CatchBox(); //захват ПЯ 
+        if (RH) { //проверяем захват ПЯ
             VasData->Diagn = BUSY_BOX;
-            tdrv->error = RH;
-            break;
-        } // не могу захватить ПЯ
-
-
-        RH |= ReadBx3w(AdrSOST, &VasData->widesos.c);
-        RH |= ReadBx3w(AdrSTAT, &RQ);
-        if (RQ & BUSY_BOX) {
-            VasData->Diagn = SOST_ERR;
-            tdrv->error = RQ;
-            break;
+            tdrv->error = RH; //запоминаем значение вернувшееся после попытки захвата ПЯ
+            break; //выходим из основного цикла работы до исправления ошибки
         }
-        // if (RH == BUSY_BOX) { // нет устройства
-        //     VasData->Diagn = BUSY_BOX;
-        //     tdrv->error = RH;
-        //     break;
-        // }
-        ReadBx3w(AdrRQ, &RQ);
+
+
+        RH |= ReadBx3w(AdrSOST, &VasData->widesos.c); //читаем расширеный байт состояния 
+        RH |= ReadBx3w(AdrSTAT, &RQ); //читаем байт состояния модуля
+        if (RQ & BUSY_BOX) { //проверяем состояние модуля
+            VasData->Diagn = SOST_ERR;
+            tdrv->error = RQ; //запоминаем значение
+            break; //выходим из основного цикла работы до исправления ошибки
+        }
+        if (RH == BUSY_BOX) { //проверяем наличие модуля на миспе
+            VasData->Diagn = BUSY_BOX;
+            tdrv->error = RH; //запоминаем значение
+            break; //выходим из основного цикла работы до исправления ошибки
+        }
+
+        ReadBx3w(AdrRQ, &RQ); //проверяем наличие разрешения на обслуживаение
         if (RQ == 0)
             break;
 
         RH = 0;
-        // for (i = 0; i < 8; i++) {
-        RH |= ReadBx3w(AdrData + (VasData->NumK * 3), &RL);
-        RH |= ReadBx3w(AdrData + (VasData->NumK * 3) + 1, &RQ);
+        RH |= ReadBx3w(AdrData + (VasData->NumK * 3), &RL); //читаем старшее значение байтай
+        RH |= ReadBx3w(AdrData + (VasData->NumK * 3) + 1, &RQ); //читаем младее значение байта
         if (RH == BUSY_BOX) {
-            // VasData->Diagn = BUSY_BOX;
-            // tdrv->error = RH;
             break;
         }
-        temp = ((RL << 8) | RQ);
-        VasData->SIGN[VasData->NumK].i = temp;
-        VasData->SIGN[VasData->NumK].error = 0;
-        // }
+        temp = ((RL << 8) | RQ); //преобразуем в байт
+        VasData->SIGN[VasData->NumK].i = temp; //запоминаем расшифрованное значение для текущего канала
+        VasData->SIGN[VasData->NumK].error = 0; //считаем канал исправным
         break;
     }
 
-    WriteBox(AdrRQ, 0);
+    WriteBox(AdrRQ, 0); //сообщаем модулю о завершении обслуживания
     WriteBox(AdrSVE, 1);
 
     RH = FreeBox(); // освободить ПЯ
     if (RH) {
         VasData->Diagn = BUSY_BOX;
-        tdrv->error = RH; // ошибка миспа
+        tdrv->error = RH; // запоминаем значение вернувшееся после попытки освобождения ПЯ
     }
 
-    if (VasData->NumK == 7)
+    if (VasData->NumK == 7) //цикл по 8 каналам модуля VAS
         VasData->NumK = 0;
     else
         VasData->NumK++;
