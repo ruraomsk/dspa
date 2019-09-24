@@ -52,7 +52,7 @@ void fds16r_dw(table_drv* tdrv) {
         return;
 
     fdsDate->Diagn = SPAPS_OK;
-    tdrv->error = SPAPS_OK; //ошибок в модуле нет можно работаеть
+    tdrv->error = SPAPS_OK; //ошибок в модуле нет можно работать
 
     CLEAR_MEM //подготовка памяти
     WritePort(ADR_MISPA, (char) (tdrv->address & 0xff)); //сообщаем миспе какой модуль к ней обращается

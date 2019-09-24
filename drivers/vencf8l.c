@@ -46,21 +46,15 @@ unsigned char vds32init(unsigned char AdrMod, unsigned char TypeMod) {
     if (ERR_MEM) {
         return BUSY_BOX;
     }
-
     RH |= WriteSinglBox(6, 0);
     RH |= WriteSinglBox(AdrType, 0);
-    //    проверка типа модуля
-    // RH |= ReadBx3w(AdrType, &temp);
-    // if (temp != TypeMod) {
-    //     return 0x80;
-    // } //ошибка типа модуля
-    RH |= WriteBox(AdrVdsAntiTrembl0, 0xff); // антидребезг каналы 1-16   0x20   AdrAntiTrembl0
-    RH |= WriteBox(AdrVdsChanlsMask0, 0x0); // маска каналы 1-16         0x21   AdrChanlsMask0
-    RH |= WriteBox(AdrVdsAntiTrembl1, 0xff); // антидребезг каналы 17-32  0x23   AdrAntiTrembl1
-    RH |= WriteBox(AdrVdsChanlsMask1, 0x0); // маска каналы 1-16         0x21   AdrChanlsMask1
-    RH |= ReadBx3w(AdrVdsStatus0, &temp); // статус0                          AdrStatus0
-    RH |= ReadBx3w(AdrVdsStatus1, &temp); // статус1                          AdrStatus1
-    RH |= ReadBx3w(AdrRQ, &temp); // регистр запроса обслуживания     AdrRQ
+    RH |= WriteBox(AdrVdsAntiTrembl0, 0xff); // антидребезг каналы 1-16  
+    RH |= WriteBox(AdrVdsChanlsMask0, 0x0); // маска каналы 1-16         
+    RH |= WriteBox(AdrVdsAntiTrembl1, 0xff); // антидребезг каналы 17-32 
+    RH |= WriteBox(AdrVdsChanlsMask1, 0x0); // маска каналы 1-16         
+    RH |= ReadBx3w(AdrVdsStatus0, &temp); // статус0                     
+    RH |= ReadBx3w(AdrVdsStatus1, &temp); // статус1                     
+    RH |= ReadBx3w(AdrRQ, &temp); // регистр запроса обслуживания     
     if (RH)
         Err = RH;
     return Err;
@@ -74,9 +68,6 @@ unsigned char fds16init(unsigned char AdrMod, unsigned char TypeMod) {
     if (ERR_MEM) {
         return BUSY_BOX;
     }
-    // RH |= ReadBx3w(AdrType, &temp);
-    // if (temp != TypeMod)
-    //     Err = 0x80;
     RH |= WriteBox(AdrFdsOut18, 0); // регистр вывода сигналов каналов 1-8  
     RH |= WriteBox(AdrFdsOut916, 0); // регистр вывода сигналов каналов 9-16  
     RH |= ReadBx3w(AdrFdsISP18, &temp); // регистр исправности каналов 1-8  
@@ -97,11 +88,11 @@ void vencf8_ini(table_drv *tdrv) {
     devdata->numE = 0;
     devdata->DiagnFDS = 0;
     devdata->DiagnVDS = 0;
-    tdrv->error = 0; // clear DRV error
+    tdrv->error = 0;
     SetBoxLen(inipar->BoxLen);
-    RH = vds32init(tdrv->address, inipar->typeVds); // инит Вдс на 1 месте
+    RH = vds32init(tdrv->address, inipar->typeVds); // инициализация модуля Вдс на 1 месте
     devdata->DiagnVDS = RH;
-    RH = fds16init(inipar->AdrFds, inipar->typeFds); // инит Фдс на 3 месте
+    RH = fds16init(inipar->AdrFds, inipar->typeFds); // инициализация модуля Фдс на 3 месте
     devdata->DiagnFDS = RH;
     if (devdata->DiagnFDS || devdata->DiagnVDS) {
         tdrv->error = devdata->DiagnFDS | devdata->DiagnVDS;
@@ -131,7 +122,6 @@ void vencf8_dr(table_drv *tdrv) {
     // всего читаем 4 байта
     while (1) {
         ReadBox(AdrRQ, &RH);
-        // if (RH & 0x01) { //изменения состояния данных в каналах 1-16
         for (k1 = 0; k1 < 2; k1++) { // при k1=0 считываем с 0х10(каналы 1-8 ВДС), при k1=1 с 0х11(каналы 9-16 ВДС)
             for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
                 er.error = ReadBx3w(AdrSostContact0 + k1, &er.c);
@@ -140,8 +130,6 @@ void vencf8_dr(table_drv *tdrv) {
             }
 
         }
-        // }
-        // if (RH & 0x10) { //изменения состояния данных в каналах 17-32
         for (k1 = 2; k1 < 4; k1++) { // при k1=2 считываем с 0х40(каналы 17-24 ВДС), при k2=3 с 0х41(каналы 25-32 ВДС)     (0х40 0х41 для вдс с новой прошивкой)
             for (k2 = 0; k2 < 3; k2++) { // читаем по 3 раза в разные переменные массива
                 er.error = ReadBx3w(AdrSostContact2 + (k1 - 2), &er.c);
@@ -149,17 +137,18 @@ void vencf8_dr(table_drv *tdrv) {
                 devdata->venc[k1].error |= er.error;
             }
         }
-        if (er.error == BUSY_BOX) { // При ошибке во время чтения вылетаем
+        //При ошибке во время чтения завершаем работу
+        if (er.error == BUSY_BOX) {
             devdata->DiagnVDS = BUSY_BOX;
             tdrv->error = er.error;
             return;
         }
-        // }
-        if ((TempEnc[0].l == TempEnc[1].l && TempEnc[0].l == TempEnc[2].l)) { // Если считанные значения равны, выходим
+        //Если считанные значения равны, выходим
+        if ((TempEnc[0].l == TempEnc[1].l && TempEnc[0].l == TempEnc[2].l)) {
             break;
         }
         if (PermCykl < 5)
-            PermCykl++; // пытаемся считать 10 раз
+            PermCykl++; // пытаемся считать 5 раз
         else {
             PermCykl = 13; // если не получилось считать, записываем 13
             break;
@@ -190,11 +179,9 @@ void vencf8_dr(table_drv *tdrv) {
         return;
     }
 
-    // работаем по циклу от 0 до 7
+    // работаем по циклу из 8
     if (devdata->numE < 7)
         devdata->numE++;
     else
         devdata->numE = 0;
-
-
 }

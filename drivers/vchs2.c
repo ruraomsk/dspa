@@ -50,11 +50,11 @@ void vchs_ini(table_drv *tdrv) {
 
     // проверка типа модуля
     ReadBox3(AdrType, &RQ);
-     if (RQ != inipar->type) { //проверяем верный ли модуль установлен на данном месте
-         tdrv->error = BUSY_BOX;
-         VchDate->Diagn = WRONG_DEV; //запоминаем значение - ошибка типа модуля
-         return; //прекращаем работу до исправления ошибки
-     } 
+    if (RQ != inipar->type) { //проверяем верный ли модуль установлен на данном месте
+        tdrv->error = BUSY_BOX;
+        VchDate->Diagn = WRONG_DEV; //запоминаем значение - ошибка типа модуля
+        return; //прекращаем работу до исправления ошибки
+    }
 
     // Натсройка диапазонов
     RQ = 0x40 | inipar->chn1d;
@@ -88,7 +88,7 @@ void vchs_ini(table_drv *tdrv) {
         VchDate->Diagn = SOST_ERR;
         tdrv->error = SOST_ERR;
         return;
-    } 
+    }
 }
 
 //===========================================================
@@ -161,10 +161,10 @@ void vchs_dr(table_drv *tdrv) {
             if (RQ & 0x20) { //проверка на переполнение канала
                 VchDate->SVCHS[i] = 1; // 1 - есть переполнение 0 - нет
                 // Сброс регистров   
-                ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]); 
+                ReadBx3w(0x19 + (0x20 * i), &CountChLow[i]);
                 ReadBx3w(0x1a + (0x20 * i), &CountChHigh[i]);
                 //преобразуем значение по каналу, для дальнейшего решения ситуации  переполнением
-                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]); 
+                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]);
                 //сбрасываем счетчик по текущему каналу
                 WriteSinglBox(AdrSV, 1);
                 ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
@@ -181,7 +181,7 @@ void vchs_dr(table_drv *tdrv) {
                 ReadBx3w(0x19 + (0x20 * i), &RQ); // Младший регистр адрес 0x19 и 0x39
                 ReadBx3w(0x1a + (0x20 * i), &RQ); // Старший регистр адрес 0x1a и 0x3a
                 //преобразование значения по каналу
-                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]); 
+                VchDate->tempI[i] = (unsigned int) ((unsigned int) (CountChHigh[i] * 256) + CountChLow[i]);
                 WriteSinglBox(AdrSV, 0);
                 VchDate->SVCHS[i] = 0; // все нормально, переполнения не было
             }
