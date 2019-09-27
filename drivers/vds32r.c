@@ -27,7 +27,7 @@
 //===========================================================
 
 void vds32r_ini(table_drv *tdrv) {
-    unsigned char RQ, RH = 0, RL; //переменные для хранения возвращаемых значений
+    unsigned char RH = 0, RL; //переменные для хранения возвращаемых значений
     int ADR_MISPA = 0x118; //переменная хранящаая адрес миспы
     tdrv->error = SPAPS_OK;
     vdsDate->Diagn = SPAPS_OK; //считаем что модуль исправен
@@ -72,7 +72,7 @@ void vds32r_ini(table_drv *tdrv) {
 void vds32r_rd(table_drv *tdrv) {
     //переменные для хранения возвращаемых значений
     vds32r_str vdsValue;
-    unsigned char RH = 0, SErr = 0, RQ = 0, i, j, z;
+    unsigned char RH = 0, SErr = 0, i, j, z;
     int k = 0, ADR_MISPA = 0x118;
 
     //если были ошибки их нужно оставить
