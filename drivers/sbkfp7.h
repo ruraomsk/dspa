@@ -3,16 +3,13 @@
 
 typedef struct __attribute__((packed))
 {
-  unsigned char type;  // default = 0xC2;  
-  unsigned int BoxLen; // default = 0xFF;  
-  unsigned char vip;   // default = 0;     
-  unsigned char NumCh; // default = 8;     
+  unsigned char UpReadC; // default = 0; переменная отсчета цикла    
 } sbk_inipar;
 
 typedef struct __attribute__((packed))
 {
-  ssbool SbkSIGN[13];
-  char emptyspace[64];
+  ssbool SbkSIGN[13]; // Результат расшифровки портов
+  char emptyspace[64]; // Зарезервированная память
 } sbk_data;
 
 #define SBK 0xCC

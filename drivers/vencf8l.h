@@ -31,7 +31,6 @@ typedef struct __attribute__((packed))
 {
   unsigned char   typeVds;       // 0xc2 тип вдс32р                                   
   unsigned short  BoxLen;        // 0xff длина ПЯ, уменьшенная на 1                   
-  unsigned char   vip;           // 0    флаг критически важного для системы модуля   
   unsigned char   AdrFds;        // 0x6  Адрес ФДС на МИСПА  
   unsigned char   typeFds;       // 0x04 тип Фдс16р                                   
 } vencf8_inipar;
@@ -50,7 +49,7 @@ typedef struct __attribute__((packed))
   short     DiagnFDS;      // диагностика ФДС
   short     DiagnVDS;      // диагностика ВДС 
   short     numE;          // переменная для выбора цикла (выбирает следующий BUS)
-  char emptyspace[64];
+  char emptyspace[64];     // Зарезервированная память
 } vencf8_data;
 
 #define VENCF 0x2

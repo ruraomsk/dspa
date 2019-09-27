@@ -52,7 +52,7 @@ void vds32r_ini(table_drv *tdrv) {
     RH |= WriteBox(AdrAntiTrembl0, inipar->tadr116); // каналы 1-16   0x20
     RH |= WriteBox(AdrChanlsMask0, 0x0); // каналы 1-16   0x21
     RH |= WriteBox(AdrAntiTrembl1, inipar->tadr1732); // каналы 17-32  0x23
-    RH |= WriteBox(AdrChanlsMask1, 0x0); // каналы 1-16   0x21
+    RH |= WriteBox(AdrChanlsMask1, 0x0); // каналы 1-16   0x24
     // проверям статус после найстройки
     RH |= ReadBx3w(AdrStatus0, &RL);
     RH |= ReadBx3w(AdrStatus1, &RL);
